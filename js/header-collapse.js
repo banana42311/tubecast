@@ -16,6 +16,7 @@
       host.appendChild(el);
       var t = el.querySelector('.chdr-t span'), bar = el.querySelector('.chdr-bar'), n = el.querySelector('.chdr-s b'), sep = el.querySelector('.chdr-s u'), s = el.querySelector('.chdr-s span');
       var raf = 0, api = {}, hero = null, bg = host.querySelector('.bg');
+      if(bg){host.insertBefore(bg,scroll);bg.classList.add('page-backdrop');}
       function update() {
         raf = 0;
         var st = Math.max(0, scroll.scrollTop), p = clamp(st / RANGE, 0, 1);
@@ -29,7 +30,7 @@
           hero.style.pointerEvents = p > 0.7 ? 'none' : '';
           hero.setAttribute('aria-hidden',String(p>0.7));
         }
-        if (bg) bg.style.translate = '0 ' + (Math.min(st, 240) * 0.35).toFixed(1) + 'px';
+        if (bg) bg.style.translate = '0 ' + (Math.min(st, 240) * -.08).toFixed(1) + 'px';
         var q = clamp((st - 28) / 48, 0, 1);
         el.style.setProperty('--q', q.toFixed(3));
         el.style.opacity = String(q);

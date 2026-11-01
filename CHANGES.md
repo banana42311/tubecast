@@ -75,3 +75,10 @@ python3 -m http.server 8765 --bind 127.0.0.1
 - Route picker opens compact, keeps its state when lowered, and hides the line summary/key. Search is an explicit expansion. Selected journeys list schematic stops and named interchanges.
 - First-visit onboarding uses the supplied SVG, with sequential ring illumination, glow and reduced-motion support.
 - Added `tests/ux.html` for 19 interaction regressions; physical iPhone Safari gesture feel remains a device check.
+
+## Map clarity and three-second splash
+- Onboarding now contains only the supplied Tubecast artwork, recoloured to the shared amber (#FFA12B), and enters Overview after three seconds.
+- Restored inline SVG in the zoomable map to avoid bitmap scaling; removed legacy station ticks and projected display markers onto line segments.
+- Replaced moving dashes with a short, fading directional light. Removed the Central summary and placed time filters and severity scale on one row.
+- Moved the line-page backdrop outside the card scroll viewport, removed the opaque header cover, and prevented focus scrolling from shifting the fixed header.
+- 26 interaction checks, motion tests and static release checks pass. Device-specific Safari rendering and gesture feel still need physical-device review.

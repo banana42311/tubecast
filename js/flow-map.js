@@ -12,6 +12,13 @@
   function el(t, a, p) { return C.el(t, a, p); }
   function lineName(sl) { return (LBS[sl] && LBS[sl].name || sl).replace(/ line$/, ''); }
   function lineCol(sl) { return (LBS[sl] && LBS[sl].color) || '#7c8794'; }
+  G.stations.forEach(function(st){
+    var cat=StationCatalog[st.name];if(!cat||!st.lines.length)return;
+    var x=cat.x*S,y=cat.y*S,best=null,dist=Infinity;
+    st.lines.forEach(function(line){var id=st.nodes[line],n=G.nodes[id];[-1,1].forEach(function(step){var b=G.nodes[id+step];if(!b||b.l!==line||Math.hypot(n.x-b.x,n.y-b.y)>14)return;var dx=b.x-n.x,dy=b.y-n.y,t=Math.max(0,Math.min(1,((x-n.x)*dx+(y-n.y)*dy)/(dx*dx+dy*dy||1)));var q={x:n.x+t*dx,y:n.y+t*dy},d=Math.hypot(q.x-x,q.y-y);if(d<dist){best=q;dist=d;}});});
+    if(best){st.x=best.x;st.y=best.y;}
+    world.querySelectorAll('.hit[data-st]').forEach(function(hit){if(hit.dataset.st===st.name){hit.style.left=(st.x-16)+'px';hit.style.top=(st.y-16)+'px';}});
+  });
   var CENTRE = G.byName['Charing Cross'] || G.byName['Oxford Circus'] || { x: 700, y: 450 };
   var SEVCOL = { minor: 'var(--minor)', severe: 'var(--severe)' };
 
@@ -34,6 +41,7 @@
       var dot=wdiv('station-marker '+kind+' '+sev,st.x,st.y,html,'button');dot.dataset.st=st.name;dot.dataset.kind=kind;dot.setAttribute('aria-label',st.name+' · '+(kind==='now'?'delayed now':'predicted in 30 min'));
     });
   });
+  ['minor','severe'].forEach(function(sev){var grad=el('linearGradient',{id:'flow-light-'+sev,x1:'0%',x2:'100%'},C.defs);[[0,0],[.55,.22],[.85,.85],[1,0]].forEach(function(stop){el('stop',{offset:stop[0],'stop-color':sev==='minor'?'#FFA12B':'#DC241F','stop-opacity':stop[1]},grad);});});
   FD.disruptions.forEach(function(d){
     var seg=G.stretch(d.line,kebab(d.from),kebab(d.to)),set={};
     if(seg)seg.ids.forEach(function(i){set[i]=1;});
@@ -45,15 +53,17 @@
     d.branches.forEach(function(branch){
       var path=G.stretch(d.line,kebab(branch.from),kebab(branch.to));if(!path)return;
       el('path',{d:dOf(path.pts),'class':'dz-glow',stroke:lineCol(d.line)},group);
-      el('path',{d:dOf(path.pts),'class':'dz-forecast dz-flow','data-kind':'next',style:'stroke:'+SEVCOL[d.nextSev],pathLength:100},group);
+      var beam=el('g',{'class':'direction-light','data-kind':'next'},group);
+      el('ellipse',{rx:26,ry:2.4,fill:'url(#flow-light-'+d.nextSev+')'},beam);
+      el('animateMotion',{path:dOf(path.pts),dur:Math.max(2.2,Math.min(4,path.pts.length*.045))+'s',repeatCount:'indefinite',rotate:'auto',calcMode:'paced'},beam);
       path.ids.forEach(function(i){set[i]=1;});
     });
     DZ.push({d:d,seg:seg || {pts:[],ids:[]},set:set});
   });
   var filter='all';
   document.querySelectorAll('[data-map-filter]').forEach(function(button){button.addEventListener('click',function(){
-    filter=button.dataset.mapFilter;world.dataset.filter=filter;
-    document.querySelectorAll('[data-map-filter]').forEach(function(b){b.setAttribute('aria-pressed',String(b===button));});
+    filter=filter===button.dataset.mapFilter?'all':button.dataset.mapFilter;world.dataset.filter=filter;
+    document.querySelectorAll('[data-map-filter]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.mapFilter===filter));});
   });});
 
   function dzById(id) { for (var i = 0; i < DZ.length; i++) if (DZ[i].d.id === id) return DZ[i]; return null; }

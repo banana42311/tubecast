@@ -56,17 +56,9 @@
   N.lines.p.forEach(function (p) { el('path', { d: p[1], stroke: N.colors[p[0]] }, ol); });
   var oc = sc(svg, N.central.off, { 'stroke-width': 2.05, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   N.central.p.forEach(function (d) { el('path', { d: d, stroke: N.colors.central }, oc); });
-  var tk = sc(svg, N.ticks.off, { 'stroke-width': 1.64 });
-  N.ticks.p.forEach(function (p) { el('path', { d: p[1], stroke: p[0] }, tk); });
   /* flow layers: base (everything drawn so far, dimmable) · hl (bright selected lines) · ov (delay + route overlays) */
   var base = el('g', { 'class': 'base' });
   Array.prototype.slice.call(svg.childNodes).forEach(function (n) { if (n !== defs) base.appendChild(n); });
-  // Static network renders once as an SVG image; animated overlays no longer repaint its path tree.
-  var artwork=document.createElementNS(NS,'svg');artwork.setAttribute('xmlns',NS);artwork.setAttribute('fill','none');
-  artwork.setAttribute('viewBox','-160 -160 1760 1220');artwork.setAttribute('width',1760);artwork.setAttribute('height',1220);
-  artwork.appendChild(defs.cloneNode(true));artwork.appendChild(base.cloneNode(true));
-  var backgroundURL=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(artwork)],{type:'image/svg+xml'}));
-  base.replaceChildren();el('image',{href:backgroundURL,x:-160,y:-160,width:1760,height:1220},base);
   svg.appendChild(base);
   var hl = el('g', { 'class': 'hl' }, svg), ov = el('g', { 'class': 'ov' }, svg);
   /* desktop hover: wide invisible strokes → highlight that line only as a passing effect */
@@ -124,7 +116,7 @@
   function softK(v) { return v > KMAX ? KMAX * (1 + M.rubberband(v / KMAX - 1, 1, .3)) : v < KMIN ? KMIN / (1 + M.rubberband(KMIN / v - 1, 1, .3)) : v; }
   var lastK = null;
   function apply() {
-    world.style.transform = 'translate3d(' + tx + 'px,' + ty + 'px,0) scale(' + k + ')';
+    world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')';
     if (lastK !== k) {
     world.style.setProperty('--ms',(1/k).toFixed(3));
     world.style.setProperty('--ls', (1 / Math.sqrt(k)).toFixed(3));           /* labels grow slower than the map */

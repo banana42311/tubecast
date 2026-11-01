@@ -7,6 +7,8 @@ const pause=()=>new Promise(r=>setTimeout(r,700));
 try{
 let w=await load('../map.html?station=holborn');await pause();let d=w.document,F=w.FlowMap;
 assert(!!F,'map initializes');
+assert(!d.querySelector('#world svg .base image'),'zoomable map stays inline vector');
+assert(getComputedStyle(d.querySelector('#chip')).display==='none','line summary removed from map');
 d.querySelector('[data-act="station-line"][data-line="piccadilly"]').click();
 assert(F.state().stationLine==='piccadilly','interchange line choice stays within station');
 assert(d.querySelector('.station-status').textContent.includes('Piccadilly'),'station status identifies selected line');
@@ -32,7 +34,9 @@ for(const [type,x] of [['pointerdown',r.left+50],['pointermove',r.left+60],['poi
 await pause();assert(d.querySelector('.pd.cur').dataset.i!=='0','bottom bar drag selects a line');
 assert(d.querySelectorAll('.pager-page.active').length===1,'scrubbing leaves exactly one active page');
 w=await load('../lines.html');await pause();assert(w.location.hash==='#all-lines','legacy directory opens integrated overview');
+w=await load('../line.html?line=district');await pause();d=w.document;let active=d.querySelector('.pager-page.active');assert(active.querySelector('.page-backdrop').parentNode===active,'background extends outside card scroll clipping');active.querySelector('.scroll').scrollTop=300;await pause();assert(getComputedStyle(active.querySelector('.chdr-bg')).display==='none','compact header has no opaque cover');active.scrollTop=40;assert(active.scrollTop===0,'fixed header parent cannot scroll on focus');
 w=await load('../onboarding.html');assert(w.document.querySelectorAll('.ring-light').length===48,'onboarding animates supplied forty-eight ring segments');
+assert(!w.document.querySelector('a,h1,p'),'onboarding contains only the logo');await new Promise(r=>setTimeout(r,3300));assert(w.location.pathname.endsWith('/index.html'),'splash proceeds to overview after three seconds');
 out.textContent='ALL CHECKS PASSED\n'+logs.join('\n');
 }catch(e){out.textContent=logs.join('\n')+'\nFAIL '+e.stack;}
 })();
