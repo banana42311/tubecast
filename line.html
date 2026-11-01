@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tubecast — Line</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="css/line.css">
+<link rel="stylesheet" href="css/header-collapse.css">
+<link rel="stylesheet" href="css/motion.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/service.css">
+<meta name="theme-color" content="#1a2029">
+<script src="js/shell.js"></script>
+</head>
+<body>
+<!-- line.html?line=<slug>[&state=loading|stale|error]  ·  Figma 141:9896 141:13006 141:13690 141:14282 141:14891 141:15467 141:16110 -->
+<div class="stage">
+  <div class="phone pg" id="phone">
+
+    <div class="pager" id="pager" aria-roledescription="carousel" aria-label="Tube lines"><div class="pager-track" id="track"></div></div>
+    <div id="live" class="sr" aria-live="polite"></div>
+
+    <!-- fixed chrome (same as index.html) -->
+    <div class="statusbar">
+      <div class="t">8:52</div>
+      <div class="island"></div>
+      <span class="b" style="left:300px;top:22px;height:4px"></span>
+      <span class="b" style="left:305px;top:19.5px;height:6.5px"></span>
+      <span class="b" style="left:310px;top:17px;height:9px"></span>
+      <span class="b" style="left:315px;top:14.5px;height:11.5px"></span>
+      <span class="batt"></span><span class="battf"></span>
+    </div>
+
+    <div class="bottomctl">
+      <button class="btn map" id="btnmap" aria-label="Map" data-href="map.html">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+          <path d="M12 15 L18 13 L26 16 L32 14 L32 29 L26 31 L18 28 L12 30 Z M18 13 L18 28 M26 16 L26 31"
+                stroke="#fff" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </button>
+      <div class="pagepos" id="pagepos" role="group" aria-label="Lines"></div>
+      <button class="btn list" aria-label="Lines" data-href="lines.html">
+        <span class="d" style="top:14.5px"></span><span class="l" style="top:15.2px"></span>
+        <span class="d" style="top:21px"></span>  <span class="l" style="top:21.7px"></span>
+        <span class="d" style="top:27.5px"></span><span class="l" style="top:28.2px"></span>
+      </button>
+    </div>
+
+    <div class="safari">
+      <div class="rb back" data-back role="button" aria-label="Back"><span>&lsaquo;</span></div>
+      <div class="addr"><span id="addr">tubecast.london/line</span></div>
+      <div class="rb more"><span>&ctdot;</span></div>
+      <div class="home"></div>
+    </div>
+  </div>
+  <div class="caption" id="caption"></div>
+</div>
+
+<script src="assets/network.js"></script>
+<script src="assets/map.js"></script>
+<script src="assets/linemeta.js"></script>
+<script src="assets/lines.js"></script>
+<script src="js/map-labels.js"></script>
+<script src="js/station-catalog.js"></script>
+<script src="js/flow-data.js"></script>
+<script src="js/lines-page.js"></script>
+<script src="js/motion.js"></script>
+<script src="js/header-collapse.js"></script>
+<script src="js/overview-page.js"></script>
+<script src="js/line-page.js"></script>
+</body>
+</html>

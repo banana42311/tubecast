@@ -1,0 +1,77 @@
+/* Tubecast motion + material tokens.
+   Sources: Apple "Designing Fluid Interfaces" (springs, instant press feedback, materials, reduced motion) and the
+   Weather-App-React repo (status-themed ambient background, staged content swap, glass cards with
+   blur+saturate, slide-up/fade entrance, cubic-bezier(.25,.8,.25,1) easing, rare gentle idle motion). */
+
+:root {
+  --ease: cubic-bezier(.25, .8, .25, 1);          /* weather-app easing: smooth settle, no overshoot */
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);
+  --t-fast: 120ms; --t-med: 320ms; --t-slow: 560ms;
+  --glass: rgba(255, 255, 255, .08);
+  --glass-edge: rgba(255, 255, 255, .14);
+}
+
+/* ---------- materials: blur 20 + saturation, a bright top edge = light catching the surface ---------- */
+.card, .glass {
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(20px) saturate(150%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .10), 0 10px 30px -14px rgba(0, 0, 0, .55);
+}
+
+/* ---------- instant press feedback (on pointer-down, not on release) ---------- */
+[data-href], .btn, button, a { transition: transform var(--t-med) var(--ease), background-color var(--t-fast) ease-out, opacity var(--t-fast) ease-out; }
+[data-href]:active, .btn:active { transform: scale(.975); transition-duration: 90ms; }
+.btn:active { transform: scale(.94); }
+@media (hover: hover) and (pointer: fine) {
+  .card[data-href]:hover { transform: translateY(-2px); background-color: rgba(255, 255, 255, .11); }   /* weather-app card lift, kept subtle */
+  .btn:hover { background-color: rgba(255, 255, 255, .22); }
+}
+:focus-visible { outline: 2px solid var(--navy-light, #8fa2ff); outline-offset: 2px; border-radius: 12px; }
+
+/* ---------- entrance: slide up + fade, staggered (weather-app slideUpFade, 0.8s -> 0.5s) ---------- */
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.enter { animation: rise var(--t-slow) var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
+
+/* ---------- content swap (weather-app isTransitioning): out fast, in slower ---------- */
+.swap-out { opacity: 0; transform: translateY(6px); transition: opacity 160ms ease-in, transform 160ms ease-in; }
+.swap-in  { opacity: 1; transform: none;           transition: opacity 320ms var(--ease), transform 320ms var(--ease); }
+
+/* ---------- ambient status layer (weather-app theme-* + particle layer, as soft drifting light) ----------
+   <div class="ambient" data-tone="calm|delayed|severe"><i></i><i></i><i></i></div>   inside the page underlay */
+.ambient { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; --tone: 31,166,166; transition: opacity 1.2s var(--ease); }
+.ambient[data-tone="delayed"] { --tone: 255,161,43; }
+.ambient[data-tone="severe"]  { --tone: 220,36,31; }
+.ambient i { position: absolute; width: 280px; height: 280px; border-radius: 50%; filter: blur(48px); opacity: .16;
+  background: radial-gradient(circle, rgba(var(--tone), .9), transparent 70%); transition: background 1.2s var(--ease);
+  animation: drift 26s ease-in-out infinite alternate; will-change: transform; }
+.ambient i:nth-child(1) { left: -80px; top: 40px; }
+.ambient i:nth-child(2) { right: -100px; top: 300px; width: 340px; height: 340px; animation-duration: 34s; animation-delay: -8s; opacity: .12; }
+.ambient i:nth-child(3) { left: 20%; bottom: -120px; width: 320px; height: 320px; animation-duration: 30s; animation-delay: -15s; opacity: .10; }
+@keyframes drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(40px, -30px, 0) scale(1.12); } }
+
+/* ---------- skeleton shimmer ---------- */
+@keyframes shimmer { from { background-position: -200px 0; } to { background-position: 200px 0; } }
+.skel { background: linear-gradient(90deg, rgba(255,255,255,.06) 25%, rgba(255,255,255,.14) 50%, rgba(255,255,255,.06) 75%); background-size: 400px 100%; animation: shimmer 1.4s linear infinite; border-radius: 8px; }
+
+/* ---------- swipe pager ---------- */
+.pager { position: absolute; inset: 0; overflow: hidden; }
+.pager-track { position: absolute; inset: 0; display: flex; will-change: transform; }
+.pager-page { position: relative; flex: 0 0 100%; width: 100%; height: 100%; overflow: hidden; }
+.pager.dragging { cursor: grabbing; }
+.pager.dragging * { pointer-events: none; }
+
+/* ---------- accessibility: reduced motion / transparency / contrast (Apple HIG) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ambient i, .skel { animation: none; }
+  .enter { animation: none; }
+  .pred .p, .pred i.p, .glow i { animation-duration: 0s; }
+  [data-href]:active, .btn:active { transform: none; }
+  .card[data-href]:hover { transform: none; }
+  * { scroll-behavior: auto !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .card, .glass { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: rgba(38, 46, 58, .96); }
+}
+@media (prefers-contrast: more) {
+  .card, .glass { background-color: rgba(30, 38, 49, .98); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5); }
+}

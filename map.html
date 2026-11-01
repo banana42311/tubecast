@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tubecast · Map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="css/search.css">
+<link rel="stylesheet" href="css/map.css">
+<link rel="stylesheet" href="css/flow.css">
+<link rel="stylesheet" href="css/motion.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/service.css">
+<meta name="theme-color" content="#1a2029">
+<script src="js/shell.js"></script>
+</head>
+<body>
+<div class="stage">
+  <div class="phone map-phone">
+    <nav class="service-nav" aria-label="Navigation"><a href="index.html">‹ <span>Overview</span></a><span>TUBECAST</span><span class="demo-tag">DEMO DATA</span></nav>
+
+    <div class="mapview" id="view"><div id="world"></div></div>
+
+    <!-- station search -->
+    <div class="ui sbox">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="6.6" cy="6.6" r="4.9" stroke="rgba(235,235,245,.6)" stroke-width="1.6"/><path d="M10.4 10.4 14.6 14.6" stroke="rgba(235,235,245,.6)" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input id="q" type="search" placeholder="Search a station" autocomplete="off" spellcheck="false" aria-label="Search a station">
+    </div>
+    <div class="sp" id="sp" hidden></div>
+
+    <a class="ui chip" id="chip" href="line.html?line=central"><i></i><b>Central line</b><span>· 4 delayed now</span></a>
+
+    <div class="map-key"><div class="map-filters" role="group" aria-label="Delay time window"><button data-map-filter="all" aria-pressed="true">All</button><button data-map-filter="now" aria-pressed="false"><i class="delay-dot now minor"></i>Now</button><button data-map-filter="next" aria-pressed="false"><i class="delay-dot next minor"></i>Next 30 min</button></div><details><summary aria-label="Map key">Key</summary><div><p><b>Filled point</b> · delayed now</p><p><b>Dashed ring</b> · predicted delay</p><p><b>Arrow</b> · direction delay may spread</p><p>Amber = minor · Red = severe.<br>Line colours identify the service.</p><p>Illustrative data, not live TfL information.</p></div></details></div>
+
+    <a class="ui stackbtn" id="stack" href="lines.html" aria-label="All lines"><i style="left:15px;top:13px;width:14px;height:2px;opacity:.5"></i><i style="left:13px;top:17px;width:18px;height:2px;opacity:.75"></i><i style="left:11px;top:21px;width:22px;height:12px;border-radius:3px"></i></a>
+    <div class="ui zoomctl" role="group" aria-label="Zoom">
+      <button class="zbtn" id="zin" type="button" aria-label="Zoom in"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M3 9h12" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button class="zbtn" id="zout" type="button" aria-label="Zoom out"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <a class="routebtn" id="route" href="map.html?pick=1" aria-label="Plan a route">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M7 26V18a6 6 0 0 1 6-6h12M19 5l7 7-7 7" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Plan a route</span>
+    </a>
+
+    <div class="statusbar">
+      <div class="t">8:52</div>
+      <div class="island"></div>
+      <span class="b" style="left:300px;top:22px;height:4px"></span>
+      <span class="b" style="left:305px;top:19.5px;height:6.5px"></span>
+      <span class="b" style="left:310px;top:17px;height:9px"></span>
+      <span class="b" style="left:315px;top:14.5px;height:11.5px"></span>
+      <span class="batt"></span><span class="battf"></span>
+    </div>
+    <div class="safari">
+      <div class="rb back" data-back><span>&lsaquo;</span></div>
+      <div class="addr"><span>tubecast.london/map</span></div>
+      <div class="rb more"><span>&ctdot;</span></div>
+      <div class="home"></div>
+    </div>
+
+  </div>
+  <div class="caption">V3 · Map — drag to pan · pinch / scroll to zoom · <a href="lines.html">lines &rarr;</a></div>
+</div>
+<script src="js/motion.js"></script>
+<script src="assets/linemeta.js"></script>
+<script src="assets/network.js"></script>
+<script src="js/map-labels.js"></script>
+<script src="js/station-catalog.js"></script>
+<script src="js/flow-data.js"></script>
+<script src="js/search.js"></script>
+<script src="js/map-page.js"></script>
+<script src="js/flow-geo.js"></script>
+
+<script src="js/flow-sheet.js"></script>
+<script src="js/flow-map.js"></script>
+</body>
+</html>

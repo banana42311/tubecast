@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover">
+<title>Tubecast mobile — components</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="css/motion.css">
+<link rel="stylesheet" href="css/responsive.css">
+<script src="js/shell.js"></script>
+</head>
+<body class="sheetpage">
+
+<div class="sheet">
+
+  <div class="top">
+    <div class="h1">Tubecast mobile — components</div>
+    <div class="lede">Hue = severity (amber Minor · red Severe · green normal · grey not running). Shape = time (filled = now · dashed + pulse = predicted). Line colour = identity only. Glass blur 20.</div>
+  </div>
+
+  <!-- ===================== Marker ===================== -->
+  <div class="sec">
+    <div class="h2">Marker</div>
+    <div class="note">State × Severity. Map, line track, timeline and sheet all use these.</div>
+
+    <div class="set w600">
+      <!-- State=Now, Severity=Minor -->
+      <div class="cell m">
+        <span class="nowglow minor" style="left:1px;top:1px;width:26px;height:26px"></span>
+        <span class="nowdot minor"  style="left:8px;top:8px;width:12px;height:12px"></span>
+      </div>
+      <!-- State=Now, Severity=Severe -->
+      <div class="cell m">
+        <span class="nowglow severe" style="left:1px;top:1px;width:26px;height:26px"></span>
+        <span class="nowdot severe"  style="left:8px;top:8px;width:12px;height:12px"></span>
+      </div>
+      <!-- State=Predicted, Severity=Minor -->
+      <div class="cell m">
+        <span class="pred minor" style="--s:.45;left:-.4px;top:-.4px"><i class="g"></i><i class="p"></i><i class="c"></i></span>
+      </div>
+      <!-- State=Predicted, Severity=Severe -->
+      <div class="cell m">
+        <span class="pred severe" style="--s:.45;left:-.4px;top:-.4px"><i class="g"></i><i class="p"></i><i class="c"></i></span>
+      </div>
+      <!-- State=Normal -->
+      <div class="cell m">
+        <span class="nowdot good" style="left:9px;top:9px;width:10px;height:10px;box-shadow:none"></span>
+      </div>
+      <!-- State=Not running -->
+      <div class="cell m">
+        <span style="position:absolute;left:9px;top:9px;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.22)"></span>
+      </div>
+    </div>
+
+    <div class="cap">Left&nbsp;&rarr;&nbsp;right: Now&nbsp;·&nbsp;Minor &nbsp;·&nbsp; Now&nbsp;·&nbsp;Severe &nbsp;·&nbsp; Predicted&nbsp;·&nbsp;Minor &nbsp;·&nbsp; Predicted&nbsp;·&nbsp;Severe &nbsp;·&nbsp; Normal &nbsp;·&nbsp; Not running</div>
+  </div>
+
+  <!-- ===================== Line track ===================== -->
+  <div class="sec">
+    <div class="h2">Line track</div>
+    <div class="note">The bar is the line. Only delayed stations are shown, west&nbsp;&rarr;&nbsp;east (or south&nbsp;&rarr;&nbsp;north). Glow flows in the delay direction. Two lanes only when both directions are affected.</div>
+
+    <div class="set">
+
+      <!-- Type = 1 lane -->
+      <div class="track">
+        <span class="dir l">Westbound</span><span class="dir r">Eastbound</span>
+        <span class="lc" style="background:var(--central)"></span>
+        <span class="glow toleft"><i style="background:linear-gradient(90deg,rgba(225,37,27,0),#ff5e52 50%,rgba(225,37,27,0))"></i></span>
+        <span class="casing" style="left:36.64px;top:9px;width:18px;height:18px"></span>
+        <span class="pred severe" style="--s:.9;left:16.84px;top:-10.8px"><i class="g"></i><i class="p"></i><i class="c"></i></span>
+        <span class="st" style="left:32.64px">Bank</span>
+        <span class="casing" style="left:114.88px;top:9px;width:18px;height:18px"></span>
+        <span class="pred severe" style="--s:.9;left:95.08px;top:-10.8px"><i class="g"></i><i class="p"></i><i class="c"></i></span>
+        <span class="st" style="left:92.88px">Liverpool St</span>
+        <span class="nowglow minor" style="left:189.12px;top:5px;width:26px;height:26px"></span>
+        <span class="casing" style="left:193.62px;top:9.5px;width:17px;height:17px"></span>
+        <span class="nowdot minor" style="left:196.62px;top:12.5px;width:11px;height:11px"></span>
+        <span class="st on" style="left:165.62px">Bethnal Green</span>
+        <span class="nowglow minor" style="left:267.36px;top:5px;width:26px;height:26px"></span>
+        <span class="casing" style="left:271.86px;top:9.5px;width:17px;height:17px"></span>
+        <span class="nowdot minor" style="left:274.86px;top:12.5px;width:11px;height:11px"></span>
+        <span class="st on" style="left:258.36px">Mile End</span>
+      </div>
+
+      <!-- Type = 2 lanes -->
+      <div style="display:flex;flex-direction:column;gap:8px;width:326px">
+        <div class="track">
+          <span class="dir l">&larr; Westbound</span>
+          <span class="lc" style="background:var(--district)"></span>
+          <span class="glow toleft"><i style="background:linear-gradient(90deg,rgba(0,163,63,0),#40e37f 50%,rgba(0,163,63,0))"></i></span>
+          <span class="casing" style="left:23.6px;top:9px;width:18px;height:18px"></span>
+          <span class="pred severe" style="--s:.9;left:3.8px;top:-10.8px"><i class="g"></i><i class="p"></i><i class="c"></i></span>
+          <span class="st" style="left:0">Barons Court</span>
+          <span class="casing" style="left:108.36px;top:9px;width:18px;height:18px"></span>
+          <span class="nowglow minor" style="left:104.36px;top:5px;width:26px;height:26px"></span>
+          <span class="nowdot minor" style="left:111.86px;top:12.5px;width:11px;height:11px"></span>
+          <span class="st on" style="left:73.86px">West Kensington</span>
+          <span class="casing" style="left:193.12px;top:9px;width:18px;height:18px"></span>
+          <span class="nowglow minor" style="left:189.12px;top:5px;width:26px;height:26px"></span>
+          <span class="nowdot minor" style="left:196.62px;top:12.5px;width:11px;height:11px"></span>
+          <span class="st on" style="left:171.62px">Earl&#39;s Court</span>
+        </div>
+        <div class="track">
+          <span class="dir" style="left:258px">Eastbound &rarr;</span>
+          <span class="lc" style="background:var(--district)"></span>
+          <span class="glow toright"><i style="background:linear-gradient(90deg,rgba(0,163,63,0),#40e37f 50%,rgba(0,163,63,0))"></i></span>
+          <span class="casing" style="left:114.88px;top:9px;width:18px;height:18px"></span>
+          <span class="nowglow minor" style="left:110.88px;top:5px;width:26px;height:26px"></span>
+          <span class="nowdot minor" style="left:118.38px;top:12.5px;width:11px;height:11px"></span>
+          <span class="st on" style="left:93.38px">Earl&#39;s Court</span>
+          <span class="casing" style="left:206.16px;top:9px;width:18px;height:18px"></span>
+          <span class="pred severe" style="--s:.9;left:186.36px;top:-10.8px"><i class="g"></i><i class="p"></i><i class="c"></i></span>
+          <span class="st" style="left:178.66px">Gloucester Rd</span>
+          <span class="casing" style="left:290.92px;top:9px;width:18px;height:18px"></span>
+          <span class="pred minor" style="--s:.9;left:271.12px;top:-10.8px"><i class="g"></i><i class="p"></i><i class="c"></i></span>
+          <span class="st" style="left:273px">South Ken</span>
+        </div>
+      </div>
+
+      <!-- Type = Whole line -->
+      <div class="track">
+        <span class="dir l">Southbound</span><span class="dir" style="left:264px">Northbound</span>
+        <span class="lc" style="background:var(--vic)"></span>
+        <span class="nowglow minor" style="left:84.8px;top:5px;width:26px;height:26px"></span>
+        <span class="casing" style="left:89.3px;top:9.5px;width:17px;height:17px"></span>
+        <span class="nowdot minor" style="left:92.3px;top:12.5px;width:11px;height:11px"></span>
+        <span class="st on" style="left:77.8px">Victoria</span>
+        <span class="nowglow minor" style="left:182.6px;top:5px;width:26px;height:26px"></span>
+        <span class="casing" style="left:187.1px;top:9.5px;width:17px;height:17px"></span>
+        <span class="nowdot minor" style="left:190.1px;top:12.5px;width:11px;height:11px"></span>
+        <span class="st on" style="left:160.1px">Oxford Circus</span>
+        <span class="nowglow minor" style="left:267.36px;top:5px;width:26px;height:26px"></span>
+        <span class="casing" style="left:271.86px;top:9.5px;width:17px;height:17px"></span>
+        <span class="nowdot minor" style="left:274.86px;top:12.5px;width:11px;height:11px"></span>
+        <span class="st on" style="left:262.36px">Euston</span>
+      </div>
+
+      <!-- Type = Not running -->
+      <div class="track">
+        <span class="dir l">Westbound</span><span class="dir r">Eastbound</span>
+        <span class="lc" style="background:var(--pic);opacity:.35"></span>
+        <span class="cut"  style="left:179.3px;width:146.7px"></span>
+        <span class="dash" style="left:179.3px;width:146.7px"></span>
+        <span class="tick" style="left:178.3px"></span>
+        <span class="st" style="left:147.3px;top:26px">King&rsquo;s Cross</span>
+      </div>
+
+      <!-- Type = No delays -->
+      <div class="track" style="height:24px">
+        <span class="dir l">Southbound</span><span class="dir" style="left:264px">Northbound</span>
+        <span class="lc" style="background:var(--nor)"></span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== Glass card ===================== -->
+  <div class="sec">
+    <div class="h2">Glass card</div>
+    <div class="note">All glass uses background blur 20.</div>
+    <div class="set">
+      <div class="spec stack"><b>Stack card</b><span>white 8% · r18</span></div>
+      <div class="spec sheetc"><b>Sheet</b><span>surface-2 94% · top r18</span></div>
+      <div class="spec inner"><b>Inner card</b><span>white 6% · r14 · inside sheets</span></div>
+      <div class="spec selected"><b>Selected card</b><span>white 10% + 1px white 40%</span></div>
+      <div class="spec banner"><b>Banner</b><span>white 12% + stroke · stale / error</span></div>
+    </div>
+  </div>
+
+  <!-- ===================== Bottom controls ===================== -->
+  <div class="sec">
+    <div class="h2">Bottom controls</div>
+    <div class="note">Floating above the Safari bar (y&nbsp;706). Buttons brighter glass, page pill darker.</div>
+    <div class="set w900">
+
+      <!-- Context = Stack -->
+      <div class="ctlspec">
+        <button class="btn map" aria-label="Map">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+            <path d="M12 15 L18 13 L26 16 L32 14 L32 29 L26 31 L18 28 L12 30 Z M18 13 L18 28 M26 16 L26 31"
+                  stroke="#fff" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </button>
+        <div class="pagepos">
+          <i class="cur" style="left:16.75px"></i>
+          <i style="left:31.75px"></i><i style="left:44.75px"></i><i style="left:57.75px"></i>
+          <i style="left:70.75px"></i><i style="left:83.75px"></i><i style="left:96.75px"></i>
+          <i style="left:109.75px"></i>
+        </div>
+        <button class="btn list" aria-label="Lines">
+          <span class="d" style="top:14.5px"></span><span class="l" style="top:15.2px"></span>
+          <span class="d" style="top:21px"></span>  <span class="l" style="top:21.7px"></span>
+          <span class="d" style="top:27.5px"></span><span class="l" style="top:28.2px"></span>
+        </button>
+      </div>
+
+      <!-- Context = Map -->
+      <div class="ctlspec map">
+        <button class="btn stack" aria-label="Stack">
+          <span class="r" style="left:15px;top:13px;width:14px;height:2px;opacity:.5"></span>
+          <span class="r" style="left:13px;top:17px;width:18px;height:2px;opacity:.75"></span>
+          <span class="r" style="left:11px;top:21px;width:22px;height:12px;border-radius:3px"></span>
+        </button>
+        <button class="btn route" aria-label="Routes">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+            <path d="M28 14 L42 28 L28 42 L14 28 Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M24 33.5 L24 29.5 C24 28.4 24.9 27.5 26 27.5 L33 27.5 M30 24.5 L33 27.5 L30 30.5"
+                  stroke="#1fa6a6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== Station row bar ===================== -->
+  <div class="sec">
+    <div class="h2">Station row bar</div>
+    <div class="note">Time runs left&nbsp;&rarr;&nbsp;right (Now&nbsp;·&nbsp;30&nbsp;·&nbsp;60). Solid dot = now. Bar starts at expected onset; colour = how bad; fades after 30&nbsp;min.</div>
+    <div class="set">
+
+      <!-- Kind = Now delayed -->
+      <div class="srow">
+        <span class="stn"><b>Mile End</b><i>Westbound</i></span>
+        <span class="tbar">
+          <span class="trk" style="width:170px"></span>
+          <span class="exp" style="left:0;width:170px;background:linear-gradient(90deg,rgba(255,161,43,.95) 0%,rgba(220,36,31,.95) 50%,rgba(220,36,31,.25) 100%)"></span>
+          <span class="dot"></span>
+        </span>
+      </div>
+
+      <!-- Kind = Predicted onset -->
+      <div class="srow">
+        <span class="stn"><b>Liverpool Street</b><i>Westbound</i></span>
+        <span class="tbar">
+          <span class="trk" style="width:170px"></span>
+          <span class="exp" style="left:28.33px;width:141.667px;background:linear-gradient(90deg,rgba(255,161,43,.95) 0%,rgba(220,36,31,.95) 40%,rgba(220,36,31,.25) 100%)"></span>
+          <span class="ons" style="left:27.33px"></span>
+        </span>
+      </div>
+
+      <!-- Kind = Low -->
+      <div class="srow">
+        <span class="stn"><b>Stratford</b><i>Eastbound</i></span>
+        <span class="tbar">
+          <span class="trk" style="width:133px"></span>
+          <span class="lbl">Low</span>
+        </span>
+      </div>
+
+      <!-- Kind = Not running -->
+      <div class="srow off">
+        <span class="stn"><b>Caledonian Road</b><i>Both ways</i></span>
+        <span class="tbar">
+          <span class="nrl" style="width:84px"></span>
+          <span class="lbl">Not running</span>
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="cap"><a href="index.html" style="color:var(--navy-light);text-decoration:none">&larr; V2 · Stack — All lines</a></div>
+
+</div>
+
+</body>
+</html>

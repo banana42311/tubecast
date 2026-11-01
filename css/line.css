@@ -1,0 +1,133 @@
+/* Line stack pages — line.html  (Figma 141:9896 … 141:16110) — page-specific rules on top of ../styles.css */
+
+.ul{position:absolute;left:0;top:0;width:390px;height:844px;overflow:hidden}
+.ul .maphost{position:absolute;left:0;top:0;width:390px;height:844px}
+.stale-state .ul{opacity:.6} .error-state .ul{opacity:.6} .loading-state .ul{opacity:.5}
+.pg .markers{overflow:visible}
+.mk{position:absolute}
+.mk .casing{position:absolute;border-radius:50%;background:var(--surface-2)}
+
+/* hero (shifted down under a banner) */
+.pg .hero{left:16px;top:72px}
+.hero .title .bar{width:5px;height:26px;border-radius:2.5px;flex:none}
+.hero .title{display:flex;align-items:center;gap:10px}
+.hero .value{display:block}
+.stale-state .hero .value,.error-state .hero .value{opacity:.55}
+.hero .chip.one{flex:none;width:auto;height:30px;padding:5px 12px 5px 10px;border-radius:999px;margin-top:-3px}
+.hero .sevrow{display:flex;justify-content:center;margin-top:-2px;width:358px}
+.hero .sevrow.has{margin-top:-1px}
+.hero.pic{left:45.5px;width:299px}
+.hero.pic svg{display:block;width:96px;height:115px}
+.hero .sub.clip{white-space:nowrap}
+
+/* ---- forecast card ---- */
+.fc{position:absolute;left:16px;width:358px;height:182px}
+.fc .t{position:absolute;left:16px;top:14px;font-size:17px;font-weight:600;line-height:20px;letter-spacing:-.374px;color:#fff;white-space:nowrap}
+.fc .s{position:absolute;left:16px;top:36px;font-size:17px;font-weight:400;line-height:20px;letter-spacing:-.374px;color:rgba(235,235,245,.85);white-space:nowrap}
+.fc .hr{position:absolute;left:16px;top:65.5px;width:326px;height:.5px;background:rgba(255,255,255,.1)}
+.fc .cols{position:absolute;left:16px;top:78px;width:326px;display:flex}
+.fc .col{width:65.2px;display:flex;flex-direction:column;align-items:center}
+.fc .col .l{font-size:13px;font-weight:400;line-height:16px;letter-spacing:-.224px;color:var(--sec);height:16px}
+.fc .col.now .l{font-weight:600;color:#fff}
+.fc .col .mkr{position:relative;width:28px;height:28px;margin-top:8px;flex:none}
+.fc .col .n{margin-top:6px;font-size:13px;line-height:16px;letter-spacing:-.224px;color:var(--sec);white-space:nowrap}
+.fc .col .n b{font-size:15px;font-weight:600;color:#fff;margin-right:3px;letter-spacing:-.224px}
+.fc .col.dim{opacity:.45}
+.fc .col .mkr .nowglow{left:0;top:0;width:28px;height:28px}
+.fc .col .mkr .nowdot{left:8px;top:8px;width:12px;height:12px;box-shadow:none}
+.fc .col .mkr .pred{left:-13.43px;top:-13.43px}
+.fc .col .mkr svg{position:absolute;left:0;top:0}
+
+/* closure card */
+.fc.cl{height:157px}
+.fc.cl .t{top:14px;color:rgba(255,255,255,.9)}
+.fc.cl .hr{top:45.5px}
+.cl .ln{position:absolute;left:16px;width:326px;height:34px}
+.cl .ln i{position:absolute;left:0;top:14px;width:22px;height:4px;display:block}
+.cl .ln i.x{background:none;border-top:3px dashed var(--planned);height:0;top:15px}
+.cl .ln i.r{background:var(--pic);border-radius:2px}
+.cl .ln .k{position:absolute;left:33px;top:0;font-size:13px;line-height:16px;letter-spacing:-.224px;color:var(--sec);white-space:nowrap}
+.cl .ln .v{position:absolute;left:33px;top:17px;font-size:15px;font-weight:600;line-height:18px;letter-spacing:-.224px;color:#fff;white-space:nowrap}
+
+/* ---- stations card ---- */
+.sc{position:absolute;left:16px;width:358px;padding:0 16px 7px}
+.sc .hd{position:relative;height:33px}
+.sc .hd .k{position:absolute;left:0;top:12px;font-size:12px;font-weight:600;line-height:14px;letter-spacing:.2px;color:var(--sec)}
+.sc .hd .a{position:absolute;top:12px;font-size:12px;font-weight:400;line-height:14px;letter-spacing:-.224px;color:var(--sec);white-space:nowrap}
+.sc .srow{cursor:pointer;text-decoration:none}
+.sc .srow:active{background:rgba(255,255,255,.04)}
+.sc .srow.off .stn i{opacity:.7}
+.sc .srow.off{cursor:default}
+.sc .allok{display:flex;align-items:center;gap:10px;padding:12px 0 10px;border-top:.5px solid rgba(255,255,255,.1)}
+.sc .allok i{width:10px;height:10px;border-radius:50%;background:var(--good);flex:none;display:block}
+.sc .allok span{font-size:17px;line-height:20px;letter-spacing:-.374px;color:#fff}
+.tbar.lowb .trk{width:133px}
+.tbar .grad{position:absolute;top:5px;height:4px;border-radius:2px}
+.tbar .ons{left:0}
+
+/* ---- banner ---- */
+.banner{position:absolute;left:16px;top:56px;width:358px;display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:14px;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.banner.st{height:56px;cursor:pointer}
+.banner.er{height:72px}
+.banner svg{flex:none;display:block}
+.banner .tx{flex:1 0 0;min-width:0;display:flex;flex-direction:column}
+.banner .tx b{font-size:15px;font-weight:600;line-height:18px;letter-spacing:-.224px;color:#fff;white-space:nowrap}
+.banner .tx span{font-size:13px;font-weight:400;line-height:16px;letter-spacing:-.224px;color:var(--sec)}
+.banner .retry{flex:none;height:30px;padding:0 16px;border:0;border-radius:15px;background:var(--good);color:#fff;
+  font:600 15px/18px var(--sf);letter-spacing:-.224px;cursor:pointer}
+.banner .retry:active{transform:scale(.95)}
+.stale-state .fc,.stale-state .sc,.error-state .fc,.error-state .sc{opacity:.55}
+.spin .banner svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- footer ---- */
+.pg .footer{left:80px}
+.footer.wide{left:68px;width:254px}
+.footer .h{cursor:pointer}
+
+/* ---- skeleton ---- */
+.sk{display:block;background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.16) 50%,rgba(255,255,255,.08));
+  background-size:200% 100%;animation:shimmer 1.4s linear infinite;border-radius:6px}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.skbox{width:72px;height:72px;border-radius:16px}
+.fc.sk .b1{position:absolute;left:16px;top:16px;width:220px;height:18px}
+.fc.sk .b2{position:absolute;left:16px;top:46px;width:180px;height:18px}
+.fc.sk .cols{top:84px}
+.fc.sk .col .a{width:34px;height:12px;margin-top:0}
+.fc.sk .col .c{width:14px;height:14px;border-radius:50%;margin-top:8px}
+.fc.sk .col .d{width:30px;height:14px;margin-top:8px}
+.sc .skrow{display:flex;align-items:center;gap:12px;padding:14px 0;border-top:.5px solid rgba(255,255,255,.1)}
+.sc .skrow .l{flex:1 0 0;display:flex;flex-direction:column;gap:6px}
+.sc .skrow .r{width:170px;height:6px;border-radius:3px}
+
+@media (prefers-reduced-motion:reduce){.sk{animation:none}.spin .banner svg{animation:none}}
+
+/* map markers */
+.markers .pred .c{border-style:solid}
+.markers .ring{position:absolute;border-radius:50%;border:2px solid var(--minor);background:none}
+.markers .ring.severe{border-color:var(--severe)}
+
+.pg .pagepos i.cur{width:7px;height:7px;border-width:1.5px;top:12.5px;left:17.25px!important}
+
+/* ===== pager / responsive (Phase 3) ===== */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.pg .pager-page .scroll{overscroll-behavior:contain}
+.pg .bg,.pg .ul,.pg .ul .maphost,.pg .bg .fade,.pg .markers{height:max(844px,var(--H,844px))}
+.pg .view{position:absolute;left:0;top:0;width:390px}
+html.mode-phone .pg .view{margin-top:calc(env(safe-area-inset-top,0px) / var(--s,1))}
+.pg .banner{top:calc(56px + 0px)}
+html.mode-phone .pg .banner{top:calc(12px + env(safe-area-inset-top,0px) / var(--s,1))}
+html.mode-phone .pg .hero{margin-top:-20px}
+/* page dots: 12 tappable targets, current = pill tinted by line colour */
+.pg .pagepos{left:calc(172.5px - 112px);width:224px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.pg .pagepos .pd{position:relative;flex:1 1 0;min-width:0;height:32px;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pg .pagepos .pd i{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:3px;background:rgba(255,255,255,.35);
+  transition:width .32s var(--ease),margin .32s var(--ease),background-color .2s,box-shadow .3s}
+.pg .pagepos .pd:active i{transform:scale(1.25)}
+.pg .pagepos .pd.cur i{width:14px;margin-left:-7px;background:#fff;box-shadow:0 0 0 1.5px var(--c,#fff)}
+.pg .pagepos .pd:focus-visible{outline-offset:-2px;border-radius:16px}
+.pager-page .view.swap-in{animation:none}
+.phone.spin .banner svg{animation:spin .8s linear infinite}
+@media (prefers-reduced-motion:reduce){.pg .pagepos .pd i{transition:none}}

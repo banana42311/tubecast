@@ -1,0 +1,64 @@
+/* V4 · Lines — Figma 141:11944 (390×844). Rows reuse styles.css (.card .lrow .track …). */
+.lcontent{position:relative;width:390px;padding:60px 16px 140px;display:flex;flex-direction:column;gap:10px}
+.lines .card{-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+.lcontent .title{display:flex;align-items:center;gap:8px}
+.lcontent h1{flex:1;font-size:34px;font-weight:590;line-height:41px;letter-spacing:-.748px;color:#fff}
+.extag{border:1px dashed rgba(235,235,245,.35);border-radius:999px;padding:3px 8px;font-size:12px;font-weight:510;line-height:14px;
+       letter-spacing:-.224px;color:var(--sec);white-space:nowrap}
+.lcontent .sbox{width:100%;flex:none}
+#sp{left:16px;top:164px;width:358px}
+.lrow{cursor:pointer}
+.track.short{height:24px}
+/* compact normal rows */
+.nrow{display:flex;align-items:center;gap:8px;height:50px;padding:0 16px;cursor:pointer;flex:none}
+.nrow .bar{width:4px;height:18px;border-radius:2px;flex:none}
+.nrow .nm{font-size:17px;font-weight:600;line-height:20px;letter-spacing:-.374px;color:#fff;white-space:nowrap}
+.nrow .sm{flex:1 0 0;min-width:0;font-size:13px;line-height:16px;letter-spacing:-.224px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nrow .ok{position:relative;width:26px;height:26px;flex:none}
+.nrow .ok::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle closest-side,rgba(31,166,166,.55),rgba(31,166,166,0))}
+.nrow .ok i{position:absolute;left:7.5px;top:7.5px;width:11px;height:11px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2.5px #1a2029}
+.lrow:active,.nrow:active{background:rgba(255,255,255,.12)}
+
+/* ---------- row layout: station names ABOVE the line, direction labels BELOW ---------- */
+.lines .track{height:66px}
+.lines .track .st{top:0 !important}
+.lines .track .lc{top:29.5px}
+.lines .track .glow{top:25px}
+.lines .track .cut{top:28.5px}
+.lines .track .dash{top:29.5px}
+.lines .track .tick{top:27.5px}
+.lines .track .dir{top:51px}
+.lines .track.short{height:34px}
+.lines .track.short .lc{top:6px}
+.lines .track.short .dir{top:17px}
+.lines .track .dir.l{left:0}
+.lines .track .dir.r{right:0}
+.lines .track .st{transition:color .2s}
+
+/* ---------- station beads: one size, one construction ----------
+   disc 20 (cuts the line, 1px top-light edge) → core 10 (now: filled) | ring 14 dashed + soft core (predicted)
+   colour = severity only; the line keeps its own identity colour */
+.bead{position:absolute;top:21px;width:20px;height:20px;border-radius:50%;pointer-events:none;
+  background:#1a2029;box-shadow:0 0 0 1px rgba(255,255,255,.10),0 2px 6px rgba(0,0,0,.35);--c:var(--minor)}
+.bead.severe{--c:var(--severe)}
+.bead>i{position:absolute;left:5px;top:5px;width:10px;height:10px;border-radius:50%;box-sizing:border-box}
+.bead.now>i{background:var(--c);box-shadow:0 0 10px 1px color-mix(in srgb,var(--c) 55%,transparent)}
+.bead.now::after{content:"";position:absolute;inset:-7px;border-radius:50%;
+  background:radial-gradient(circle closest-side,color-mix(in srgb,var(--c) 38%,transparent),transparent);z-index:-1}
+.bead.pred>i{left:3px;top:3px;width:14px;height:14px;border:1.5px dashed var(--c);background:color-mix(in srgb,var(--c) 22%,transparent)}
+.bead.pred>b{position:absolute;left:7px;top:7px;width:6px;height:6px;border-radius:50%;background:var(--c);opacity:.85}
+.bead.pred::before{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--c);opacity:0;animation:beadpulse 2s cubic-bezier(.22,.61,.36,1) infinite}
+@keyframes beadpulse{0%{transform:scale(.8);opacity:.7}80%,100%{transform:scale(2.3);opacity:0}}
+.lrow:hover .bead.now>i{box-shadow:0 0 12px 2px color-mix(in srgb,var(--c) 65%,transparent)}
+@media (prefers-reduced-motion:reduce){.bead.pred::before{animation:none;opacity:.35;transform:scale(1.7)}}
+@media (prefers-contrast:more){.bead{box-shadow:0 0 0 1.5px #fff}}
+
+/* ---------- responsive / material ---------- */
+.lines .scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.lrow,.nrow{transition:transform .32s var(--ease),background-color .12s ease-out}
+.lrow:active,.nrow:active{transform:scale(.985);transition-duration:.09s}
+.lrow:focus-visible,.nrow:focus-visible{outline:2px solid var(--navy-light,#8fa2ff);outline-offset:2px}
+html.mode-phone .lcontent{padding-top:calc(24px + env(safe-area-inset-top,0px)/var(--s,1));padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)/var(--s,1))}
+html.mode-phone #sp{top:calc(128px + env(safe-area-inset-top,0px)/var(--s,1))}
+
+.lines .track+.track{margin-top:10px}

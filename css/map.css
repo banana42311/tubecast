@@ -1,0 +1,56 @@
+/* V3 · Map — Figma 141:11262 (390×844). Map world = 1440×900 frame, panned by drag. */
+.mapview{position:absolute;inset:0;overflow:hidden;background:var(--surface-2);touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.mapview.drag{cursor:grabbing}
+#world{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;--ls:1;--hs:1}
+#world>svg{position:absolute;left:0;top:0;display:block;overflow:visible}
+.lbl{position:absolute;height:13px;transform-origin:0 50%;transform:scale(var(--ls));font:400 10.8px/13px "Atkinson Hyperlegible",var(--sf);color:#aeb8c3;white-space:nowrap;
+     text-decoration:none;cursor:pointer;text-shadow:0 0 3px #1a2029,0 0 3px #1a2029}
+.lbl.hot{font-weight:700;color:#cfd6de}
+.hit{position:absolute;border-radius:50%;cursor:pointer;display:block;transform:scale(var(--hs))}
+.cst{position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;box-sizing:border-box;pointer-events:none}
+.mapview .nowdot{box-shadow:none;border:2.5px solid #12161c;box-sizing:border-box}
+.mapview .nowdot.minor{background:var(--minor)}
+
+/* overlay UI */
+.ui{position:absolute;z-index:20;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);background:rgba(22,25,31,.72)}
+.ui.sbox{left:16px;top:calc(56px + var(--to,0px));width:358px}
+#sp{left:16px;top:calc(106px + var(--to,0px));width:358px}
+.chip{left:16px;top:calc(110px + var(--to,0px));height:34px;display:flex;align-items:center;gap:8px;padding:0 14px 0 12px;border-radius:999px;
+      text-decoration:none;color:#fff;font-size:15px;line-height:18px;letter-spacing:-.224px;white-space:nowrap}
+.chip i{width:4px;height:16px;border-radius:2px;flex:none}
+.chip b{font-weight:590}
+.chip span{color:var(--sec)}
+.legend{left:16px;top:calc(152px + var(--to,0px));height:26px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:999px;
+        font-size:12px;line-height:14px;color:var(--sec);white-space:nowrap}
+.legend b{font-weight:510}
+.legend .dn{width:10px;height:10px;border-radius:50%;background:var(--minor);flex:none}
+.legend .dp{width:11px;height:11px;border-radius:50%;border:1.5px dashed var(--severe);flex:none;box-sizing:border-box}
+.stackbtn{left:20px;top:calc(706px + var(--bo,0px));width:44px;height:44px;border-radius:22px;display:block}
+.stackbtn i{position:absolute;background:#fff;border-radius:1px;display:block}
+.routebtn{position:absolute;z-index:20;left:318px;top:calc(694px + var(--bo,0px));width:56px;height:56px;border-radius:16px;background:var(--good);
+          display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.routebtn:active,.stackbtn:active,.chip:active{transform:scale(.96)}
+
+/* highlight layers: invisible by default; only ever a passing interaction effect */
+.glw{opacity:0;transition:opacity .35s ease;pointer-events:none}
+.glw.on{opacity:.85}
+.lhit{pointer-events:all}
+@media (hover:hover) and (pointer:fine){.mapview{cursor:grab}}
+
+/* zoom controls */
+.zoomctl{left:330px;top:calc(592px + var(--bo,0px));width:44px;border-radius:22px;display:flex;flex-direction:column;overflow:hidden}
+.zbtn{all:unset;box-sizing:border-box;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background-color .12s,opacity .2s,transform .3s var(--ease)}
+.zbtn+.zbtn{border-top:1px solid rgba(255,255,255,.12)}
+.zbtn:hover{background:rgba(255,255,255,.1)}
+.zbtn:focus-visible{outline:2px solid var(--navy-light,#8fa2ff);outline-offset:-3px}
+.zbtn[aria-disabled="true"]{opacity:.35;pointer-events:none}
+
+/* glass: blur + saturation, bright top edge */
+.ui{-webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);box-shadow:inset 0 1px 0 rgba(255,255,255,.10)}
+.routebtn,.stackbtn,.chip{transition:transform .32s var(--ease),background-color .12s}
+.routebtn:active,.stackbtn:active,.chip:active,.zbtn:active{transform:scale(.94);transition-duration:.09s}
+@media (prefers-reduced-transparency:reduce){.ui{background:rgba(26,32,41,.97);-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-reduced-motion:reduce){.glw{transition:none}}
+
+/* phone mode: no fake status/Safari bars → controls hug the real screen edges, map fills the whole height */
+html.mode-phone{--to:calc(-40px + env(safe-area-inset-top,0px)/var(--s,1));--bo:calc(72px + var(--dy,0px) - env(safe-area-inset-bottom,0px)/var(--s,1))}

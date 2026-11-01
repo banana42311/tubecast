@@ -1,0 +1,37 @@
+/* Collapsing header (pairs with js/header-collapse.js) + overview page bits. */
+.chdr { position: absolute; left: 0; top: 0; width: 390px; z-index: 6; opacity: 0; pointer-events: none; }
+.chdr-bg { position: absolute; left: 0; top: 0; right: 0; height: calc(var(--top, 54px) + 76px);
+  background: linear-gradient(180deg, rgba(20, 26, 34, .86), rgba(20, 26, 34, .55) 70%, rgba(20, 26, 34, 0));
+  -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+  -webkit-mask-image: linear-gradient(#000 72%, transparent); mask-image: linear-gradient(#000 72%, transparent); }
+.chdr-in { position: relative; padding-top: var(--top, 54px); text-align: center; will-change: transform; }
+.chdr-t { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px; font-weight: 600; line-height: 24px; letter-spacing: -.45px; color: #fff; }
+.chdr-bar { width: 4px; height: 18px; border-radius: 2px; flex: none; }
+.chdr-s { margin-top: 1px; display: flex; justify-content: center; gap: 7px; font-size: 15px; line-height: 20px; letter-spacing: -.224px; color: var(--sec, rgba(235,235,245,.6)); }
+.chdr-s b { font-weight: 500; color: #fff; }
+.chdr-s u { text-decoration: none; opacity: .6; }
+.phone { --top: 54px; }
+html.mode-phone .phone { --top: calc(12px + env(safe-area-inset-top, 0px) / var(--s, 1)); }
+
+/* pages scroll inside the pager; content never reveals the translated artwork */
+.pg .pager-page .content { overflow: hidden; }
+.pg .pager-page .scroll { scroll-behavior: auto; }
+.pg .hero { will-change: opacity, translate, scale; }
+/* weather-like rows: thin hairlines between list rows inside glass cards */
+.watch .lrow + .lrow { margin-top: 0; }
+
+@media (prefers-reduced-motion: reduce) { .pg .hero { will-change: auto; } }
+@media (prefers-reduced-transparency: reduce) { .chdr-bg { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(20, 26, 34, .96); } }
+
+/* Scroll viewport starts below the settled summary; cards cannot cross its baseline. */
+.pg .pager-page .scroll { top: calc(var(--top, 54px) + 62px); }
+.pg .pager-page .content { margin-top: calc(-1 * (var(--top, 54px) + 62px)); }
+.chdr { height: calc(var(--top, 54px) + 62px); overflow: hidden; }
+.chdr-bg { height: 100%; background: rgba(26,32,41,.97); mask-image:none; -webkit-mask-image:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+.chdr-in { padding-left:52px; padding-right:52px; }
+.chdr-t { font-size:18px; line-height:23px; letter-spacing:-.4px; }
+.chdr-s { font-size:13px; line-height:19px; }
+.pg .hero.enter { animation:none; }
+.pg .pager-page:not(.active) * { animation-play-state:paused !important; }
+
+.pg .pager.dragging .pager-page { visibility:visible; }

@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Tubecast regression checks</title><style>body{font:14px/1.6 system-ui;background:#15202b;color:#e4edf5;padding:24px}pre{white-space:pre-wrap}</style><h1>Geometry and data regression checks</h1><pre id="result">Running…</pre>
+<script src="../assets/network.js"></script><script src="../assets/linemeta.js"></script><script src="../assets/lines.js"></script><script src="../js/map-labels.js"></script><script src="../js/station-catalog.js"></script><script src="../js/flow-data.js"></script><script src="../js/flow-geo.js"></script>
+<script>
+(function(){var results=[],fail=0;function check(ok,text){results.push((ok?'PASS ':'FAIL ')+text);if(!ok)fail++;}
+var ctx={N:NET,S:1440/656,slugs:Object.keys(NET.colors),linePaths:function(sl){return sl==='central'?NET.central.p:NET.lines.p.filter(function(p){return p[0]===sl;}).map(function(p){return p[1];});},lineOff:function(sl){return sl==='central'?NET.central.off:NET.lines.off;}};
+var t=performance.now(),G=FlowGeo.build(ctx),build=performance.now()-t;
+FlowData.disruptions.forEach(function(d){['now','next'].forEach(function(k){d[k].forEach(function(name){var st=G.byName[name],node=st&&G.nodes[st.nodes[d.line]];check(!!node,d.line+' '+name+' '+k+' has a mapped line anchor');});});d.branches.forEach(function(b){check(!!G.stretch(d.line,G.kebab(b.from),G.kebab(b.to)),d.line+' direction '+b.from+' → '+b.to);});});
+LINES.forEach(function(l){var s=FlowData.summary(l.slug),p=LINE_DATA[l.slug];if(l.status==='delayed'){check(+p.hero.value===s.now,l.slug+' count matches map');check(p.fc.cols[3][1]===s.total,l.slug+' 30-minute total matches map');}});
+var pairs=[['bow-road','ladbroke-grove'],['mile-end','bank'],['barons-court','sloane-square'],['oxford-circus','waterloo'],['paddington','liverpool-street'],['bethnal-green','bank']];
+var times=[];pairs.forEach(function(p){var t=performance.now(),r=G.route(p[0],p[1]);times.push(performance.now()-t);check(!!r&&r.legs.length>0,'route '+p.join(' → '));if(r){check(!r.legs.some(function(l){return LINE_BY_SLUG[l.line].status==='closed';}),'route excludes closed lines');}});
+check(G.route('bank','bank')===null,'same endpoint rejected');check(G.route('missing','bank')===null,'unknown endpoint rejected');
+check(G.byName['Bow Road'].lines.sort().join(',')==='district,hammersmith-city','Bow Road never attaches to nearby Central line');
+check(G.byName['Bethnal Green'].lines.join(',')==='central','Bethnal Green attaches only to Central');
+var all=G.stations.length,unmapped=G.stations.filter(function(s){return s.vn<0;}).map(function(s){return s.name;});
+results.push('\nBuild: '+build.toFixed(1)+' ms; nodes: '+G.nodes.length+'; stations: '+all);results.push('Route query max: '+Math.max.apply(null,times).toFixed(1)+' ms');results.push('Unmapped schematic stations: '+unmapped.join(', '));
+results.unshift(fail?'FAILED: '+fail+' checks':'ALL CHECKS PASSED');document.getElementById('result').textContent=results.join('\n');})();
+</script></html>
