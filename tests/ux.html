@@ -1,0 +1,39 @@
+<!doctype html><meta charset="utf-8"><title>Tubecast interaction checks</title><style>body{background:#1a2029;color:white;font:14px monospace}iframe{width:390px;height:740px;border:0}pre{white-space:pre-wrap}</style><h1>Interaction regression checks</h1><pre id="out">Running…</pre><iframe id="app"></iframe><script>
+(async()=>{
+const out=document.querySelector('#out'),frame=document.querySelector('iframe');let logs=[];
+const assert=(ok,label)=>{if(!ok)throw Error(label);logs.push('PASS '+label);};
+const load=url=>new Promise(resolve=>{frame.onload=()=>resolve(frame.contentWindow);frame.src=url;});
+const pause=()=>new Promise(r=>setTimeout(r,700));
+try{
+let w=await load('../map.html?station=holborn');await pause();let d=w.document,F=w.FlowMap;
+assert(!!F,'map initializes');
+d.querySelector('[data-act="station-line"][data-line="piccadilly"]').click();
+assert(F.state().stationLine==='piccadilly','interchange line choice stays within station');
+assert(d.querySelector('.station-status').textContent.includes('Piccadilly'),'station status identifies selected line');
+assert(!d.querySelector('.line-alerts').textContent.includes('Central'),'line-wide context follows selected line');
+d.querySelector('[data-act="route-from"]').click();await pause();
+assert(F.state().from==='holborn'&&F.state().field==='to','route starts with chosen station');
+assert(F.sheet.snap==='compact'&&F.sheet.visible<310,'picker opens compact');
+assert(getComputedStyle(d.querySelector('#chip')).display==='none'&&getComputedStyle(d.querySelector('.map-key')).display==='none','planning hides summary and legend');
+F.sheet.snapTo('peek');await pause();assert(F.state().from==='holborn'&&F.state().field==='to','lowering picker preserves origin and target field');
+d.querySelector('[data-act="search-pick"]').click();let q=d.querySelector('#rpq');q.value='Bank';q.dispatchEvent(new w.Event('input',{bubbles:true}));d.querySelector('[data-act="pickst"][data-n="Bank"]').click();
+assert(F.state().t==='route'&&F.state().from==='holborn'&&F.state().to==='bank','destination completes route without losing origin');
+d.querySelector('[data-act="go"]').click();assert(d.querySelector('.leg-stops').textContent.includes('Chancery Lane'),'selected route includes intermediate stations');
+F.go({t:'route',from:'bow-road',to:'ladbroke-grove',opt:0,chosen:true});
+assert(d.querySelector('.journey-steps').textContent.includes('Change at'),'selected multi-line route names interchange');
+const marks=[...d.querySelectorAll('.station-marker')].map(n=>n.dataset.st+':'+n.dataset.kind);
+assert(new Set(marks).size===marks.length,'one status marker per station and time window');
+assert(!d.querySelector('[marker-end]'),'direction uses flow without arrowheads');
+w=await load('../index.html#all-lines');await pause();d=w.document;
+assert(d.querySelectorAll('.all-line-cards>a').length===12,'overview includes all twelve lines');
+assert(!!d.querySelector('.ringwrap img'),'original main radial diagram retained');
+const pp=d.querySelector('#pagepos'),r=pp.getBoundingClientRect();
+for(const [type,x] of [['pointerdown',r.left+50],['pointermove',r.left+60],['pointermove',r.left+110],['pointerup',r.left+110]])pp.dispatchEvent(new w.PointerEvent(type,{pointerId:8,clientX:x,clientY:r.top+20,bubbles:true,button:0}));
+await pause();assert(d.querySelector('.pd.cur').dataset.i!=='0','bottom bar drag selects a line');
+assert(d.querySelectorAll('.pager-page.active').length===1,'scrubbing leaves exactly one active page');
+w=await load('../lines.html');await pause();assert(w.location.hash==='#all-lines','legacy directory opens integrated overview');
+w=await load('../onboarding.html');assert(w.document.querySelectorAll('.ring-light').length===48,'onboarding animates supplied forty-eight ring segments');
+out.textContent='ALL CHECKS PASSED\n'+logs.join('\n');
+}catch(e){out.textContent=logs.join('\n')+'\nFAIL '+e.stack;}
+})();
+</script>

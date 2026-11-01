@@ -17,7 +17,7 @@
   chip.querySelector('i').style.background = L.color;
   chip.querySelector('b').textContent = L.name.replace(/ line$/, '') + ' line';
   chip.querySelector('span').textContent = '· ' + (L.status === 'delayed' ? L.now + ' delayed now' : L.status === 'closed' ? 'Not running' : 'Good service');
-  document.getElementById('stack').href = 'lines.html';
+  document.getElementById('stack').href = 'index.html#all-lines';
   document.getElementById('route').href = 'map.html?pick=1';
   document.title = 'Tubecast · Map · ' + L.name;
   TCSearch.attach({ input: document.getElementById('q'), panel: document.getElementById('sp'), line: function () { return slug; } });
@@ -58,15 +58,6 @@
   N.central.p.forEach(function (d) { el('path', { d: d, stroke: N.colors.central }, oc); });
   var tk = sc(svg, N.ticks.off, { 'stroke-width': 1.64 });
   N.ticks.p.forEach(function (p) { el('path', { d: p[1], stroke: p[0] }, tk); });
-  var hb = sc(svg, N.hubs.off, { fill: 'white', stroke: '#0B0D11', 'stroke-width': 1.025 });
-  N.hubs.r.forEach(function (r) { el('circle', { cx: r[0], cy: r[1], r: r[2] }, hb); });
-  Object.keys(N.stations || {}).forEach(function (sl) {
-    if (sl === 'central') return;
-    var st = sc(svg, [0, 0], { fill: 'white' });
-    N.stations[sl].forEach(function (s) {
-      var a = { cx: s[0], cy: s[1], r: s[2] }; if (s[3]) { a.stroke = '#1A2029'; a['stroke-width'] = 1.5 / S; } el('circle', a, st);
-    });
-  });
   /* flow layers: base (everything drawn so far, dimmable) · hl (bright selected lines) · ov (delay + route overlays) */
   var base = el('g', { 'class': 'base' });
   Array.prototype.slice.call(svg.childNodes).forEach(function (n) { if (n !== defs) base.appendChild(n); });
@@ -172,11 +163,12 @@
         k = k0 + (tk - k0) * p; tx = x0 + (tx1 - x0) * p; ty = y0 + (ty1 - y0) * p; apply(); }, onDone: function () { sp.z = null; } });
       return;
     }
+    vx=M.clamp(vx,-1800,1800);vy=M.clamp(vy,-1800,1800);
     var bX = bx(k), bY = by(k);
-    var gx = hard(x0 + M.project(vx), bX), gy = hard(y0 + M.project(vy), bY);
+    var gx = hard(x0 + M.project(M.clamp(vx,-1800,1800),.991), bX), gy = hard(y0 + M.project(M.clamp(vy,-1800,1800),.991), bY);
     var outX = tx < bX[0] || tx > bX[1], outY = ty < bY[0] || ty > bY[1];
-    sp.x = M.spring({ from: tx, to: gx, velocity: vx, response: outX ? .4 : .62, damping: outX ? 1 : .88, precision: .05, onUpdate: function (v) { tx = v; apply(); }, onDone: function () { sp.x = null; } });
-    sp.y = M.spring({ from: ty, to: gy, velocity: vy, response: outY ? .4 : .62, damping: outY ? 1 : .88, precision: .05, onUpdate: function (v) { ty = v; apply(); }, onDone: function () { sp.y = null; } });
+    sp.x = M.spring({ from: tx, to: gx, velocity: vx, response: .28, damping: 1, precision: .05, onUpdate: function (v) { tx = v; apply(); }, onDone: function () { sp.x = null; } });
+    sp.y = M.spring({ from: ty, to: gy, velocity: vy, response: .28, damping: 1, precision: .05, onUpdate: function (v) { ty = v; apply(); }, onDone: function () { sp.y = null; } });
   }
 
   var ptr = {}, mode = null, g0 = null, moved = false, tr = M.tracker(), lastC = { x: 195, y: 400 }, lastTap = null;

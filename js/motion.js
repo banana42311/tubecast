@@ -129,6 +129,7 @@
         var projected = x + M.project(d.vx,.996);
         var target = Math.round(-projected / W);
         target = M.clamp(target, idx - 1, idx + 1); /* a pager never skips more than one page */
+        if(Math.abs(d.dx)>W*.16)target=idx+(d.dx<0?1:-1);
         if (Math.abs(d.dx) < 6 && Math.abs(d.vx) < 100) target = Math.round(-x / W);
         go(effectiveCancel(d)?idx:target,d.e.type==='pointercancel'?0:d.vx);
       }

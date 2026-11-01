@@ -12,7 +12,7 @@
     var scroller = root.querySelector('.fs-scroll'), pane = root.querySelector('.fs-pane');
     var VH = 844, vis = 0, snap = null, sp = null, dismissible = true, busy = null;
 
-    function pts() { VH = phone.clientHeight || 844; return { peek: Math.min(168, VH * .24), mid: Math.round(VH * (VH < 700 ? .62 : .5)), full: Math.max(160, VH - 76) }; }
+    function pts() { VH = phone.clientHeight || 844; return { compact: Math.min(280,VH*.42), peek: dismissible ? Math.min(168,VH*.24) : Math.min(280,VH*.42), mid: Math.round(VH * (VH < 700 ? .62 : .5)), full: Math.max(160, VH - 76) }; }
     function paint(v) { vis = v; root.style.transform = 'translate3d(0,' + (VH - v) + 'px,0)'; cb.onChange && cb.onChange(v, false); }
     function animate(to, vel, done) {
       if (sp) sp.stop();
@@ -76,7 +76,7 @@
       },
       onEnd: function (d) {
         root.classList.remove('dragging');
-        var P = pts(), proj = vis - M.project(d.vy / ((window.Shell && Shell.scale) || 1)), choices = [['peek', P.peek], ['mid', P.mid], ['full', P.full]], best = null, bd = 1e9;
+        var P = pts(), proj = vis - M.project(d.vy / ((window.Shell && Shell.scale) || 1)), choices = [['peek', P.peek], ['compact',P.compact], ['mid', P.mid], ['full', P.full]], best = null, bd = 1e9;
         choices.forEach(function (c) { var e = Math.abs(c[1] - proj); if (e < bd) { bd = e; best = c; } });
         if (dismissible && proj < P.peek * .55) { api.close(); return; }
         api.snapTo(best[0], d.vy / ((window.Shell && Shell.scale) || 1));

@@ -66,3 +66,12 @@ python3 -m http.server 8765 --bind 127.0.0.1
 ## 모바일 반응 속도·홈 화면 웹앱
 
 하단 패널을 168px/인접 점 7개로 압축하고 화면 아래로 내렸습니다. 페이지 전환의 대기와 긴 스프링을 줄이고, 정적 지도 이미지 캐시·미리 계산한 경로 좌표·지도 파일 미리 읽기를 적용했습니다. 링·방향 글로우와 원형 다이어그램은 유지합니다. manifest와 iPhone/Android 아이콘을 추가해 같은 링크를 홈 화면 웹앱으로 열 수 있습니다. 성능 수치, 검증 범위와 전달 방법은 `DELIVERY.md`를 참고하세요.
+
+## Unified overview, map clarity and journey flow
+- Overview retains the radial diagram and includes all 12 compact line cards, station search and a shared amber-to-red severity key. `lines.html` redirects to the integrated list.
+- Map stations use one consistent centre, aggregating delay markers by station/time window. Forecast direction uses travelling light without arrowheads; pan momentum is shorter and critically damped.
+- Interchange line buttons update the station panel in place, including line-wide context and example arrivals.
+- Bottom pager supports scrubbing; content swipes accept shorter movement while leaving browser edge gestures alone.
+- Route picker opens compact, keeps its state when lowered, and hides the line summary/key. Search is an explicit expansion. Selected journeys list schematic stops and named interchanges.
+- First-visit onboarding uses the supplied SVG, with sequential ring illumination, glow and reduced-motion support.
+- Added `tests/ux.html` for 19 interaction regressions; physical iPhone Safari gesture feel remains a device check.

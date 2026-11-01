@@ -1,11 +1,12 @@
 /* Static deployment contract: node tests/release.cjs */
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-for(const name of ['index.html','line.html','lines.html','map.html','about.html']){
+for(const name of ['index.html','line.html','lines.html','map.html','about.html','onboarding.html']){
  const html=fs.readFileSync(name,'utf8');
  for(const [,ref] of html.matchAll(/(?:src|href)="([^"]+)"/g)){
   if(/^(?:https?:|mailto:|#|data:|blob:)/.test(ref))continue;
   const local=ref.split(/[?#]/)[0];if(local)assert(fs.existsSync(path.resolve(local)),name+' missing '+local);
  }
+ if(name==='lines.html'){assert(html.includes('index.html#all-lines'));continue;}
  assert(html.includes('rel="manifest"'),name+' has manifest');
  assert(html.includes('apple-touch-icon'),name+' has iPhone icon');
 }

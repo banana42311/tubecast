@@ -205,3 +205,45 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .mapview { contain:layout paint; }
 /* Keep static network artwork in its own cached image, above dynamic delay layers. */
 .mapview .glw:not(.on) { display:none; }
+
+/* Unified directory and always-visible delay scale. */
+.map-phone .map-key { flex-wrap:wrap;justify-content:flex-start;gap:7px;width:auto;right:16px; }
+.severity-key { display:flex;align-items:center;gap:8px;font-size:10px;color:#c0c9d3; }
+.severity-key i { width:70px;height:5px;border-radius:9px;background:linear-gradient(90deg,var(--minor),var(--severe)); }
+.map-key .severity-key { flex-basis:100%;padding:3px 8px;background:#1a2029e8;width:max-content;border-radius:12px; }
+.overview-search { position:relative; }
+.overview-search input { width:100%;height:42px;border:1px solid #ffffff18;border-radius:18px;background:#303740;color:white;padding:0 14px; }
+.overview-search .sp { position:absolute;top:46px;left:0;width:100%;max-height:280px; }
+.watch .status-key { padding:5px 4px; }
+.watch .severity-key { padding:0 4px 8px; }
+.all-line-cards { display:flex;flex-direction:column;gap:7px; }
+.pg .pagepos { touch-action:none;user-select:none;overscroll-behavior-x:contain; }
+.pg .pagepos.scrubbing { background:#37414d;box-shadow:0 0 0 1px #ffffff40; }
+/* One station centre at every interchange; status overlays share that centre. */
+.station-base { position:absolute;width:0;height:0;pointer-events:none;z-index:3;transform:scale(var(--ls)); }
+.station-base>i { position:absolute;width:12px;height:12px;left:-6px;top:-6px;background:#f1f4f7;border:2px solid #151c24;border-radius:50%;box-sizing:border-box; }
+#world.route-focus .station-base { opacity:.15; }
+#world .lbl { z-index:6;font-weight:600;text-shadow:0 0 3px #1a2029,0 0 6px #1a2029,0 1px 1px #1a2029; }
+.dz-i .dz-glow { stroke-width:7;opacity:.22;animation:none;filter:none; }
+.dz-i .dz-current { stroke-width:3;opacity:.35; }
+.dz-i .dz-flow { stroke-width:3;stroke-dasharray:14 86;stroke-linecap:round;animation:directionFlow 2.4s linear infinite;filter:drop-shadow(0 0 3px currentColor);opacity:.9; }
+@keyframes directionFlow { to { stroke-dashoffset:-100; } }
+.fs-chips .lpa { border:1px solid transparent;padding:3px;border-radius:12px;background:none;color:white;cursor:pointer; }
+.fs-chips .lpa[aria-pressed=true] { border-color:#aec7d5;background:#ffffff10; }
+.pick-mode .fs-head { margin-bottom:12px; }
+.pick-mode .rp-fields { margin-bottom:8px; }
+.pick-mode .rp-f { min-height:54px;height:54px; }
+.pick-mode .rp-search,.pick-mode .rp-quick,.pick-mode .rp-list { display:none; }
+.pick-mode.pick-search .rp-search,.pick-mode.pick-search .rp-list { display:block; }
+.pick-mode.pick-search .rp-fields { display:none; }
+.pick-search-toggle { min-height:38px;border:0;background:none;color:#9bd4d1;font-size:12px;padding:4px 0;cursor:pointer; }
+.pick-mode .fs-scroll { padding-top:25px; }
+.journey-steps details { font-size:12px;line-height:1.6; }
+.journey-steps summary { color:#b8cbd7;min-height:32px;cursor:pointer; }
+.leg-stops { display:flex;flex-direction:column;gap:9px;padding:4px 0 10px; }
+.leg-stops span { display:flex;align-items:center;gap:8px; }
+.leg-stops i { width:6px;height:6px;border:1px solid #dce5ed;border-radius:50%; }
+.journey-note { font-size:10px;color:#aab9c7;margin:6px 0; }
+@media(prefers-reduced-motion:reduce){.dz-i .dz-flow{animation:none;stroke-dasharray:none;opacity:.5}}
+#world .lbl.selected-label { visibility:hidden; }
+.line-alerts>a { display:block;font-size:12px;line-height:20px;margin-top:7px; }

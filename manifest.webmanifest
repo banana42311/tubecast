@@ -4,7 +4,7 @@
   "short_name": "Tubecast",
   "description": "London Tube delay interface prototype with illustrative data.",
   "lang": "en",
-  "start_url": "./index.html?source=homescreen",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#1a2029",
@@ -15,6 +15,6 @@
   ],
   "shortcuts": [
     {"name": "Tube map", "short_name": "Map", "url": "./map.html"},
-    {"name": "All lines", "short_name": "Lines", "url": "./lines.html"}
+    {"name": "All lines", "short_name": "Lines", "url": "./index.html#all-lines"}
   ]
 }

@@ -1,6 +1,6 @@
 /* Unified map hub: station → route preview → selected journey.
    Filled station points = now; dashed rings + arrows = forecast.
-   Lists navigate to lines.html. The browser history restores sheet/option state. */
+   Lists navigate to index.html#all-lines. The browser history restores sheet/option state. */
 (function () {
   var C = window.MapCtx; if (!C) return;
   var M = window.Motion, FD = window.FlowData, NS = 'http://www.w3.org/2000/svg';
@@ -17,7 +17,7 @@
 
   /* ---------------------------------------------------------------- layers */
   var gDz = el('g', { 'class': 'dz' }, C.ov), gRt = el('g', { 'class': 'rt' }, C.ov);
-  
+
   function dOf(pts) { return 'M' + pts.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' L'); }
   function wdiv(cls, x, y, html, tag) {
     var d = document.createElement(tag || 'div'); d.className = cls; d.style.left = x + 'px'; d.style.top = y + 'px'; if (html) d.innerHTML = html; world.appendChild(d); return d;
@@ -25,9 +25,14 @@
 
   /* Every marker uses its station's anchor on the affected line. No screen-coordinate exceptions. */
   var DZ = [];
-  ['minor','severe'].forEach(function(sev){
-    var marker=el('marker',{id:'direction-'+sev,viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:5,markerHeight:5,orient:'auto',markerUnits:'strokeWidth'},C.defs);
-    el('path',{d:'M1 1 L9 5 L1 9',fill:'none',stroke:SEVCOL[sev],'stroke-width':1.8},marker);
+  G.stations.forEach(function(st){
+    var items=FD.atStation(st.name),current=items.filter(function(i){return i.k==='now';}),future=items.filter(function(i){return i.k==='next';});
+    wdiv('station-base',st.x,st.y,'<i></i>');
+    ['now','next'].forEach(function(kind){var items=kind==='now'?current:future;if(!items.length)return;
+      var sev=items.some(function(i){return (kind==='now'?i.d.sev:i.d.nextSev)==='severe';})?'severe':'minor';
+      var html=kind==='now'?'<span class="nowglow '+sev+'"></span><span class="nowdot '+sev+'"></span>':'<span class="pred '+sev+'" style="--s:.85"><i class="g"></i><i class="p"></i><i class="c"></i></span>';
+      var dot=wdiv('station-marker '+kind+' '+sev,st.x,st.y,html,'button');dot.dataset.st=st.name;dot.dataset.kind=kind;dot.setAttribute('aria-label',st.name+' · '+(kind==='now'?'delayed now':'predicted in 30 min'));
+    });
   });
   FD.disruptions.forEach(function(d){
     var seg=G.stretch(d.line,kebab(d.from),kebab(d.to)),set={};
@@ -35,23 +40,14 @@
     var group=el('g',{'class':'dz-i sev-'+d.sev,'data-id':d.id},gDz);
     if(seg){
       el('path',{d:dOf(seg.pts),'class':'dz-glow'},group);
-      if(!d.branches.length)el('path',{d:dOf(seg.pts),'class':'dz-dash','data-kind':'now'},group);
+      if(!d.branches.length)el('path',{d:dOf(seg.pts),'class':'dz-current','data-kind':'now'},group);
     }
     d.branches.forEach(function(branch){
       var path=G.stretch(d.line,kebab(branch.from),kebab(branch.to));if(!path)return;
       el('path',{d:dOf(path.pts),'class':'dz-glow',stroke:lineCol(d.line)},group);
-      el('path',{d:dOf(path.pts),'class':'dz-forecast dz-dash','data-kind':'next',style:'stroke:'+SEVCOL[d.nextSev],'marker-end':'url(#direction-'+d.nextSev+')'},group);
+      el('path',{d:dOf(path.pts),'class':'dz-forecast dz-flow','data-kind':'next',style:'stroke:'+SEVCOL[d.nextSev],pathLength:100},group);
       path.ids.forEach(function(i){set[i]=1;});
     });
-    ['now','next'].forEach(function(kind){d[kind].forEach(function(name){
-      var st=G.byName[name],node=st && G.nodes[st.nodes[d.line]];if(!node)return;
-      var sev=kind==='now'?d.sev:d.nextSev;
-      var markerHTML=kind==='now' ? '<span class="nowglow '+sev+'"></span><span class="nowdot '+sev+'"></span>' : '<span class="pred '+sev+'" style="--s:.85"><i class="g"></i><i class="p"></i><i class="c"></i></span>';
-      var dot=wdiv('station-marker '+kind+' '+sev,node.x,node.y,markerHTML,'button');
-      dot.setAttribute('data-st',name);dot.setAttribute('data-line',d.line);dot.setAttribute('data-kind',kind);
-      dot.setAttribute('aria-label',name+' · '+lineName(d.line)+' · '+(kind==='now'?'delayed now':'predicted in 30 min'));
-      dot.setAttribute('title',dot.getAttribute('aria-label'));
-    });});
     DZ.push({d:d,seg:seg || {pts:[],ids:[]},set:set});
   });
   var filter='all';
@@ -78,8 +74,8 @@
 
   /* world markers: selected station ring, route endpoints */
   var selRing = null, routeMk = [];
-  function showSel(st) { hideSel(); if (!st) return; selRing = wdiv('fsel', st.x, st.y, '<i></i><i></i><b>' + esc(st.name) + '</b>'); }
-  function hideSel() { if (selRing) { selRing.remove(); selRing = null; } }
+  function showSel(st) { hideSel(); if (!st) return;world.querySelectorAll('.lbl').forEach(function(n){n.classList.toggle('selected-label',n.dataset.st===st.name);}); selRing = wdiv('fsel', st.x, st.y, '<i></i><i></i><b>' + esc(st.name) + '</b>'); }
+  function hideSel() { world.querySelectorAll('.selected-label').forEach(function(n){n.classList.remove('selected-label');});if (selRing) { selRing.remove(); selRing = null; } }
   function clearRouteDraw() { world.classList.remove('route-focus'); world.querySelectorAll('.route-label').forEach(function(n){n.classList.remove('route-label');}); gRt.innerHTML = ''; routeMk.forEach(function (n) { n.remove(); }); routeMk = []; svg.classList.remove('has-route'); }
 
   /* strokes keep a readable screen width when zoomed far out */
@@ -133,29 +129,29 @@
   }
   function pill(sl, extra) { return '<span class="lp" style="--c:' + lineCol(sl) + '"><i></i>' + esc(lineName(sl)) + (extra || '') + '</span>'; }
   function orient(st) {
-    var n = st.nodes[st.lines[0]]; if (n == null) return ['Westbound', 'Eastbound'];
+    var n = st.nodes[state.stationLine || st.lines[0]]; if (n == null) return ['Westbound', 'Eastbound'];
     var a = G.nodes[Math.max(0, n - 4)], b = G.nodes[Math.min(G.nodes.length - 1, n + 4)];
     return Math.abs(b.x - a.x) >= Math.abs(b.y - a.y) ? ['Westbound', 'Eastbound'] : ['Southbound', 'Northbound'];
   }
   function statusRow(st) {
-    var items=FD.atStation(st.name),now=items.filter(function(i){return i.k==='now';}),next=items.filter(function(i){return i.k==='next';});
+    var items=FD.atStation(st.name).filter(function(i){return i.d.line===state.stationLine;}),now=items.filter(function(i){return i.k==='now';}),next=items.filter(function(i){return i.k==='next';});
     function row(title,items,kind){
       if(!items.length)return '<div class="station-status-row"><span class="delay-dot '+kind+' good"></span><div><small>'+title+'</small><b>'+(kind==='now'?'No reported station delay':'No additional delay predicted')+'</b></div></div>';
       return items.map(function(i){var sev=kind==='now'?i.d.sev:i.d.nextSev;return '<button class="station-status-row" data-act="dis" data-id="'+i.d.id+'"><span class="delay-dot '+kind+' '+sev+'"></span><div><small>'+title+' · '+esc(lineName(i.d.line))+'</small><b>'+FD.SEV[sev]+(kind==='next'?' · '+i.d.prob:'')+'</b><small>'+esc(i.d.direction)+'</small></div><span>›</span></button>';}).join('');
     }
-    var lineAlerts=[];st.lines.forEach(function(l){FD.forLine(l).forEach(function(d){lineAlerts.push(d);});});
-    return '<div class="station-status">'+row('At this station · now',now,'now')+row('Next 30 minutes',next,'next')+'</div>'+
-      (lineAlerts.length?'<div class="line-alerts"><small>LINE-WIDE STATUS</small>'+lineAlerts.map(function(d){var sum=FD.summary(d.line);return '<button data-act="dis" data-id="'+d.id+'"><i style="background:'+lineCol(d.line)+'"></i>'+esc(lineName(d.line))+'<span>'+sum.now+' now · '+sum.total+' in 30 min ›</span></button>';}).join('')+'</div>':'');
+    var lineAlerts=[];[state.stationLine].forEach(function(l){FD.forLine(l).forEach(function(d){lineAlerts.push(d);});});
+    return '<div class="station-status">'+row(lineName(state.stationLine)+' · at this station now',now,'now')+row('Next 30 minutes',next,'next')+'</div>'+
+      (lineAlerts.length?'<div class="line-alerts"><small>LINE-WIDE STATUS</small>'+lineAlerts.map(function(d){var sum=FD.summary(d.line);return '<button data-act="dis" data-id="'+d.id+'"><i style="background:'+lineCol(d.line)+'"></i>'+esc(lineName(d.line))+'<span>'+sum.now+' now · '+sum.total+' in 30 min ›</span></button>';}).join('')+'</div>':((LBS[state.stationLine]||{}).status==='closed'?'<div class="line-alerts"><small>LINE-WIDE STATUS</small><a href="line.html?line='+state.stationLine+'">'+esc(lineName(state.stationLine))+' · '+(state.stationLine==='waterloo-city'?'Not running':'Part closure')+' · View details ›</a></div>':''));
   }
   function stationHTML(st) {
     var o = orient(st), w = FD.worst(FD.atStation(st.name)), dirs = '';
     o.forEach(function (n) {
-      var t = FD.trains(st.name, n), t3 = t[1] + 4 + (FD.hash(st.name + n) % 5);
+      var t = FD.trains(st.name + state.stationLine, n), t3 = t[1] + 4 + (FD.hash(st.name + n) % 5);
       dirs += '<div class="dir"><span>' + n + '</span><div class="mins"><b>' + t[0] + '</b><b>' + t[1] + '</b><b>' + t3 + '</b><em>min</em></div></div>';
     });
     var primary = st.lines[0] || 'central';
     return head(esc(st.name), 'Demo data · ' + (st.lines.length || 1) + ' line' + (st.lines.length === 1 ? '' : 's')) +
-      '<div class="station-body"><div class="fs-chips">' + st.lines.map(function (l) { return '<a class="lpa" href="line.html?line=' + l + '" data-nodrag>' + pill(l) + '</a>'; }).join('') + '</div>' +
+      '<div class="station-body"><div class="fs-chips">' + st.lines.map(function (l) { return '<button class="lpa" data-act="station-line" data-line="'+l+'" aria-pressed="'+(state.stationLine===l)+'">'+pill(l)+'</button>'; }).join('') + '</div>' +
       statusRow(st) +
       '<div class="fs-sec">Example arrivals</div><div class="fs-dirs">' + dirs + '</div>' +
       '</div><div class="fs-actions"><button class="btn-p" data-act="route-from"' + (st.vn < 0 ? ' disabled' : '') + '><svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M7 26V18a6 6 0 0 1 6-6h12M19 5l7 7-7 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Route from here</button>' +
@@ -172,7 +168,7 @@
       '<button class="rp-f' + (f === 'from' ? ' on' : '') + '" data-act="field" data-f="from"><small>From</small><b>' + (esc(nm(state.from)) || '<u>Choose start</u>') + '</b></button>' +
       '<button class="rp-f' + (f === 'to' ? ' on' : '') + '" data-act="field" data-f="to"><small>To</small><b>' + (esc(nm(state.to)) || '<u>Choose destination</u>') + '</b></button></div>' +
       '<button class="rp-sw" data-act="swap" aria-label="Swap"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 15V3M5 3 2 6m3-3 3 3M13 3v12m0 0 3-3m-3 3-3-3" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>' +
-      '<div class="rp-search"><input id="rpq" type="search" placeholder="' + (f === 'from' ? 'Search a start station' : 'Search a destination') + '" autocomplete="off" spellcheck="false" aria-label="Search stations"></div>' +
+      '<button class="pick-search-toggle" data-act="search-pick">'+(state.search?'Choose on map':'Search stations instead')+'</button><div class="rp-search"><input id="rpq" type="search" placeholder="' + (f === 'from' ? 'Search a start station' : 'Search a destination') + '" autocomplete="off" spellcheck="false" aria-label="Search stations"></div>' +
       '<div class="rp-quick">' + QUICK.filter(function (q) { return G.byName[q] && G.byName[q].vn >= 0; }).map(function (q) { return '<button data-act="pickst" data-n="' + esc(q) + '">' + esc(q) + '</button>'; }).join('') + '</div>' +
       '<div class="rp-list" id="rpl"></div>';
   }
@@ -228,7 +224,7 @@
       var selected=opts[state.opt||0];
       return head('Route selected',esc(A.name)+' → '+esc(B.name),false)+
         '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · your selected route</b><small>Example journey · '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+'</small></div></div>'+
-        '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(i?'Change to':'Take')+'</small><b>'+esc(lineName(l.line))+'</b><span>'+esc(first?first.name:(i?'Interchange':A.name))+' → '+esc(last?last.name:B.name)+'</span></li>';}).join('')+'</ol>'+
+        '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(i?'Change at '+esc(first?first.name:'interchange'):'Board at '+esc(A.name))+'</small><b>'+esc(lineName(l.line))+'</b><span>'+esc(first?first.name:A.name)+' → '+esc(last?last.name:B.name)+' · '+Math.max(0,l.stops.length-1)+' stops</span><details open><summary>Stations on this leg</summary><div class="leg-stops">'+l.stops.map(function(st,j){return '<span><i></i>'+esc(st.name)+(j===l.stops.length-1?(i===selected.r.legs.length-1?' · Arrive':' · Change here'):'')+'</span>';}).join('')+'</div></details></li>';}).join('')+'</ol><small class="journey-note">Stops shown on this schematic · example timings</small>'+
         '<div class="fs-actions"><button class="btn-p" data-act="change-route">Change route</button><button class="btn-s" data-act="close">Done</button></div>';
     }
     return head(esc(A.name)+' <span class="arr">→</span> '+esc(B.name),sub,true)+
@@ -269,15 +265,15 @@
   var state = { t: null, d: 0 }, depth = 0, listEl = null, RC = {}, curRoute = null;
   var base = location.pathname.replace(/^.*\//, '') + '?line=' + C.slug;
   function urlFor(s) {
-    if (s.t === 'station') return base + '&station=' + s.id;
+    if (s.t === 'station') return base + '&station=' + s.id + (s.stationLine?'&stationLine='+s.stationLine:'');
     if (s.t === 'pick') return base + '&pick=1' + (s.from ? '&from=' + s.from : '') + (s.to ? '&to=' + s.to : '');
     if (s.t === 'route') return base + '&route=' + s.from + ',' + s.to + '&opt=' + (s.opt||0) + (s.chosen?'&chosen=1':'');
     if (s.t === 'dis') return base + '&dis=' + s.id;
-    if (s.t === 'list') return 'lines.html';
+    if (s.t === 'list') return 'index.html#all-lines';
     return base;
   }
   function go(s, o) {
-    if (s.t === 'list') { location.href='lines.html'; return; }
+    if (s.t === 'list') { location.href='index.html#all-lines'; return; }
     o = o || {}; var prev = state.t;
     if (o.push !== false) { depth = o.replace ? depth : depth + 1; s.d = depth; history[o.replace ? 'replaceState' : 'pushState'](s, '', urlFor(s)); }
     else depth = s.d || 0;
@@ -287,19 +283,22 @@
     document.body.classList.toggle('in-flow', !!state.t);
     sheet.el.classList.toggle('route-mode',state.t==='route');
     sheet.el.classList.toggle('station-mode',state.t==='station');
-    phone.classList.toggle('routing',state.t==='route');
+    phone.classList.toggle('routing',state.t==='route'||state.t==='pick');
+    sheet.el.classList.toggle('pick-mode',state.t==='pick');
+    sheet.el.classList.toggle('pick-search',!!state.search);
     sheet.el.classList.toggle('route-chosen',!!state.chosen);
     if (state.t !== 'list') closeList(true);
     var morph = !!prev && prev !== 'list';
     if (!state.t) { clearFocus(); hideSel(); clearRouteDraw(); sheet.close(true); phone.classList.remove('has-sheet'); return; }
     if (state.t === 'station') {
       var st = G.byId[state.id]; if (!st) return;
-      clearRouteDraw(); showSel(st); focusLines(st.lines.length ? st.lines : [C.slug]);
+      state.stationLine=st.lines.indexOf(state.stationLine)>=0?state.stationLine:(st.lines.indexOf(C.slug)>=0?C.slug:st.lines[0]);
+      clearRouteDraw(); showSel(st); focusLines([state.stationLine]);
       sheet.open(stationHTML(st), sheet.snap && sheet.snap !== 'full' ? sheet.snap : 'mid', { instant: false });
     } else if (state.t === 'pick') {
       clearRouteDraw(); var f = G.byId[state.focus || state.from]; if (f) { showSel(f); focusLines(f.lines); } else { hideSel(); clearFocus(); }
       state.focus = state.focus || state.from || null;
-      sheet.open(pickHTML(), sheet.snap === 'full' ? 'full' : 'mid'); fillPickList('');
+      sheet.open(pickHTML(), state.search ? 'mid' : 'compact', {dismissible:false}); fillPickList('');
     } else if (state.t === 'route') {
       var key = state.from + '>' + state.to; if (!RC[key]) RC[key] = { from: state.from, to: state.to, opts: buildOptions(state.from, state.to) };
       curRoute = RC[key]; hideSel();
@@ -309,7 +308,7 @@
     } else if (state.t === 'dis') {
       var dd = FD.byId(state.id); if (!dd) return; clearRouteDraw(); hideSel(); focusLines([dd.line]);
       sheet.open(disHTML(dd), 'mid');
-    } else if (state.t === 'list') { location.href='lines.html'; }
+    } else if (state.t === 'list') { location.href='index.html#all-lines'; }
   }
   function dismissAll(fromSheet) {
     var n = depth; depth = 0;
@@ -359,6 +358,8 @@
 
     var act = b.getAttribute('data-act');
     if (act === 'close') { state.t === 'list' ? history.back() : dismissAll(false); }
+    else if(act==='station-line'){state.stationLine=b.dataset.line;history.replaceState(state,'',urlFor(state));sheet.setContent(stationHTML(G.byId[state.id]));focusLines([state.stationLine]);}
+    else if(act==='search-pick'){state.search=!state.search;render('pick');if(state.search)$('#rpq',sheet.pane).focus();}
     else if (act === 'back') back();
     else if (act === 'dis') go({ t: 'dis', id: b.getAttribute('data-id') });
     else if (act === 'route-to') go({t:'pick',to:state.id,field:'from',focus:state.id});
@@ -373,12 +374,12 @@
     else if (act === 'go') { go({t:'route',from:state.from,to:state.to,opt:state.opt||0,chosen:true}); }
     else if (act === 'change-route') { go({t:'route',from:state.from,to:state.to,opt:state.opt||0},{replace:true}); }
   });
-  sheet.pane.addEventListener('focusin', function (e) { if (e.target.id === 'rpq' && sheet.snap !== 'full') sheet.snapTo('full'); });
+
   sheet.pane.addEventListener('input', function (e) { if (e.target.id === 'rpq') fillPickList(e.target.value); });
 
   /* entry points on the existing page chrome */
   var stack = $('#stack'), rbtn = $('#route');
-  stack.href='lines.html';
+  stack.href='index.html#all-lines';
   rbtn.addEventListener('click', function (e) { e.preventDefault(); go({ t: 'pick', from: state.t === 'station' ? state.id : null, to: null, field: state.t === 'station' ? 'to' : 'from', focus: state.t === 'station' ? state.id : null }, state.t === 'station' ? {} : {}); });
   var bk = $('[data-back]'); if (bk) bk.addEventListener('click', function (e) { if (state.t) { e.stopImmediatePropagation(); back(); } }, true);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && state.t && !/INPUT/.test(e.target.tagName)) { back(); } });
@@ -389,11 +390,11 @@
   /* ---------------------------------------------------------------- deep links */
   (function () {
     var p = new URLSearchParams(location.search), s = null;
-    if (p.get('station') && G.byId[p.get('station')]) s = { t: 'station', id: p.get('station') };
+    if (p.get('station') && G.byId[p.get('station')]) s = { t: 'station', id: p.get('station'),stationLine:p.get('stationLine') };
     else if (p.get('route')) { var r = p.get('route').split(','); if (G.byId[r[0]] && G.byId[r[1]]) s = { t: 'route', from: r[0], to: r[1], opt: Math.max(0,parseInt(p.get('opt'),10)||0), chosen:p.get('chosen')==='1' }; }
     else if (p.get('dis') && FD.byId(p.get('dis'))) s = { t: 'dis', id: p.get('dis') };
     else if (p.get('pick')) s = { t: 'pick', from: G.byId[p.get('from')] ? p.get('from') : null, to: G.byId[p.get('to')] ? p.get('to') : null, field: p.get('from') ? 'to' : 'from', focus: p.get('from') || p.get('to') || null };
-    else if (p.get('list')) { location.replace('lines.html'); return; }
+    else if (p.get('list')) { location.replace('index.html#all-lines'); return; }
     if (p.get('route') && !s) { s={t:'pick',from:null,to:null,field:'from'}; }
     if (s) { s.d = 0; history.replaceState({ t: null, d: 0 }, '', base); depth = 0; go(s); }
     else history.replaceState({ t: null, d: 0 }, '', location.pathname.replace(/^.*\//, '') + location.search);
