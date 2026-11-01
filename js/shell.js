@@ -17,6 +17,7 @@
     else { s = Math.max(0.5, Math.min(1, (vh - (vw >= 1100 ? 70 : 96)) / 844)); }
     root.classList.toggle('mode-phone', phone);
     root.classList.toggle('mode-frame', !phone);
+    root.style.setProperty('--browser-inset',Math.max(0,window.innerHeight-vh)+'px');
     root.style.setProperty('--s', s.toFixed(4));
     root.style.setProperty('--H', H + 'px');
     root.style.setProperty('--dy', (H - 844) + 'px');

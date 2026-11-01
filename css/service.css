@@ -189,3 +189,19 @@ html.mode-phone .lines .title { padding:0; }
 .watch.line-stack .nrow .nm { font-weight:600;white-space:nowrap; }
 .watch.line-stack .nrow .sm { flex:1;color:var(--sec); }
 .watch.line-stack a:focus-visible { outline:2px solid var(--navy-light);outline-offset:2px; }
+
+/* Compact weather-style pager, just above the browser's visible bottom edge. */
+.pg .bottomctl { left:23px;right:23px;width:auto;top:auto;bottom:14px; }
+.pg .bottomctl .btn.list { left:auto;right:0; }
+.pg .pagepos { left:50%;transform:translateX(-50%);width:168px;height:40px;top:2px;padding:0 8px; }
+.pg .pagepos .pd { height:38px;flex:0 0 20px; }
+.pg .pagepos .pd[hidden] { display:none; }
+.pg .pagepos .pd.edge i { transform:scale(.7);opacity:.6; }
+html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-area-inset-bottom,0px) - var(--browser-inset,0px))/var(--s,1)); }
+@media (display-mode:standalone) { html.mode-phone .pg .bottomctl { bottom:calc(6px + env(safe-area-inset-bottom,0px)/var(--s,1)); } }
+.pg .pager.is-moving * { animation-play-state:paused!important; }
+.pg .pager-page .enter { animation:none; }
+.pg .pager-page { contain:layout paint; }
+.mapview { contain:layout paint; }
+/* Keep static network artwork in its own cached image, above dynamic delay layers. */
+.mapview .glw:not(.on) { display:none; }

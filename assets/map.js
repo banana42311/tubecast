@@ -68,5 +68,19 @@
     host.appendChild(svg);
     return svg;
   }
-  window.NetMap = { render: render };
+  var snapshots={};
+  function cached(host,o,decorate){
+    var key=JSON.stringify([o.focus,o.pan,o.opacity]);
+    if(!snapshots[key]){
+      var svg=render(host,o);if(decorate)decorate();
+      // Preserve artwork outside the original SVG viewport, including glow edges.
+      var copy=svg.cloneNode(true);copy.setAttribute('xmlns',NS);copy.removeAttribute('style');
+      copy.setAttribute('viewBox','-180 -100 1100 700');copy.setAttribute('width',1100);copy.setAttribute('height',700);
+      snapshots[key]=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml'}));
+    }
+    var img=document.createElement('img');img.alt='';img.draggable=false;img.width=1100;img.height=700;
+    img.style.cssText='position:absolute;pointer-events:none;left:'+(o.pan[0]-180)+'px;top:'+(o.pan[1]-100)+'px';
+    img.src=snapshots[key];host.replaceChildren(img);return img;
+  }
+  window.NetMap = { render: render, cached:cached };
 })();

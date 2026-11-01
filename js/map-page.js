@@ -44,12 +44,13 @@
 
   /* transient highlight layers (one per line) — invisible until a hover / hold / initial pulse */
   var glow = {};
-  slugs.forEach(function (sl) {
-    var gw = el('g', { filter: 'url(#bg)', 'class': 'glw' }, svg);
-    var gg = sc(gw, lineOff(sl), { stroke: N.colors[sl], 'stroke-width': 13.5 / S, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
-    linePaths(sl).forEach(function (d) { el('path', { d: d }, gg); });
-    glow[sl] = gw;
-  });
+  function ensureGlow(sl){
+    if(glow[sl])return;
+    var gw=el('g',{filter:'url(#bg)','class':'glw'},svg);
+    var gg=sc(gw,lineOff(sl),{stroke:N.colors[sl],'stroke-width':13.5/S,'stroke-linecap':'round','stroke-linejoin':'round'});
+    linePaths(sl).forEach(function(d){el('path',{d:d},gg);});
+    svg.insertBefore(gw,hl);glow[sl]=gw;
+  }
   /* every line, same weight, full opacity */
   var ol = sc(svg, N.lines.off, { 'stroke-width': 2.05, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   N.lines.p.forEach(function (p) { el('path', { d: p[1], stroke: N.colors[p[0]] }, ol); });
@@ -69,11 +70,17 @@
   /* flow layers: base (everything drawn so far, dimmable) · hl (bright selected lines) · ov (delay + route overlays) */
   var base = el('g', { 'class': 'base' });
   Array.prototype.slice.call(svg.childNodes).forEach(function (n) { if (n !== defs) base.appendChild(n); });
+  // Static network renders once as an SVG image; animated overlays no longer repaint its path tree.
+  var artwork=document.createElementNS(NS,'svg');artwork.setAttribute('xmlns',NS);artwork.setAttribute('fill','none');
+  artwork.setAttribute('viewBox','-160 -160 1760 1220');artwork.setAttribute('width',1760);artwork.setAttribute('height',1220);
+  artwork.appendChild(defs.cloneNode(true));artwork.appendChild(base.cloneNode(true));
+  var backgroundURL=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(artwork)],{type:'image/svg+xml'}));
+  base.replaceChildren();el('image',{href:backgroundURL,x:-160,y:-160,width:1760,height:1220},base);
   svg.appendChild(base);
   var hl = el('g', { 'class': 'hl' }, svg), ov = el('g', { 'class': 'ov' }, svg);
   /* desktop hover: wide invisible strokes → highlight that line only as a passing effect */
   var hv = el('g', { 'class': 'lhit' }, svg);
-  slugs.forEach(function (sl) {
+  if(matchMedia('(hover:hover) and (pointer:fine)').matches)slugs.forEach(function (sl) {
     var g = sc(hv, lineOff(sl), { stroke: 'transparent', 'stroke-width': 7, fill: 'none', 'data-line': sl, 'stroke-linecap': 'round', 'pointer-events': 'stroke' });
     linePaths(sl).forEach(function (d) { el('path', { d: d }, g); });
   });
@@ -81,7 +88,7 @@
   /* highlight = purely an interaction effect: on → fades in, off → fades out. Others never change. */
   var holds = {}, tmr = {};
   function glowOn(sl, ms) {
-    if (!glow[sl]) return;
+    if(!N.colors[sl])return;ensureGlow(sl);
     clearTimeout(tmr[sl]); glow[sl].classList.add('on');
     if (ms) tmr[sl] = setTimeout(function () { glowOff(sl); }, ms);
   }

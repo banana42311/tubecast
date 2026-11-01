@@ -14,7 +14,7 @@
     var x = o.from || 0, v = o.velocity || 0, to = o.to || 0, raf = 0, last = 0, done = false;
     var eps = o.precision || 0.01;
     function frame(t) {
-      var dt = Math.min(0.032, (t - last) / 1000 || 0.016); last = t;
+      var dt = Math.min(0.1, (t - last) / 1000 || 0.016); last = t;
       var n = Math.ceil(dt / 0.004), h = dt / n;
       for (var i = 0; i < n; i++) { var a = -k * (x - to) - c * v; v += a * h; x += v * h; }
       if (Math.abs(x - to) < eps && Math.abs(v) < eps * 4) { x = to; v = 0; done = true; }
@@ -73,7 +73,7 @@
       if (!st.on) {
         var ax = Math.abs(dx), ay = Math.abs(dy);
         if (Math.max(ax, ay) < thr) return;
-        if ((axis === 'x' && ay > ax) || (axis === 'y' && ax > ay)) { st = null; return; } /* lose to scroll */
+        if ((axis === 'x' && ay > ax) || (axis === 'y' && ax > ay)) { st=null;o.onCancel&&o.onCancel();return; } /* lose to scroll */
         st.on = true; try { el.setPointerCapture(e.pointerId); } catch (_) {}
         st.x0 = e.clientX; st.y0 = e.clientY; dx = 0; dy = 0; /* start tracking from here: no jump */
         o.onStart && o.onStart(e);
@@ -103,16 +103,21 @@
       i = M.clamp(i, 0, o.count - 1);
       var changed = i !== idx; idx = i; W = o.width ? o.width() : W;
       if (sp) sp.stop();
-      if (instant || M.reduced) { paint(-idx * W); } else {
-        sp = M.spring({ from: x, to: -idx * W, velocity: v || 0, response: o.response || 0.38, damping: Math.abs(v || 0) > 600 ? (o.flickDamping || 0.86) : 1, onUpdate: function (p) { paint(p); } });
-      }
+      o.root && o.root.classList.add('is-moving');
       if (changed) o.onIndex && o.onIndex(idx);
+      function settled(){sp=null;o.root&&o.root.classList.remove('is-moving');o.onSettle&&o.onSettle(idx);}
+      if (instant || M.reduced) { paint(-idx * W);settled(); } else {
+        sp = M.spring({ from:x,to:-idx*W,velocity:v||0,response:o.response||.22,damping:Math.abs(v||0)>600?(o.flickDamping||.95):1,precision:.6,onUpdate:paint,onDone:settled });
+      }
     }
+    function effectiveCancel(d){return d.e&&d.e.type==='pointercancel';}
     var base = 0;
     M.drag(o.root || o.track.parentNode, {
       axis: 'x', threshold: 8, filter: o.filter,
       onDown: function () { if (sp) { x = sp.stop(); } W = o.width ? o.width() : W; base = x; },
-      onStart: function () { o.root && o.root.classList.add('dragging'); },
+      onStart: function () { o.onPrepare&&o.onPrepare(idx);o.root&&o.root.classList.add('dragging','is-moving'); },
+      onCancel:function(){go(idx);},
+      onTap: function () { if(Math.abs(x+idx*W)>.4)go(idx);else{o.root&&o.root.classList.remove('is-moving');} },
       onMove: function (d) {
         var nx = base + d.dx, min = -(o.count - 1) * W, max = 0;
         if (nx > max) nx = M.rubberband(nx - max, W);
@@ -121,11 +126,11 @@
       },
       onEnd: function (d) {
         o.root && o.root.classList.remove('dragging');
-        var projected = x + M.project(d.vx);
+        var projected = x + M.project(d.vx,.996);
         var target = Math.round(-projected / W);
         target = M.clamp(target, idx - 1, idx + 1); /* a pager never skips more than one page */
         if (Math.abs(d.dx) < 6 && Math.abs(d.vx) < 100) target = Math.round(-x / W);
-        go(target, d.vx);
+        go(effectiveCancel(d)?idx:target,d.e.type==='pointercancel'?0:d.vx);
       }
     });
     window.addEventListener('resize', function () { W = o.width ? o.width() : W; paint(-idx * W); });

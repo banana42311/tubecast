@@ -42,7 +42,7 @@
       setContent: function (html, morph) {
         function put() {
           if (typeof html === 'string') pane.innerHTML = html; else { pane.innerHTML = ''; pane.appendChild(html); }
-          scroller.scrollTop = 0; pane.classList.remove('out'); pane.classList.add('in'); void pane.offsetWidth; pane.classList.remove('in');
+          scroller.scrollTop=0;pane.classList.remove('out','in');
           cb.onContent && cb.onContent(pane);
         }
         clearTimeout(busy);

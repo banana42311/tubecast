@@ -17,25 +17,29 @@
 
   function build(ctx) {
     var N = ctx.N, S = ctx.S;
+    var cache=window.NET_SAMPLES,source=JSON.stringify([N.central,N.lines]),hash=2166136261;
+    for(var hi=0;hi<source.length;hi++)hash=Math.imul(hash^source.charCodeAt(hi),16777619);
+    var cached=!ctx.nativeSampling&&cache&&cache.version===1&&cache.signature===(hash>>>0)&&cache.step===STEP&&cache.scale===S;
     var host = document.createElementNS(NS, 'svg'); host.setAttribute('width', 0); host.setAttribute('height', 0); host.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none';
-    document.body.appendChild(host);
+    if(!cached)document.body.appendChild(host);
     var nodes = [], adj = [], frag = [], ends = [], fi = 0;
 
     /* ---- 1. sample every line path ---- */
     ctx.slugs.forEach(function (sl) {
       var off = ctx.lineOff(sl);
-      ctx.linePaths(sl).forEach(function (d) {
-        var p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); host.appendChild(p);
-        var L = p.getTotalLength(); if (!L) return;
-        var n = Math.max(1, Math.ceil(L * S / STEP)), prev = -1; fi++;
-        for (var k = 0; k <= n; k++) {
-          var q = p.getPointAtLength(L * k / n), x = (q.x + off[0]) * S, y = (q.y + off[1]) * S;
+      ctx.linePaths(sl).forEach(function (d, pathIndex) {
+        var samples=cached&&cache.lines[sl]&&cache.lines[sl][pathIndex],p,L,n;
+        if(samples){n=samples.length/2-1;}
+        else {p=document.createElementNS(NS,'path');p.setAttribute('d',d);host.appendChild(p);L=p.getTotalLength();if(!L)return;n=Math.max(1,Math.ceil(L*S/STEP));}
+        var prev=-1;fi++;
+        for(var k=0;k<=n;k++){
+          var q=samples?{x:samples[k*2],y:samples[k*2+1]}:p.getPointAtLength(L*k/n),x=(q.x+off[0])*S,y=(q.y+off[1])*S;
           var id = nodes.push({ x: x, y: y, l: sl }) - 1; adj[id] = []; frag[id] = fi;
           if (prev >= 0) { var c = Math.hypot(x - nodes[prev].x, y - nodes[prev].y); if (c < STEP * 2.6) { adj[prev].push([id, c]); adj[id].push([prev, c]); } }
           if (k === 0 || k === n) ends.push(id);
           prev = id;
         }
-        host.removeChild(p);
+        if(p)host.removeChild(p);
       });
     });
     host.remove();
@@ -137,7 +141,7 @@
       nodes.forEach(function (n) { if (n.l === sl) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); } });
       return { x0: x0, y0: y0, x1: x1, y1: y1 };
     }
-    return { nodes: nodes, stations: stations, byId: byId, byName: byName, route: route, stretch: stretch, lineBounds: lineBounds, kebab: kebab };
+    return { sampling:cached?'cached':'native', nodes: nodes, stations: stations, byId: byId, byName: byName, route: route, stretch: stretch, lineBounds: lineBounds, kebab: kebab };
   }
   window.FlowGeo = { build: build, kebab: kebab };
 })();
