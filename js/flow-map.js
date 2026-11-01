@@ -160,7 +160,7 @@
       dirs += '<div class="dir"><span>' + n + '</span><div class="mins"><b>' + t[0] + '</b><b>' + t[1] + '</b><b>' + t3 + '</b><em>min</em></div></div>';
     });
     var primary = st.lines[0] || 'central';
-    return head(esc(st.name), 'Demo data · ' + (st.lines.length || 1) + ' line' + (st.lines.length === 1 ? '' : 's')) +
+    return head(esc(st.name), (window.LiveState && LiveState.mode !== 'example' ? 'Live · ' : 'Demo data · ') + (st.lines.length || 1) + ' line' + (st.lines.length === 1 ? '' : 's')) +
       '<div class="station-body"><div class="fs-chips">' + st.lines.map(function (l) { return '<button class="lpa" data-act="station-line" data-line="'+l+'" aria-pressed="'+(state.stationLine===l)+'">'+pill(l)+'</button>'; }).join('') + '</div>' +
       statusRow(st) +
       '<div class="fs-sec">Example arrivals</div><div class="fs-dirs">' + dirs + '</div>' +

@@ -2,7 +2,8 @@
    Counts are unique stations; forecast = total affected at 30 min, including currently delayed stations.
    This is prototype data, not a connection to live TfL services. */
 window.FlowData = (function () {
-  var D = [
+  var LIVE = window.LiveState && window.LiveState.mode !== 'example' ? window.LiveState : null;
+  var D = (LIVE && LIVE.disruptions) || [
     { id:'central-signal', line:'central', sev:'minor', nextSev:'severe', from:'Mile End', to:'Bank', direction:'Westbound',
       cause:'Signal failure near Mile End', detail:'Current gaps may spread west towards Bank over the next 30 minutes.', gap:'18 min gap', prob:'52%',
       now:['Mile End','Bethnal Green'], next:['Liverpool Street','Bank',"St. Paul's"],
@@ -37,6 +38,13 @@ window.FlowData = (function () {
     page.hero={value:String(s.now),sub:(s.now===1?'station':'stations')+' delayed now'};
     page.fc={title:s.now+' stations delayed now',sub:s.next ? s.total+' affected in 30 min · '+s.next+' more' : 'No additional stations predicted',cols:[['Now',s.now,s.severity==='severe'?'ns':'nm'],['10 min',s.now,'pm'],['20 min',s.now+Math.ceil(s.next/2),'pm'],['30 min',s.total,s.next?'ps':'pm'],['60 min',l.slug==='central'?0:'—','pg',1]]};
     page.rows=[];forLine(l.slug).forEach(function(d){d.now.forEach(function(n){page.rows.push({n:n,d:d.direction,b:{t:'now',end:d.sev==='severe'?'red':'amber'}});});d.next.forEach(function(n,i){page.rows.push({n:n,d:d.direction,b:{t:'on',at:28.33*(i+1),sev:d.nextSev==='severe'?'red':'amber'}});});});
+  });
+  // Live mode: time columns and row onsets come from the station forecast (cumulative: stations affected within h minutes).
+  if (LIVE) (window.LINES || []).forEach(function(l){var page=window.LINE_DATA && window.LINE_DATA[l.slug],ds=forLine(l.slug);if(!page||!ds.length)return;
+    var on=(LIVE.onset||{})[l.slug]||{},s=summary(l.slug),cnt=function(h){var n=new Set();ds.forEach(function(d){d.now.forEach(function(x){n.add(x);});d.next.forEach(function(x){if((on[x]||99)<=h)n.add(x);});});return n.size;};
+    var sev=ds.some(function(d){return d.nextSev==='severe';})?'ps':'pm';
+    page.fc.cols=[['Now',s.now,s.severity==='severe'?'ns':'nm'],['10 min',cnt(10),sev],['20 min',cnt(20),sev],['30 min',cnt(30),sev],['60 min','—','pg',1]];
+    page.rows.forEach(function(r){if(r.b.t==='on'&&on[r.n]!=null)r.b.at=Math.min(170,28.33*on[r.n]/10);});
   });
   return {disruptions:D,SEV:SEV,atStation:atStation,worst:worst,hash:hash,forLine:forLine,summary:summary,totals:totals,
     byId:function(id){return D.find(function(d){return d.id===id;}) || null;},

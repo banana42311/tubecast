@@ -86,7 +86,7 @@
       return '';
     }
     function underlay() {
-      NetMap.cached(maphost,{focus:slug,pan:D.pan},slug==='piccadilly'?closedSection:null);
+      NetMap.cached(maphost,{focus:slug,pan:D.pan},slug==='piccadilly'&&D.kind==='closure'?closedSection:null);
       var html = '';
       FlowData.forLine(slug).forEach(function(d) {
         ['now','next'].forEach(function(kind) { d[kind].forEach(function(name) {
@@ -126,7 +126,7 @@
         st = skStations(stTop);
       } else { fcHtml = D.kind === 'closure' ? closureCard(324) : forecast(324); st = stations(stTop); }
       var ft = stTop + st.h + 20;
-      var u = state === 'loading' ? 'Updating…' : state === 'stale' ? 'Updated 6 min ago · may be out of date' : state === 'error' ? 'Last known · 08:46' : 'Demo snapshot · illustrative values';
+      var u = state === 'loading' ? 'Updating…' : state === 'stale' ? 'Updated 6 min ago · may be out of date' : state === 'error' ? 'Last known · 08:46' : (window.LiveLabel ? LiveLabel() : 'Demo snapshot · illustrative values');
       view.innerHTML = out + fcHtml + st.html + banner() + '<div class="footer enter" style="left:0;width:390px;top:' + ft + 'px;--i:3"><div class="u">' + u + '</div><a class="h" href="about.html">About the data</a></div>';
       content.style.minHeight = 'var(--H,844px)'; content.style.height = Math.max(ft + 190, 844) + 'px';
       underlay();
