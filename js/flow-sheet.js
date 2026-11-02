@@ -15,7 +15,7 @@
     function pts() {
       VH = phone.clientHeight || 844;
       var focusedSearch = root.classList.contains('pick-search') && document.documentElement.classList.contains('keyboard-open');
-      return { compact: Math.min(330,VH*.48), peek: peekHeight || (dismissible ? Math.min(168,VH*.24) : Math.min(330,VH*.48)), mid: Math.round(VH * (VH < 700 ? .62 : .5)), full: Math.max(160, VH - (focusedSearch ? 8 : 76)) };
+      return { compact: Math.min(330,VH*.48), peek: peekHeight || (dismissible ? Math.min(168,VH*.24) : Math.min(330,VH*.48)), mid: Math.round(VH * (VH < 700 ? .62 : .5)), full: Math.max(160, VH - (focusedSearch ? 0 : 76)) };
     }
     function paint(v) { vis = v; root.style.transform = 'translate3d(0,' + (VH - v) + 'px,0)'; cb.onChange && cb.onChange(v, false); }
     function animate(to, vel, done) {
@@ -35,6 +35,14 @@
       snapTo: function (name, vel) {
         var P = pts(); snap = name; setScroll(); root.classList.toggle('full', name === 'full');root.classList.toggle('peek',name === 'peek');
         cb.onTarget && cb.onTarget(P[name]); animate(P[name], vel);
+      },
+      reflow: function (name) {
+        if (sp) { sp.stop(); sp = null; }
+        var P = pts(); if (name) snap = name;
+        if (!snap || P[snap] == null) return;
+        root.classList.toggle('full', snap === 'full');root.classList.toggle('peek',snap === 'peek');
+        root.style.setProperty('--fsb', Math.max(0, VH-P[snap])+'px');
+        paint(P[snap]); cb.onChange && cb.onChange(P[snap], true);
       },
       open: function (html, name, opts) {
         opts = opts || {}; dismissible = opts.dismissible !== false;peekHeight=opts.peekHeight||null;

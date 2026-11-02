@@ -299,6 +299,8 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .pick-mode.pick-search .rp-list-label { padding:8px 0 5px;color:#8f9eac;font-size:10px;line-height:14px;letter-spacing:.5px;text-transform:uppercase; }
 .pick-mode.pick-search .rp-r { min-height:48px; }
 html.keyboard-open .pick-mode.pick-search .fs-scroll { border-radius:18px 18px 0 0;padding-top:12px;padding-bottom:10px;background:#202934;box-shadow:0 -8px 28px #0008; }
+html.keyboard-open .pick-mode.pick-search { transform:translate3d(0,0,0)!important;height:var(--H,844px); }
+html.keyboard-open .pick-mode.pick-search .fs-scroll { top:0;bottom:0!important; }
 html.keyboard-open .pick-mode.pick-search .fs-head { min-height:40px;margin-bottom:6px; }
 html.keyboard-open .pick-mode.pick-search .fs-t h2 { font-size:18px;line-height:22px; }
 html.keyboard-open .pick-mode.pick-search .fs-t p { font-size:11px;line-height:15px; }

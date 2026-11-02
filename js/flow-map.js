@@ -414,7 +414,18 @@
     if (from === to) { var hint=$('.fs-head p',sheet.pane);if(hint)hint.textContent='Choose a different start and destination';return; }
     if(from&&to&&document.activeElement&&document.activeElement.blur)document.activeElement.blur();
     go({ t: 'pick', from: from, to: to, field: from ? 'to' : 'from', focus: st.id, search: !!state.search && !(from && to), query:'' }, { replace: true });
-    var q = $('#rpq', sheet.pane); if(q && state.search) q.focus();
+    if (state.search) focusSearchInput();
+  }
+
+  function focusSearchInput() {
+    requestAnimationFrame(function () {
+      var input = $('#rpq', sheet.pane); if (!input) return;
+      sheet.reflow ? sheet.reflow('full') : sheet.snapTo('full');
+      try { input.focus({preventScroll:true}); } catch (_) { input.focus(); }
+      /* Safari emits several visualViewport scroll events after focus. Re-anchor
+         after that burst without replaying the sheet spring. */
+      setTimeout(function () { if (state.t==='pick' && state.search && sheet.reflow) sheet.reflow('full'); }, 80);
+    });
   }
 
   world.addEventListener('click', function (e) {
@@ -434,7 +445,7 @@
     var act = b.getAttribute('data-act');
     if (act === 'close') { state.t === 'list' ? history.back() : dismissAll(false); }
     else if(act==='station-line'){state.stationLine=b.dataset.line;history.replaceState(state,'',urlFor(state));sheet.setContent(stationHTML(G.byId[state.id]));focusLines([state.stationLine]);}
-    else if(act==='search-pick'){state.search=!state.search;state.query='';history.replaceState(state,'',urlFor(state));render('pick');if(state.search){var searchInput=$('#rpq',sheet.pane);if(searchInput)searchInput.focus({preventScroll:true});}}
+    else if(act==='search-pick'){state.search=!state.search;state.query='';history.replaceState(state,'',urlFor(state));render('pick');if(state.search)focusSearchInput();}
     else if(act==='expand-route')sheet.snapTo('mid');
     else if (act === 'back') back();
     else if (act === 'dis') go({ t: 'dis', id: b.getAttribute('data-id') });
@@ -443,7 +454,7 @@
     else if (act === 'route-around') { var z = dzById(state.id), st0 = z && G.byName[z.d.now[0] || z.d.next[0]]; go({ t: 'pick', from: st0 ? st0.id : null, to: null, field: st0 ? 'to' : 'from', focus: st0 ? st0.id : null }); }
     else if (act === 'stn') openStation(b.getAttribute('data-n'));
     else if (act === 'edit-route') go({t:'pick',from:state.from,to:state.to,field:'to',focus:state.from});
-    else if (act === 'field') { var s = { t: 'pick', from: state.from, to: state.to, field: b.getAttribute('data-f'), focus: state.focus,search:true }; go(s, { replace: true });var input=$('#rpq',sheet.pane);if(input)input.focus({preventScroll:true}); }
+    else if (act === 'field') { var s = { t: 'pick', from: state.from, to: state.to, field: b.getAttribute('data-f'), focus: state.focus,search:true }; go(s, { replace: true });focusSearchInput(); }
     else if (act === 'swap') { var a2 = state.from, b2 = state.to; if (state.t === 'route') go({ t: 'route', from: b2, to: a2, opt: 0 }, { replace: true }); else go({ t: 'pick', from: b2, to: a2, field: state.field, focus: state.focus }, { replace: true }); }
     else if(act==='find-route'&&state.from&&state.to&&state.from!==state.to){go({t:'route',from:state.from,to:state.to,opt:0});}
     else if(act==='retry-route'){delete RC[state.from+'>'+state.to];render('retry');}
@@ -464,7 +475,7 @@
   if (window.TCSearch) { var q = $('#q'); /* search → fly to the station instead of navigating */ q.__pick = openStation; }
   window.addEventListener('shellfit',function(){if(state.t)reframe(sheet.visible);});
   if(window.visualViewport){
-    var holdSearch=function(){if(state.t==='pick'&&state.search){sheet.snapTo('full');}};
+    var holdSearch=function(){if(state.t==='pick'&&state.search){sheet.reflow ? sheet.reflow('full') : sheet.snapTo('full');}};
     visualViewport.addEventListener('resize',holdSearch);
     visualViewport.addEventListener('scroll',holdSearch);
   }
