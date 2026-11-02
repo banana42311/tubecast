@@ -230,8 +230,6 @@
     wt = M.clamp((zt == null ? k : zt) * Math.exp(-d * (e.ctrlKey ? .01 : .0017)), KMIN, KMAX);
     zoomAnim(wt, p.x, p.y, .26);
   }, { passive: false });
-  var fitButton=document.createElement('button');fitButton.className='fit-network';fitButton.textContent='Fit';fitButton.setAttribute('aria-label','Show entire network');document.querySelector('.zoomctl').appendChild(fitButton);
-  fitButton.addEventListener('click',function(){fit({x0:minX,y0:minY,x1:maxX,y1:maxY},{t:160,b:100,l:30,r:30},1);});
   /* buttons + keyboard */
   function step(f) { measure(); zoomAnim((zt == null ? k : zt) * f, VW / 2, VH / 2, .34); }
   zbtn.in && zbtn.in.addEventListener('click', function () { step(1.7); });
@@ -274,7 +272,7 @@
   function relayout() { measure(); setZoomAt(k, VW / 2, VH / 2, false); }
   window.addEventListener('shellfit', relayout); window.addEventListener('resize', relayout);
   // No automatic glow over an idle map.
-  document.querySelector('[data-back]').addEventListener('click', function () { history.length > 1 ? history.back() : location.href = 'index.html'; });
+  document.querySelector('[data-back]').addEventListener('click', function () { history.length > 1 ? history.back() : location.href = 'index.html#overview'; });
   window.dispatchEvent(new CustomEvent('mapready'));
   Motion.press && Motion.press(document.body, '.ui.chip,.stackbtn,.routebtn,.zbtn', .94);
 })();

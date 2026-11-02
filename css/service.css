@@ -302,3 +302,16 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .map-phone #world .lbl { font-size:11px;transform-origin:0 0; }
 
 #world.zoom-wide .network-lines path { stroke-width:calc(.6px * var(--ms)); }
+
+/* Clear arrival hierarchy: direction, next train, then following services. */
+.fs-dirs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.arrival-card{min-width:0;margin:0;padding:12px;background:#2a3440;border:1px solid #3b4654;border-radius:14px}
+.arrival-card h3{margin:0 0 8px;font:500 12px/16px var(--sf,system-ui);color:#c4cdd7}
+.arrival-next{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.arrival-next b{font:650 30px/34px var(--sf,system-ui);letter-spacing:-1px;color:#fff}
+.arrival-next>span{font-size:12px;color:#c4cdd7}
+.arrival-next small{flex-basis:100%;font-size:10px;line-height:14px;color:#9eacba;margin-top:-3px}
+.arrival-later{display:flex;align-items:baseline;gap:7px;margin-top:10px;padding-top:8px;border-top:1px solid #ffffff12;font-size:11px;color:#9eacba;white-space:nowrap;font-variant-numeric:tabular-nums}
+.arrival-later b{font-size:14px;font-weight:550;color:#dbe3eb}.arrival-later i{font-style:normal;color:#788795}
+#world .fend,#world .fsel{z-index:9}
+#world .fend b{top:-36px}

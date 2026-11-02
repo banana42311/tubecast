@@ -4,7 +4,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
   function kebab(s) { return String(s).toLowerCase().replace(/['’]/g, '').replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
-  function back() { if (history.length > 1) history.back(); else location.href = 'index.html'; }
+  function back() { if (history.length > 1) history.back(); else location.href = 'index.html#overview'; }
   var M = window.Motion;
   var N = window.NET, COL = { minor: 'var(--minor)', severe: 'var(--severe)', good: 'var(--good)' };
   var C = { central: '#E1251B', eliz: '#8C6CD1', hc: '#F3A9BB' };

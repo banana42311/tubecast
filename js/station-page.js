@@ -5,7 +5,7 @@
   var esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
   function kebab(s) { return String(s).toLowerCase().replace(/['’]/g, '').replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
   function pretty(s) { return s.split('-').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '); }
-  function back() { if (history.length > 1) history.back(); else location.href = 'index.html'; }
+  function back() { if (history.length > 1) history.back(); else location.href = 'index.html#overview'; }
 
   /* map-frame (656x410) coordinates of stations that can be centred */
   var M = {

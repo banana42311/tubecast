@@ -6,7 +6,7 @@ const load=url=>new Promise(resolve=>{frame.onload=()=>resolve(frame.contentWind
 const pause=()=>new Promise(r=>setTimeout(r,700));
 try{
 let w=await load('../map.html?station=holborn');await pause();let d=w.document,F=w.FlowMap;
-assert(!!F,'map initializes');assert(w.TFL_NETWORK.stations.length===299,'complete Tube and Elizabeth station catalogue');assert(!w.TFLMap&&w.SCHEMATIC_MAP,'schematic layout instead of geographic projection');assert(Object.keys(w.StationCatalog).length===299,'complete schematic catalogue');assert(w.StationCatalog.Holborn.lines.length===2,'official interchange membership');
+assert(!!F,'map initializes');assert(!d.querySelector('.fit-network'),'Fit control removed');assert(d.querySelector('.service-nav a').getAttribute('href')==='index.html#overview','Overview link skips splash');assert(w.TFL_NETWORK.stations.length===299,'complete Tube and Elizabeth station catalogue');assert(!w.TFLMap&&w.SCHEMATIC_MAP,'schematic layout instead of geographic projection');assert(Object.keys(w.StationCatalog).length===299,'complete schematic catalogue');assert(w.StationCatalog.Holborn.lines.length===2,'official interchange membership');
 assert(!d.querySelector('#world svg .base image'),'zoomable map stays inline vector');
 assert(getComputedStyle(d.querySelector('#chip')).display==='none','line summary removed from map');
 d.querySelector('[data-act="station-line"][data-line="piccadilly"]').click();
@@ -27,10 +27,15 @@ F.go({t:'route',from:'bow-road',to:'ladbroke-grove',opt:0,chosen:true});await pa
 assert(d.querySelector('.journey-steps').textContent.includes('Change at'),'selected multi-line route names interchange');
 w.JourneyAPI.plan=async()=>{throw Error('TfL is busy. Please try again shortly.');};
 F.go({t:'route',from:'mile-end',to:'bank',opt:0});await pause();assert(d.querySelector('.rp-none').textContent.includes('TfL is busy'),'provider failures display retry instead of invented routes');assert(d.querySelector('[data-act="go"]').disabled,'failed journey cannot be selected');
+d.querySelector('[data-act="edit-route"]').click();assert(F.state().from==='mile-end'&&F.state().to==='bank','failed route can edit preserved endpoints');
+F.go({t:'pick',field:'from',search:true});let sq=d.querySelector('#rpq');sq.value='st pauls';sq.dispatchEvent(new w.Event('input',{bubbles:true}));assert(d.querySelector('#rpl').textContent.includes("St. Paul's"),'station search ignores punctuation');sq.value='';sq.dispatchEvent(new w.Event('input',{bubbles:true}));d.querySelector('[data-act="pickst"][data-n="Bank"]').click();assert(F.state().search&&F.state().field==='to','search advances directly from origin to destination');
+d.querySelector('[data-act="back"]').click();assert(!F.state().search&&F.state().from==='bank','search back returns to map without clearing origin');
+F.openStation('Bank');assert(F.state().from==='bank'&&!F.state().to,'same station does not erase origin');
+d.querySelector('[data-act="close"]').click();await pause();d.querySelector('#route').click();assert(F.state().from==='bank','reopening planner resumes draft');
 const marks=[...d.querySelectorAll('.station-marker')].map(n=>n.dataset.st+':'+n.dataset.kind);
 assert(new Set(marks).size===marks.length,'one status marker per station and time window');
 assert(!d.querySelector('[marker-end]'),'direction uses flow without arrowheads');
-w=await load('../index.html#all-lines');await pause();d=w.document;
+w=await load('../index.html#overview');await pause();assert(w.location.pathname.endsWith('/index.html'),'internal overview opens without onboarding');w=await load('../index.html?test=all-lines#all-lines');await pause();d=w.document;
 assert(d.querySelectorAll('.all-line-cards>a').length===12,'overview includes all twelve lines');
 assert(!!d.querySelector('.ringwrap img'),'original main radial diagram retained');
 const pp=d.querySelector('#pagepos'),r=pp.getBoundingClientRect();
@@ -43,7 +48,7 @@ const row=active.querySelector('a.srow'),before=d.querySelector('.pd.cur').datas
 for(const [type,x] of [['pointerdown',230],['pointermove',220],['pointermove',160],['pointerup',160]])row.dispatchEvent(new w.PointerEvent(type,{pointerId:9,clientX:x,clientY:400,bubbles:true,button:0}));
 const click=new w.MouseEvent('click',{bubbles:true,cancelable:true});row.dispatchEvent(click);await pause();assert(click.defaultPrevented,'station link does not open after horizontal swipe');assert(d.querySelector('.pd.cur').dataset.i!==before,'swiping a station row changes line');
 w.localStorage.setItem('tubecast-welcome','1');w=await load('../index.html?v=return-visit');await new Promise(r=>setTimeout(r,150));assert(frame.contentWindow.location.pathname.endsWith('/onboarding.html'),'version link and returning visitor start with splash');w=frame.contentWindow;assert(w.document.querySelectorAll('.ring-light').length===48,'onboarding animates supplied forty-eight ring segments');
-assert(!w.document.querySelector('a,h1,p'),'onboarding contains only the logo');await new Promise(r=>setTimeout(r,3300));assert(w.location.pathname.endsWith('/index.html'),'splash proceeds to overview after three seconds');
+assert(w.document.querySelector('main').getBoundingClientRect().width<=390,'onboarding fits mobile canvas');assert(!w.document.querySelector('a,h1,p'),'onboarding contains only the logo');await new Promise(r=>setTimeout(r,3300));assert(w.location.pathname.endsWith('/index.html'),'splash proceeds to overview after three seconds');
 out.textContent='ALL CHECKS PASSED\n'+logs.join('\n');
 }catch(e){out.textContent=logs.join('\n')+'\nFAIL '+e.stack;}
 })();

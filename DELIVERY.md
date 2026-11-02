@@ -109,3 +109,10 @@ Overview의 링 아래에 전체 노선 목록을 통합했습니다. 기존 `li
 - 연결 검사: `node tests/schematic.cjs` — 전 역/노선 앵커, 원래 도심 위치, 420개 연결, 주요 외곽 분기 확인
 - 브라우저 검사: `tests/map-coverage.html` — 누락 역 검색, 외곽역 중앙 이동, 기존 경계 밖 수동 드래그, 외곽 출발/도착 선택
 - 선 두께/역 이름은 축소에서도 읽을 수 있도록 보정하고, 겹치는 역 이름은 줌에 따라 표시합니다. 역은 검색으로 모두 선택할 수 있습니다.
+
+## 2026-11-02 — onboarding and journey flow
+- Onboarding uses the same mobile-sized canvas as the main service, with the original amber ring and three-second handoff. Internal Overview links use `index.html#overview`; root delivery links still show onboarding.
+- Removed the map Fit button. Pan/zoom and route auto-framing remain.
+- Search advances from origin to destination, with a dedicated back-to-map action. Both endpoints remain visible before Find routes. Equal endpoints do not erase the other field. Closing and reopening the planner retains a draft within the current map page.
+- Route results can return to endpoint editing, including after an API failure. Selected journeys prioritize transfer summaries and offer expandable stop lists. Times explicitly identify London time and exclude waiting before departure.
+- Validated browser UX regression suite, mobile layout, real TfL Bank–Holborn response, release links and motion checks. Physical iPhone keyboard/gesture testing is still required.

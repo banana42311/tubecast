@@ -105,7 +105,7 @@
   sheet = window.FlowSheet.create(phone, {
     onChange: onSheet,
     onTarget: function (v) { reframe(v); },
-    onContent: function () { if (state.t === 'pick') fillPickList(''); },
+    onContent: function () { if (state.t === 'pick') fillPickList(state.query || ''); },
     onDismiss: function () { dismissAll(true); }
   });
 
@@ -119,7 +119,9 @@
     if (!state.t || state.t === 'list') return;
     var c = cam.get(), snapFull = vis >= c.VH - 100;
     if (snapFull && state.t !== 'pick') return;
-    if (state.t === 'station' || (state.t === 'pick' && state.focus)) {
+    if(state.t==='pick' && state.from && state.to && !state.search){
+      var a=G.byId[state.from],b=G.byId[state.to];cam.fit(bboxOf([[a.x,a.y],[b.x,b.y]],12),{t:130,b:vis+24,l:60,r:60},2.6);
+    } else if (state.t === 'station' || (state.t === 'pick' && state.focus)) {
       var st = G.byId[state.t === 'station' ? state.id : state.focus]; if (!st) return;
       if (snapFull) return;
       cam.flyTo(st.x, st.y, M_clamp(Math.max(c.k, 1.5), 1.5, 2.6), c.VW / 2, Math.max(230, 206 + (c.VH - vis - 206) * .5));
@@ -160,7 +162,7 @@
     var o = orient(st), w = FD.worst(FD.atStation(st.name)), dirs = '';
     o.forEach(function (n) {
       var t = FD.trains(st.name + state.stationLine, n), t3 = t[1] + 4 + (FD.hash(st.name + n) % 5);
-      dirs += '<div class="dir"><span>' + n + '</span><div class="mins"><b>' + t[0] + '</b><b>' + t[1] + '</b><b>' + t3 + '</b><em>min</em></div></div>';
+      dirs += '<section class="arrival-card" aria-label="'+esc(n)+' example arrivals"><h3>'+esc(n)+'</h3><div class="arrival-next"><b>'+(t[0]===0?'Due':t[0])+'</b>'+(t[0]===0?'':'<span>min</span>')+'<small>Next train</small></div><div class="arrival-later"><span>Then</span><b>'+t[1]+'</b><i>·</i><b>'+t3+'</b><span>min</span></div></section>';
     });
     var primary = st.lines[0] || 'central';
     return head(esc(st.name), (window.LiveState && LiveState.mode !== 'example' ? 'Live · ' : 'Demo data · ') + (st.lines.length || 1) + ' line' + (st.lines.length === 1 ? '' : 's')) +
@@ -176,18 +178,19 @@
   function nm(id) { return id && G.byId[id] ? G.byId[id].name : ''; }
   function pickHTML() {
     var f = state.field || 'to';
-    return head('Plan a route', 'Choose a start and a destination', state.focus ? false : false) +
+    return head(state.search ? (f === 'from' ? 'Choose start' : 'Choose destination') : 'Plan a route', state.search ? (f === 'to' && state.from ? 'From '+esc(nm(state.from)) : 'Search by station name') : 'Choose a start and a destination', !!state.search) +
       '<div class="rp-fields"><div class="rp-rail"><i class="a"></i><i class="l"></i><i class="b"></i></div><div class="rp-in">' +
       '<button class="rp-f' + (f === 'from' ? ' on' : '') + '" data-act="field" data-f="from"><small>From</small><b>' + (esc(nm(state.from)) || '<u>Choose start</u>') + '</b></button>' +
       '<button class="rp-f' + (f === 'to' ? ' on' : '') + '" data-act="field" data-f="to"><small>To</small><b>' + (esc(nm(state.to)) || '<u>Choose destination</u>') + '</b></button></div>' +
       '<button class="rp-sw" data-act="swap" aria-label="Swap"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 15V3M5 3 2 6m3-3 3 3M13 3v12m0 0 3-3m-3 3-3-3" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>' +
-      '<button class="pick-search-toggle" data-act="search-pick">'+(state.search?'Choose on map':'Search stations instead')+'</button><div class="rp-search"><input id="rpq" type="search" placeholder="' + (f === 'from' ? 'Search a start station' : 'Search a destination') + '" autocomplete="off" spellcheck="false" aria-label="Search stations"></div>' +
+      '<button class="pick-search-toggle" data-act="search-pick">'+(state.search?'Choose on map':'Search stations instead')+'</button><div class="rp-search"><input id="rpq" type="search" placeholder="' + (f === 'from' ? 'Search a start station' : 'Search a destination') + '" autocomplete="off" spellcheck="false" aria-label="Search stations" value="' + esc(state.query || '') + '"></div>' +
       '<div class="rp-quick">' + QUICK.filter(function (q) { return G.byName[q] && (window.TFLMap || G.byName[q].vn >= 0); }).map(function (q) { return '<button data-act="pickst" data-n="' + esc(q) + '">' + esc(q) + '</button>'; }).join('') + '</div>' +
-      '<div class="rp-list" id="rpl"></div>'+(!state.search?'<button class="btn-p find-journey" data-act="find-route"'+(state.from&&state.to&&state.from!==state.to?'':' disabled')+'>Find routes</button>':'');
+      '<div class="rp-list" id="rpl" aria-live="polite"></div>'+(!state.search?'<button class="btn-p find-journey" data-act="find-route"'+(state.from&&state.to&&state.from!==state.to?'':' disabled')+'>Find routes</button>':'');
   }
+  function searchKey(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,'and').replace(/[^a-z0-9]/g,'');}
   function fillPickList(q) {
     var box = $('#rpl', sheet.pane); if (!box) return; q = (q || '').trim().toLowerCase();
-    var list = G.stations.filter(function (s) { return (window.TFLMap || s.vn >= 0) && (!q || s.name.toLowerCase().indexOf(q) > -1) && s.id !== (state.field === 'from' ? state.to : state.from); })
+    var list = G.stations.filter(function (s) { return (window.TFLMap || s.vn >= 0) && (!q || searchKey(s.name).indexOf(searchKey(q)) > -1) && s.id !== (state.field === 'from' ? state.to : state.from); })
       .sort(function (a, b) { return a.name.localeCompare(b.name); }).slice(0, q ? 60 : 24);
     box.innerHTML = list.length ? list.map(function (s) {
       return '<button class="rp-r" data-act="pickst" data-n="' + esc(s.name) + '"><span class="dots">' + s.lines.slice(0, 4).map(function (l) { return '<i style="background:' + lineCol(l) + '"></i>'; }).join('') + '</span><span>' + esc(s.name) + '</span><b>&rsaquo;</b></button>';
@@ -215,16 +218,16 @@
       h += '<button class="ro' + (i === (state.opt || 0) ? ' on' : '') + '" data-act="opt" data-i="' + i + '" aria-pressed="' + (i === (state.opt || 0)) + '">' +
         '<div class="ro-top"><b>' + (o.min + o.extra) + '<small> min</small></b><span class="tag">' + o.tag + '</span></div>' +
         '<div class="ro-legs">' + legs + '</div>' +
-        '<div class="ro-meta">' + (o.r.legs.every(function(l){return l.walking;})?'Walking route':o.stops+' stops') + ' · ' + (o.r.transfers ? o.r.transfers + ' change' + (o.r.transfers > 1 ? 's' : '') : 'No changes') + (o.extra ? ' · usually ' + o.min + ' min' : '') + '</div><div class="ro-times">'+JourneyAPI.clock(o.departure)+' → '+JourneyAPI.clock(o.arrival)+' · Travel time excludes waiting</div>' + dl + '</button>';
+        '<div class="ro-meta">' + (o.r.legs.every(function(l){return l.walking;})?'Walking route':o.stops+' stops') + ' · ' + (o.r.transfers ? o.r.transfers + ' change' + (o.r.transfers > 1 ? 's' : '') : 'No changes') + (o.extra ? ' · usually ' + o.min + ' min' : '') + '</div><div class="ro-times">'+JourneyAPI.clock(o.departure)+' → '+JourneyAPI.clock(o.arrival)+' · London time · Excludes waiting before departure</div>' + dl + '</button>';
     });
     if (!opts.length) h = '<div class="rp-none">'+esc(rs.error||'TfL returned no journeys for these stations at this time.')+'</div><button class="btn-s" data-act="retry-route">Try again</button>';
     var sub = opts.length + ' route' + (opts.length === 1 ? '' : 's') + ' · TfL Journey Planner';
     if (state.chosen && opts.length) {
       var selected=opts[state.opt||0];
       return head('Route selected',esc(A.name)+' → '+esc(B.name),false)+
-        '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · '+JourneyAPI.clock(selected.departure)+' → '+JourneyAPI.clock(selected.arrival)+'</b><small>TfL · '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+'</small></div></div>'+
-        '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(l.walking?'Walk':(i?'Change at '+esc(first?first.name:'interchange'):'Board at '+esc(first?first.name:A.name)))+'</small><b>'+esc(lineName(l.line))+'</b><small>'+esc(l.instruction)+' · '+l.duration+' min · '+JourneyAPI.clock(l.departure)+'</small><span>'+esc(first?first.name:A.name)+' → '+esc(last?last.name:B.name)+' · '+Math.max(0,l.stops.length-1)+' stops</span><details open><summary>Stations on this leg</summary><div class="leg-stops">'+l.stops.map(function(st,j){return '<span><i></i>'+esc(st.name)+(j===l.stops.length-1?(i===selected.r.legs.length-1?' · Arrive':' · Change here'):'')+'</span>';}).join('')+'</div></details></li>';}).join('')+'</ol><small class="journey-note">Powered by the Transport for London Journey Planner API</small>'+
-        '<div class="fs-actions"><button class="btn-p" data-act="change-route">Change route</button><button class="btn-s" data-act="close">Done</button></div>';
+        '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · '+JourneyAPI.clock(selected.departure)+' → '+JourneyAPI.clock(selected.arrival)+'</b><small>TfL · '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+' · London time</small></div></div>'+
+        '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(l.walking?'Walk':(i?'Change at '+esc(first?first.name:'interchange'):'Board at '+esc(first?first.name:A.name)))+'</small><b>'+esc(lineName(l.line))+'</b><small>'+esc(l.instruction)+' · '+l.duration+' min · '+JourneyAPI.clock(l.departure)+'</small><span>'+esc(first?first.name:A.name)+' → '+esc(last?last.name:B.name)+' · '+Math.max(0,l.stops.length-1)+' stops</span><details><summary>Stations on this leg</summary><div class="leg-stops">'+l.stops.map(function(st,j){return '<span><i></i>'+esc(st.name)+(j===l.stops.length-1?(i===selected.r.legs.length-1?' · Arrive':' · Change here'):'')+'</span>';}).join('')+'</div></details></li>';}).join('')+'</ol><small class="journey-note">Powered by the Transport for London Journey Planner API</small>'+
+        '<div class="fs-actions"><button class="btn-p" data-act="change-route">Change route</button><button class="btn-s" data-act="edit-route">Edit journey</button></div>';
     }
     return head(esc(A.name)+' <span class="arr">→</span> '+esc(B.name),sub,true)+
       '<button class="route-edit" data-act="edit-route">Edit start or destination</button><div class="ro-list">'+h+'</div><div class="fs-actions"><button class="btn-p" data-act="go"'+(opts.length?'':' disabled')+'>Choose this route</button><button class="btn-s" data-act="swap" aria-label="Reverse route">⇅</button></div>';
@@ -261,6 +264,7 @@
   }
 
   /* ---------------------------------------------------------------- state machine + history */
+  var draft = null;
   var state = { t: null, d: 0 }, depth = 0, listEl = null, RC = {}, curRoute = null;
   var base = location.pathname.replace(/^.*\//, '') + '?line=' + C.slug;
   function urlFor(s) {
@@ -276,7 +280,7 @@
     o = o || {}; var prev = state.t;
     if (o.push !== false) { depth = o.replace ? depth : depth + 1; s.d = depth; history[o.replace ? 'replaceState' : 'pushState'](s, '', urlFor(s)); }
     else depth = s.d || 0;
-    state = s; render(prev);
+    state = s; if(s.from || s.to) draft={from:s.from||null,to:s.to||null}; render(prev);
   }
   function render(prev) {
     document.body.classList.toggle('in-flow', !!state.t);
@@ -298,7 +302,8 @@
     } else if (state.t === 'pick') {
       clearRouteDraw(); var f = G.byId[state.focus || state.from]; if (f) { showSel(f); focusLines(f.lines); } else { hideSel(); clearFocus(); }
       state.focus = state.focus || state.from || null;
-      sheet.open(pickHTML(), state.search ? 'mid' : 'compact', {dismissible:false}); fillPickList('');
+      if(state.from && state.to){hideSel();[state.from,state.to].forEach(function(id,i){var st=G.byId[id];routeMk.push(wdiv('fend '+(i?'b':'a'),st.x,st.y,'<i></i><b>'+esc(st.name)+'</b>'));});}
+      sheet.open(pickHTML(), state.search ? 'mid' : 'compact', {dismissible:false}); fillPickList(state.query || '');
     } else if (state.t === 'route') {
       var key=state.from+'>'+state.to;
       if(!RC[key]||(!state.chosen&&prev!=='loaded'&&prev!=='route'&&Date.now()-RC[key].fetchedAt>60000)){
@@ -326,7 +331,11 @@
     var s = e.state || { t: null, d: 0 };
     state = s; depth = s.d || 0; render('pop');
   });
-  function back() { if (state.t) { history.back(); return true; } return false; }
+  function back() {
+    if(state.t==='pick' && state.search){go(Object.assign({},state,{search:false,query:''}),{replace:true});return true;}
+    if(state.t==='route'){go({t:state.chosen?'route':'pick',from:state.from,to:state.to,opt:state.opt||0,field:'to',focus:state.from},{replace:true});return true;}
+    if (state.t) { dismissAll(false); return true; } return false;
+  }
 
   function closeList() {}
   /* ---------------------------------------------------------------- events */
@@ -341,9 +350,9 @@
     var f = state.field || 'to', from = state.from, to = state.to;
     if (f === 'from') from = st.id; else to = st.id;
 
-    if (from === to) { if (f === 'from') to = null; else from = null; }
-    go({ t: 'pick', from: from, to: to, field: from ? 'to' : 'from', focus: from || state.focus || null }, { replace: true });
-    var q = $('#rpq', sheet.pane); q && q.focus && matchMedia('(pointer:fine)').matches && q.focus();
+    if (from === to) { var hint=$('.fs-head p',sheet.pane);if(hint)hint.textContent='Choose a different start and destination';return; }
+    go({ t: 'pick', from: from, to: to, field: from ? 'to' : 'from', focus: st.id, search: !!state.search && !(from && to), query:'' }, { replace: true });
+    var q = $('#rpq', sheet.pane); if(q && state.search) q.focus();
   }
 
   world.addEventListener('click', function (e) {
@@ -363,7 +372,7 @@
     var act = b.getAttribute('data-act');
     if (act === 'close') { state.t === 'list' ? history.back() : dismissAll(false); }
     else if(act==='station-line'){state.stationLine=b.dataset.line;history.replaceState(state,'',urlFor(state));sheet.setContent(stationHTML(G.byId[state.id]));focusLines([state.stationLine]);}
-    else if(act==='search-pick'){state.search=!state.search;render('pick');if(state.search)$('#rpq',sheet.pane).focus();}
+    else if(act==='search-pick'){state.search=!state.search;state.query='';history.replaceState(state,'',urlFor(state));render('pick');if(state.search)$('#rpq',sheet.pane).focus();}
     else if (act === 'back') back();
     else if (act === 'dis') go({ t: 'dis', id: b.getAttribute('data-id') });
     else if (act === 'route-to') go({t:'pick',to:state.id,field:'from',focus:state.id});
@@ -381,12 +390,12 @@
     else if (act === 'change-route') { go({t:'route',from:state.from,to:state.to,opt:state.opt||0},{replace:true}); }
   });
 
-  sheet.pane.addEventListener('input', function (e) { if (e.target.id === 'rpq') fillPickList(e.target.value); });
+  sheet.pane.addEventListener('input', function (e) { if (e.target.id === 'rpq') {state.query=e.target.value;fillPickList(e.target.value);} });
 
   /* entry points on the existing page chrome */
   var stack = $('#stack'), rbtn = $('#route');
   stack.href='index.html#all-lines';
-  rbtn.addEventListener('click', function (e) { e.preventDefault(); go({ t: 'pick', from: state.t === 'station' ? state.id : null, to: null, field: state.t === 'station' ? 'to' : 'from', focus: state.t === 'station' ? state.id : null }, state.t === 'station' ? {} : {}); });
+  rbtn.addEventListener('click', function (e) { e.preventDefault(); var a=state.t==='station'?state.id:(draft&&draft.from),b=state.t==='station'?null:(draft&&draft.to);go({t:'pick',from:a||null,to:b||null,field:a?'to':'from',focus:a||null}); });
   var bk = $('[data-back]'); if (bk) bk.addEventListener('click', function (e) { if (state.t) { e.stopImmediatePropagation(); back(); } }, true);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && state.t && !/INPUT/.test(e.target.tagName)) { back(); } });
   if (window.TCSearch) { var q = $('#q'); /* search → fly to the station instead of navigating */ q.__pick = openStation; }
