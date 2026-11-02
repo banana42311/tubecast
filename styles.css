@@ -156,7 +156,13 @@ body{
 .ringcard .head .k{flex:1 0 0;min-width:0;font-size:12px;font-weight:600;line-height:14px;letter-spacing:.2px;color:var(--sec)}
 .ringcard .head .a{font-size:12px;font-weight:400;line-height:14px;letter-spacing:-.224px;color:var(--sec);white-space:nowrap}
 .ringwrap{position:relative;width:342px;height:299.003px}
-.ringwrap img{position:absolute;left:1px;top:2px;width:340px;height:294px;display:block}
+.ringwrap img,.ringwrap .risk-ring{position:absolute;left:1px;top:2px;width:340px;height:294px;display:block}
+.ring-wedge{cursor:pointer;outline:none}
+.ring-wedge .ring-band,.ring-wedge text{transition:opacity .18s ease,filter .18s ease}
+.ring-wedge:hover .ring-band,.ring-wedge:focus-visible .ring-band{filter:brightness(1.13)}
+.ring-wedge:focus-visible{outline:none}
+.ring-wedge:focus-visible .ring-line-key{filter:drop-shadow(0 0 3px rgba(255,255,255,.8))}
+@media (prefers-reduced-motion:reduce){.ring-wedge .ring-band,.ring-wedge text{transition:none}}
 .ringcard .legend{padding:0 8px}
 .ringcard .legend p{font-size:12px;font-weight:400;line-height:14px;letter-spacing:-.224px;color:var(--sec)}
 

@@ -33,7 +33,11 @@
     return '<button class="fl-row" data-line="'+line.slug+'"><span class="bar" style="--c:'+line.color+';background:'+line.color+'"></span><span class="nm"><b>'+esc(line.name)+'</b><small>'+esc(status)+'</small></span><span class="n '+tone+'">'+(sum.now||'✓')+'</span></button>';
   }).join('');
 
-  document.getElementById('app-ring').innerHTML=window.Overview&&Overview.ringHTML?Overview.ringHTML():'';
+  var disposeRing=window.Overview&&Overview.mountRing?Overview.mountRing(document.getElementById('app-ring'),{onPick:function(slug){
+    var d=FD.forLine(slug)[0],api=mapAPI();
+    if(d&&api){api.go({t:'dis',id:d.id});return;}
+    var p=new URLSearchParams({line:slug,console:'1'});if(window.DemoMode&&DemoMode.active)p.set('demo','commute');iframe.src='map.html?'+p.toString();
+  }}):function(){};
   document.getElementById('stations').innerHTML=Object.keys(window.StationCatalog||{}).sort().map(function(name){return '<option value="'+esc(name)+'"></option>';}).join('');
 
   function openStation(name){var api=mapAPI();if(api)api.openStation(name);}

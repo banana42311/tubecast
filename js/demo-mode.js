@@ -1,8 +1,8 @@
-/* Deterministic, offline commute demo. It is active only for ?demo=commute
-   while apiBase is empty and always opens the final scenario snapshot. */
+/* Deterministic, offline commute demo. The explicit ?demo=commute URL wins
+   over apiBase so the recording scenario stays reproducible after launch. */
 (function () {
   var C = window.TUBECAST_CONFIG || {}, p = new URLSearchParams(location.search);
-  var active = !String(C.apiBase || '').trim() && p.get('demo') === 'commute';
+  var active = p.get('demo') === 'commute';
   var step = 3;
   function url(value) {
     if (!active || !value || /^(?:https?:|mailto:|tel:|#)/.test(value)) return value;
