@@ -1,7 +1,7 @@
 /* Loads Hermes /api/state (or the local contract fixture) and exposes one
    synchronous LiveState snapshot before FlowData is built. */
 (function () {
-  var C = window.TUBECAST_CONFIG || {}, Model = window.StateModel;
+  var C = window.TUBECAST_CONFIG || {}, Model = window.StateModel, Demo = window.DemoMode;
   var KEY = 'tubecast-state-v2', base = String(C.apiBase || '').replace(/\/$/, '');
   var fixture = C.stateFixture || 'data/state.sample.json', maxAge = C.maxAgeSec || 180;
   function read() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
@@ -15,7 +15,7 @@
     var out = Model.transform(data, window.StationCatalog || {}, window.TFL_NETWORK || {});
     warnUnmatched(out.unmatched);
     return Object.assign(out, {
-      mode: meta.example ? 'example' : (meta.delayed || out.stale ? 'stale' : 'current'),
+      mode: meta.scenario ? 'scenario' : (meta.example ? 'example' : (meta.delayed || out.stale ? 'stale' : 'current')),
       delayed: !!meta.delayed, hasData: true, fetchedAt: meta.fetchedAt || Date.now(), source: meta.source || ''
     });
   }
@@ -32,9 +32,11 @@
     var live = window.LiveState;
     if (!live.hasData) return;
     (window.LINES || []).forEach(function (line) {
-      var info = live.lines[line.slug]; if (!info) return;
+      var info = live.lines[line.slug];
+      if (!info) { if (live.mode === 'scenario') line.status = 'normal'; return; }
       var has = live.disruptions.some(function (d) { return d.line === line.slug; });
-      line.status = info.closed ? 'closed' : (has ? 'delayed' : 'normal');
+      var notice = /delay|suspend|closure|not running/i.test(info.status || '');
+      line.status = info.closed ? 'closed' : (has || notice ? 'delayed' : 'normal');
     });
   }
   applyLineMetadata();
@@ -94,6 +96,14 @@
         }
       });
   }
-  pull();
-  if (base) setInterval(pull, (C.refreshSec || 60) * 1000);
+  if (Demo && Demo.active && Demo.data) {
+    var scenario = window.DemoModeCore.select(Demo.data, Demo.step);
+    if (scenario) {
+      window.LiveState = build(scenario, { scenario: true, example: true, fetchedAt: Date.now(), source: 'demo' });
+      applyLineMetadata(); updateBadge();
+    }
+  } else {
+    pull();
+    if (base) setInterval(pull, (C.refreshSec || 60) * 1000);
+  }
 })();

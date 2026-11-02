@@ -15,12 +15,13 @@
     return Object.keys(byDirection).map(function (key) { return byDirection[key]; });
   }
   function score(option, state) {
-    var seen = {}, current = 0, predicted = 0, extra = 0, level = null, hits = [];
+    var seen = {}, groups = {}, current = 0, predicted = 0, extra = 0, level = null, hits = [];
+    function group(line, dir) { var key=line+'|'+(dir||'any');return groups[key]||(groups[key]={current:0,predicted:0,closed:0}); }
     (option.r.legs || []).forEach(function (leg) {
       if (leg.walking) return;
       var info = state && state.lines && state.lines[leg.line];
       if (info && info.closed && !seen['closed:' + leg.line]) {
-        seen['closed:' + leg.line] = true; extra += 40; level = worst(level, 'not-running');
+        seen['closed:' + leg.line] = true; group(leg.line,leg.direction).closed = 40; level = worst(level, 'not-running');
         hits.push({ station: leg.stops[0] && leg.stops[0].name, line: leg.line, kind: 'current', level: 'not-running', minutes: 40 });
       }
       (leg.stops || []).forEach(function (stop) {
@@ -28,19 +29,21 @@
           var key = leg.line + '|' + stop.name + '|' + row.dir;
           if (seen[key]) return; seen[key] = true;
           if (row.now) {
-            var nowMin = BASE[row.now.level] || 0; current++; extra += nowMin; level = worst(level, row.now.level);
+            var observed = row.now.gapMin != null && row.now.usualMin != null ? Math.max(0,row.now.gapMin-row.now.usualMin) : 0;
+            var nowMin = observed || BASE[row.now.level] || 0; current++; group(leg.line,row.dir).current=Math.max(group(leg.line,row.dir).current,nowMin); level = worst(level, row.now.level);
             hits.push({ station: stop.name, line: leg.line, direction: row.dir, kind: 'current', level: row.now.level, minutes: nowMin });
           }
           if (row.predicted) {
             var predictedLevel = row.predicted.risk === 'high' ? 'severe' : 'minor';
             var forecastMin = (BASE[predictedLevel] || 0) * row.predicted.probability;
             if (row.predicted.risk === 'high') predicted++;
-            extra += forecastMin; level = worst(level, predictedLevel);
+            group(leg.line,row.dir).predicted=Math.max(group(leg.line,row.dir).predicted,forecastMin); level = worst(level, predictedLevel);
             hits.push({ station: stop.name, line: leg.line, direction: row.dir, kind: 'predicted', level: predictedLevel, probability: row.predicted.probability, minutes: forecastMin });
           }
         });
       });
     });
+    Object.keys(groups).forEach(function(key){var g=groups[key];extra+=g.closed||g.current+(g.current?g.predicted*.35:g.predicted);});
     extra = Math.round(extra);
     return { current: current, predicted: predicted, worst: level, extra: extra, hits: hits };
   }

@@ -9,6 +9,13 @@ a { color:inherit; }
 .service-nav>a { display:flex; align-items:center; gap:6px; min-height:44px; text-decoration:none; font-size:14px; font-weight:600; }
 .service-nav>span { font-size:10px; letter-spacing:2px; color:#9ba9b8; }
 .service-nav .demo-tag { letter-spacing:.4px; border:1px solid #526070; border-radius:6px; padding:4px 7px; font-size:10px; }
+.demo-scenario{position:absolute;z-index:64;right:16px;top:16px;padding:5px 8px;border:1px solid #526070;border-radius:8px;background:#161c24e8;color:#aeb8c3;font:600 9px/12px var(--sf);letter-spacing:.25px;box-shadow:inset 0 1px #ffffff12}
+.demo-help{position:fixed;z-index:999;left:50%;bottom:24px;max-width:calc(100vw - 32px);padding:9px 12px;border-radius:10px;background:#0e1319ee;color:#dce5ed;font:500 11px/15px system-ui;opacity:0;transform:translate(-50%,8px);pointer-events:none;transition:opacity .18s var(--ease),transform .18s var(--ease);white-space:nowrap}
+.demo-help-open .demo-help{opacity:1;transform:translate(-50%,0)}
+.demo-commute .footer .u{visibility:hidden}
+.demo-switching{opacity:.55;transition:opacity .12s ease-out}
+.notice-dot{width:9px;height:9px;border-radius:50%;background:var(--minor);box-shadow:0 0 12px #ffa12b88}
+html.mode-phone .demo-scenario{top:calc(10px + env(safe-area-inset-top,0px)/var(--s,1))}
 html.mode-phone .service-nav { top:calc(6px + env(safe-area-inset-top,0px)/var(--s,1)); }
 .statusbar { display:none; }
 .safari { background:none; backdrop-filter:none; -webkit-backdrop-filter:none; pointer-events:none; }
@@ -178,6 +185,8 @@ html.mode-phone .lines .title { padding:0; }
 .station-marker>.nowglow.severe { background:radial-gradient(circle closest-side,rgba(220,36,31,.55),transparent); }
 .station-marker>.nowdot { position:absolute;left:15px;top:15px;width:14px;height:14px;border:2px solid #12161c; }
 .station-marker>.pred { left:50%;top:50%;transform:translate(-50%,-50%); }
+.demo-forecast{animation:forecastEnter .6s var(--ease) var(--forecast-delay,0s) both}
+@keyframes forecastEnter{from{opacity:0;filter:blur(3px)}to{opacity:1;filter:blur(0)}}
 .dz-forecast.dz-dash { stroke-dasharray:7 9;animation:dzFlow 1.8s linear infinite;opacity:.75; }
 .dz-i .dz-glow { stroke-width:10;opacity:.28;filter:blur(3px);animation:dzPulse 2.2s ease-in-out infinite; }
 @media (prefers-reduced-motion:reduce) { .dz-forecast.dz-dash,.dz-i .dz-glow { animation:none; } }
@@ -290,7 +299,12 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .pick-mode.pick-search .fs-pane { display:flex;flex-direction:column;height:100%; }
 .pick-mode.pick-search .rp-list { flex:1;min-height:0;overflow:auto; }
 .pick-mode.pick-search .fs-head,.pick-mode.pick-search .rp-search,.pick-mode.pick-search .pick-search-toggle { flex:none; }
-.route-loading { padding:30px 12px;color:#b3c4d1; }
+.route-loading{font-size:0;display:grid;gap:10px;padding:10px 0}
+.route-loading:before,.route-loading:after{content:'';display:block;height:112px;border:1px solid #3b4755;border-radius:16px;background:linear-gradient(100deg,#2a3440 20%,#36424f 38%,#2a3440 56%);background-size:240% 100%;animation:routeSkeleton 1.05s linear infinite}
+.route-loading:after{height:92px;opacity:.7}
+@keyframes routeSkeleton{to{background-position:-140% 0}}
+.route-compare{display:flex;flex-direction:column;gap:2px;margin:0 0 9px;padding:9px 11px;border-radius:12px;background:#1f3c3d;border:1px solid #397370}
+.route-compare b{font-size:11px;color:#86ddd4}.route-compare span{font-size:12px;line-height:16px;color:#e0eeec}
 .ro-times { color:#c9d9e4;font-size:12px;margin-top:8px; }
 .provider-notice { font-size:11px;color:#f4c68f;line-height:1.4;margin:8px 0 0; }
 .rt-walk { stroke-dasharray:3 5;stroke:#d9e2ea; }
@@ -346,3 +360,4 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .google-route>b{font-size:12px;line-height:16px}.google-route>small{font-size:9px;line-height:12px;color:#aebcc9}
 .google-route:active{transform:scale(.985)}
 .route-mode.peek .google-route{display:none}
+@media(prefers-reduced-motion:reduce){.rt-draw{animation:none;stroke-dashoffset:0}.rt-traveler,.fxfer:after,.route-loading:before,.route-loading:after{animation:none}}

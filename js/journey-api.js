@@ -22,6 +22,10 @@
   }).sort(function(a,b){return Date.parse(a.arrival)-Date.parse(b.arrival);}).map(function(o,i){o.tag=i===0?'Earliest arrival':'Alternative';return o;});
  }
  async function plan(A,B,signal){
+  if(window.DemoMode&&DemoMode.active&&DemoMode.journey&&A&&B&&A.id==='stratford'&&B.id==='white-city'){
+   await new Promise(function(resolve){setTimeout(resolve,360);});
+   return normalize(DemoMode.journey,A,B);
+  }
   var a=StationCatalog[A.name],b=StationCatalog[B.name];if(!a||!b||!a.icsId||!b.icsId)throw Error('Station identifier is unavailable. Please select another station.');
   var u=root.replace(/\/$/,'')+'/Journey/JourneyResults/'+encodeURIComponent(a.icsId)+'/to/'+encodeURIComponent(b.icsId)+'?mode=tube,elizabeth-line&journeyPreference=LeastTime';
   var r=await fetch(u,{signal:signal,headers:{Accept:'application/json'}});if(!r.ok)throw Error(r.status===429?'TfL is busy. Please try again shortly.':'TfL journey planning is unavailable. Please try again.');

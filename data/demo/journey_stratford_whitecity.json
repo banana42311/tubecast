@@ -1,0 +1,57 @@
+{
+  "journeys": [
+    {
+      "duration": 29,
+      "startDateTime": "2026-11-02T08:44:00",
+      "arrivalDateTime": "2026-11-02T09:13:00",
+      "legs": [
+        {
+          "duration": 29,
+          "departureTime": "2026-11-02T08:44:00",
+          "arrivalTime": "2026-11-02T09:13:00",
+          "mode": { "id": "tube" },
+          "routeOptions": [{ "lineIdentifier": { "id": "central" }, "directions": ["Westbound"] }],
+          "instruction": { "summary": "Central line westbound", "detailed": "Stay on the Central line to White City" },
+          "departurePoint": { "commonName": "Stratford Underground Station", "naptanId": "HUBSRA", "lat": 51.541508, "lon": -0.00241 },
+          "arrivalPoint": { "commonName": "White City Underground Station", "naptanId": "940GZZLUWCY", "lat": 51.511959, "lon": -0.224297 },
+          "path": { "stopPoints": [
+            {"name":"Leyton Underground Station","id":"940GZZLULYN"},{"name":"Mile End Underground Station","id":"940GZZLUMED"},{"name":"Bethnal Green Underground Station","id":"940GZZLUBLG"},{"name":"Liverpool Street Underground Station","id":"HUBLST"},{"name":"Bank Underground Station","id":"HUBBAN"},{"name":"St. Paul's Underground Station","id":"940GZZLUSPU"},{"name":"Chancery Lane Underground Station","id":"940GZZLUCHL"},{"name":"Holborn Underground Station","id":"940GZZLUHBN"},{"name":"Tottenham Court Road Underground Station","id":"HUBTCR"},{"name":"Oxford Circus Underground Station","id":"940GZZLUOXC"},{"name":"Bond Street Underground Station","id":"HUBBDS"},{"name":"Marble Arch Underground Station","id":"940GZZLUMBA"},{"name":"Lancaster Gate Underground Station","id":"940GZZLULGT"},{"name":"Queensway Underground Station","id":"940GZZLUQWY"},{"name":"Notting Hill Gate Underground Station","id":"940GZZLUNHG"},{"name":"Holland Park Underground Station","id":"940GZZLUHPK"},{"name":"Shepherd's Bush Underground Station","id":"HUBSPB"}
+          ] }
+        }
+      ]
+    },
+    {
+      "duration": 34,
+      "startDateTime": "2026-11-02T08:46:00",
+      "arrivalDateTime": "2026-11-02T09:20:00",
+      "legs": [
+        {
+          "duration": 17,
+          "departureTime": "2026-11-02T08:46:00",
+          "arrivalTime": "2026-11-02T09:03:00",
+          "mode": { "id": "elizabeth-line" },
+          "routeOptions": [{ "lineIdentifier": { "id": "elizabeth" }, "directions": ["Westbound"] }],
+          "instruction": { "summary": "Elizabeth line westbound", "detailed": "Travel to Bond Street" },
+          "departurePoint": { "commonName": "Stratford Rail Station", "naptanId": "HUBSRA", "lat": 51.541508, "lon": -0.00241 },
+          "arrivalPoint": { "commonName": "Bond Street Underground Station", "naptanId": "HUBBDS", "lat": 51.513362, "lon": -0.148795 },
+          "path": { "stopPoints": [
+            {"name":"Whitechapel Rail Station","id":"HUBWHC"},{"name":"Liverpool Street Rail Station","id":"HUBLST"},{"name":"Farringdon Rail Station","id":"HUBZFD"},{"name":"Tottenham Court Road Rail Station","id":"HUBTCR"}
+          ] }
+        },
+        {
+          "duration": 12,
+          "departureTime": "2026-11-02T09:08:00",
+          "arrivalTime": "2026-11-02T09:20:00",
+          "mode": { "id": "tube" },
+          "routeOptions": [{ "lineIdentifier": { "id": "central" }, "directions": ["Westbound"] }],
+          "instruction": { "summary": "Central line westbound", "detailed": "Change at Bond Street for White City" },
+          "departurePoint": { "commonName": "Bond Street Underground Station", "naptanId": "HUBBDS", "lat": 51.513362, "lon": -0.148795 },
+          "arrivalPoint": { "commonName": "White City Underground Station", "naptanId": "940GZZLUWCY", "lat": 51.511959, "lon": -0.224297 },
+          "path": { "stopPoints": [
+            {"name":"Marble Arch Underground Station","id":"940GZZLUMBA"},{"name":"Lancaster Gate Underground Station","id":"940GZZLULGT"},{"name":"Queensway Underground Station","id":"940GZZLUQWY"},{"name":"Notting Hill Gate Underground Station","id":"940GZZLUNHG"},{"name":"Holland Park Underground Station","id":"940GZZLUHPK"},{"name":"Shepherd's Bush Underground Station","id":"HUBSPB"}
+          ] }
+        }
+      ]
+    }
+  ]
+}

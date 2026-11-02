@@ -49,8 +49,13 @@
 .fend.b i { background: var(--good); box-shadow: 0 0 0 2px var(--good), 0 0 18px var(--good); }
 .fend b { position: absolute; left: 0; top: -36px; transform: translateX(-50%) scale(var(--ls)); white-space: nowrap; font: 590 13px/1 var(--sf, system-ui); color: #fff; padding: 6px 10px; border-radius: 999px; background: rgba(18, 22, 28, .9); }
 .fxfer { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; border: 3px solid #12161c; box-sizing: border-box; transform: scale(var(--ls)); pointer-events: none; z-index: 4; }
+.fxfer:after{content:'';position:absolute;inset:-8px;border:2px solid var(--good);border-radius:50%;animation:transferPulse 1.15s var(--ease) .55s 2 both}
+@keyframes transferPulse{from{opacity:.8;transform:scale(.45)}to{opacity:0;transform:scale(1.3)}}
 .rt-case { stroke: #fff; stroke-width: calc(var(--rw, 6) * 1.7); fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .95; }
 .rt-line { stroke-width: var(--rw, 6); fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.rt-draw{stroke-width:var(--rw,6);fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:routeDraw .82s var(--ease) var(--leg-delay,0s) forwards;filter:drop-shadow(0 0 4px currentColor)}
+.rt-traveler{opacity:0;filter:drop-shadow(0 0 4px #fff)}
+@keyframes routeDraw{to{stroke-dashoffset:0}}
 #world svg.has-route .rt-case { filter: drop-shadow(0 0 6px rgba(255, 255, 255, .35)); }
 
 /* ---------- map chrome while a sheet is up ---------- */

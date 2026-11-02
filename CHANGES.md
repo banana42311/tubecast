@@ -100,3 +100,12 @@ python3 -m http.server 8765 --bind 127.0.0.1
 - Replaced moving dashes with a short, fading directional light. Removed the Central summary and placed time filters and severity scale on one row.
 - Moved the line-page backdrop outside the card scroll viewport, removed the opaque header cover, and prevented focus scrolling from shifting the fixed header.
 - 26 interaction checks, motion tests and static release checks pass. Device-specific Safari rendering and gesture feel still need physical-device review.
+# 2026-11-02 — Deterministic commute recording scenario
+
+- **Cause:** the local fixture arrived after page modules had already built their view models, so a first visit could flash old data and reload. `?demo=commute` now selects an inline copy of `data/demo/commute.json` before `FlowData` is created; steps 1/2/3 persist in the tab and 0 resets to step 1.
+- **Cause:** a line-level `Minor Delays` notice was overwritten as `Good service` when no station row was active. Line notices and station-level counts now remain separate, including the 08:40 zero-station stage.
+- **Cause:** route risk added every station in one propagating delay as an independent delay. It now groups correlated station×line×direction evidence, producing a 13-minute estimate for the affected Central route instead of 35 minutes.
+- The fixed, offline Journey Planner fixture offers Central direct and a walk-free Elizabeth→Central change at Bond Street. The recommendation skips the Mile End–Bank forecast and Google Maps receives Bond Street as the interchange.
+- Liverpool Street’s station sheet opens this fixed comparison through **See a way around**. Search mode uses the visual viewport, opens the sheet fully and focuses without scrolling the page.
+- Route loading has a skeleton; selection fits and draws the route, runs a single journey dot and pulses Bond Street. Direction-specific delay markers sit on the corresponding side of the line and forecast rings fade in in order.
+- `tests/demo.cjs` verifies all three stage counts, the walk-free line sequence, the recommendation order and the expected 8–15 minute Central impact.

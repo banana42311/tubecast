@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<script>(function(){var p=new URLSearchParams(location.search);if(p.get('welcome')==='done'){p.delete('welcome');history.replaceState(null,'',location.pathname+(p.size?'?'+p.toString():'')+location.hash);return;}if(location.hash)return;location.replace('onboarding.html'+location.search);})();</script>
+<script>(function(){var p=new URLSearchParams(location.search);if(p.get('demo')==='commute')return;if(p.get('welcome')==='done'){p.delete('welcome');history.replaceState(null,'',location.pathname+(p.size?'?'+p.toString():'')+location.hash);return;}if(location.hash)return;location.replace('onboarding.html'+location.search);})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tubecast — All lines</title>
 <link rel="stylesheet" href="styles.css">
@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="css/header-collapse.css?v=20261102-map12">
 <link rel="stylesheet" href="css/motion.css?v=20261102-map12">
 <link rel="stylesheet" href="css/responsive.css?v=20261102-map12">
-<link rel="stylesheet" href="css/service.css?v=20261102-map12">
+<link rel="stylesheet" href="css/service.css?v=20261102-demo1">
 <meta name="theme-color" content="#1a2029">
 <script src="js/shell.js?v=20261102-map12"></script>
 <link rel="manifest" href="manifest.webmanifest">
@@ -75,12 +75,16 @@
 <script src="js/station-catalog.js?v=20261102-map12"></script>
 <script src="assets/tfl-network.js?v=20261102-state1"></script>
 <script src="config.js?v=20261102-state1"></script>
-<script src="js/state-model.js?v=20261102-state2"></script>
-<script src="js/live-data.js?v=20261102-state1"></script>
-<script src="js/flow-data.js?v=20261102-state1"></script>
+<script src="js/demo-mode-core.js?v=20261102-demo1"></script>
+<script src="data/demo/commute.js?v=20261102-demo1"></script>
+<script src="data/demo/journey_stratford_whitecity.js?v=20261102-demo1"></script>
+<script src="js/demo-mode.js?v=20261102-demo1"></script>
+<script src="js/state-model.js?v=20261102-demo1"></script>
+<script src="js/live-data.js?v=20261102-demo1"></script>
+<script src="js/flow-data.js?v=20261102-demo1"></script>
 <script src="assets/station-directory.js?v=20261102-map12"></script>
 <script src="js/search.js?v=20261102-map12"></script>
-<script src="js/lines-page.js?v=20261102-state2"></script>
+<script src="js/lines-page.js?v=20261102-demo1"></script>
 <script src="js/motion.js?v=20261102-map12"></script>
 <script src="js/header-collapse.js?v=20261102-map12"></script>
 <script src="js/overview-page.js?v=20261102-state2"></script>

@@ -19,7 +19,7 @@ const selected=Model.chooseSnapshot(old,cached,{now:Date.parse('2026-11-02T15:05
 assert.equal(selected.source,'cache');assert.equal(selected.data,fixture);assert.equal(selected.delayed,true);
 const failed=Model.chooseSnapshot(null,cached,{now:Date.parse('2026-11-02T15:05:00Z'),maxAgeSec:180,failed:true});
 assert.equal(failed.source,'cache');assert.equal(failed.delayed,true);
-assert.match(Model.label({mode:'stale',delayed:true,asOf:fixture.as_of}),/^업데이트 지연 · \d\d:\d\d 기준$/);
+assert.match(Model.label({mode:'stale',delayed:true,asOf:fixture.as_of}),/^Update delayed · as of \d\d:\d\d$/);
 console.log('PASS stale/503 behavior keeps the last successful snapshot and exposes delay status');
 
 const withUnknown=structuredClone(fixture);

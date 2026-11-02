@@ -1,0 +1,170 @@
+{
+  "scenario": "commute",
+  "title": "Stratford to White City",
+  "default_stage": 3,
+  "stages": [
+    {
+      "id": 1,
+      "label": "08:40 · normal",
+      "state": {
+        "as_of": "2026-11-02T08:40:00Z",
+        "model_id": "tubecast-demo-commute-v1",
+        "coverage": { "units": 773, "fresh": 773 },
+        "sources": { "stale": false },
+        "lines": [
+          {
+            "id": "central",
+            "tfl": { "status": "Minor Delays", "reason": "Longer gaps reported on the Central line", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": null, "alert": null },
+            "cols": [{"h":0,"n":0,"mark":"nm"},{"h":10,"n":0,"mark":"pg"},{"h":20,"n":0,"mark":"pg"},{"h":30,"n":0,"mark":"pg"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": []
+          },
+          {
+            "id": "northern",
+            "tfl": { "status": "Minor Delays", "reason": "Longer gaps on southbound services", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.27, "alert": "watch" },
+            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":1,"mark":"nm"},{"h":20,"n":2,"mark":"pm"},{"h":30,"n":2,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"Camden Town","naptan":"940GZZLUCTN","dir":"Southbound","now":{"level":"minor","gap_min":8,"usual_min":3},"onset_p30":null,"risk":null},
+              {"station":"Kentish Town","naptan":"940GZZLUKSH","dir":"Southbound","now":null,"onset_p30":0.27,"risk":"elevated","onset_min":20,"top_reason":"delays_up_line"}
+            ]
+          },
+          {
+            "id": "jubilee",
+            "tfl": { "status": "Good Service", "reason": "", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.23, "alert": "watch" },
+            "cols": [{"h":0,"n":0,"mark":"pg"},{"h":10,"n":0,"mark":"pg"},{"h":20,"n":1,"mark":"pm"},{"h":30,"n":1,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"Canary Wharf","naptan":"HUBCAW","dir":"Westbound","now":null,"onset_p30":0.23,"risk":"elevated","onset_min":20,"top_reason":"network_pattern"}
+            ]
+          },
+          {
+            "id": "district",
+            "tfl": { "status": "Minor Delays", "reason": "Longer gaps on eastbound services", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.19, "alert": null },
+            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":1,"mark":"nm"},{"h":20,"n":1,"mark":"nm"},{"h":30,"n":1,"mark":"nm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"Earl's Court","naptan":"940GZZLUECT","dir":"Eastbound","now":{"level":"minor","gap_min":7,"usual_min":3},"onset_p30":null,"risk":null}
+            ]
+          },
+          {
+            "id": "victoria",
+            "tfl": { "status": "Good Service", "reason": "", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.18, "alert": null },
+            "cols": [{"h":0,"n":0,"mark":"pg"},{"h":10,"n":0,"mark":"pg"},{"h":20,"n":0,"mark":"pg"},{"h":30,"n":1,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"Victoria","naptan":"HUBVIC","dir":"Northbound","now":null,"onset_p30":0.18,"risk":"elevated","onset_min":30,"top_reason":"network_pattern"}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "label": "08:42 · current delay",
+      "state": {
+        "as_of": "2026-11-02T08:42:00Z",
+        "model_id": "tubecast-demo-commute-v1",
+        "coverage": { "units": 773, "fresh": 773 },
+        "sources": { "stale": false },
+        "lines": [
+          {
+            "id": "central",
+            "tfl": { "status": "Minor Delays", "reason": "Longer gaps westbound at Mile End", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": null, "alert": null },
+            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":1,"mark":"nm"},{"h":20,"n":1,"mark":"nm"},{"h":30,"n":1,"mark":"nm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"Mile End","naptan":"940GZZLUMED","dir":"Westbound","now":{"level":"minor","gap_min":12,"usual_min":3},"onset_p30":null,"risk":null}
+            ]
+          },
+          {
+            "id": "northern",
+            "tfl": { "status": "Minor Delays", "reason": "Longer gaps on southbound services", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.27, "alert": "watch" },
+            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":1,"mark":"nm"},{"h":20,"n":2,"mark":"pm"},{"h":30,"n":2,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"Camden Town","naptan":"940GZZLUCTN","dir":"Southbound","now":{"level":"minor","gap_min":8,"usual_min":3},"onset_p30":null,"risk":null},
+              {"station":"Kentish Town","naptan":"940GZZLUKSH","dir":"Southbound","now":null,"onset_p30":0.27,"risk":"elevated","onset_min":20,"top_reason":"delays_up_line"}
+            ]
+          },
+          {
+            "id": "jubilee",
+            "tfl": { "status": "Good Service", "reason": "", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.23, "alert": "watch" },
+            "cols": [{"h":0,"n":0,"mark":"pg"},{"h":10,"n":0,"mark":"pg"},{"h":20,"n":1,"mark":"pm"},{"h":30,"n":1,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [{"station":"Canary Wharf","naptan":"HUBCAW","dir":"Westbound","now":null,"onset_p30":0.23,"risk":"elevated","onset_min":20,"top_reason":"network_pattern"}]
+          },
+          {
+            "id": "district",
+            "tfl": { "status": "Minor Delays", "reason": "Longer gaps on eastbound services", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.19, "alert": null },
+            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":1,"mark":"nm"},{"h":20,"n":1,"mark":"nm"},{"h":30,"n":1,"mark":"nm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [{"station":"Earl's Court","naptan":"940GZZLUECT","dir":"Eastbound","now":{"level":"minor","gap_min":7,"usual_min":3},"onset_p30":null,"risk":null}]
+          },
+          {
+            "id": "victoria",
+            "tfl": { "status": "Good Service", "reason": "", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.18, "alert": null },
+            "cols": [{"h":0,"n":0,"mark":"pg"},{"h":10,"n":0,"mark":"pg"},{"h":20,"n":0,"mark":"pg"},{"h":30,"n":1,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [{"station":"Victoria","naptan":"HUBVIC","dir":"Northbound","now":null,"onset_p30":0.18,"risk":"elevated","onset_min":30,"top_reason":"network_pattern"}]
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "label": "08:43 · forecast",
+      "state": {
+        "as_of": "2026-11-02T08:43:00Z",
+        "model_id": "tubecast-demo-commute-v1",
+        "coverage": { "units": 773, "fresh": 773 },
+        "sources": { "stale": false },
+        "lines": [
+          {
+            "id": "central",
+            "tfl": { "status": "Minor Delays", "reason": "Longer gaps westbound at Mile End", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.67, "alert": "watch" },
+            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":3,"mark":"pm"},{"h":20,"n":4,"mark":"pm"},{"h":30,"n":4,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"Mile End","naptan":"940GZZLUMED","dir":"Westbound","now":{"level":"minor","gap_min":12,"usual_min":3},"onset_p30":null,"risk":null},
+              {"station":"Bethnal Green","naptan":"940GZZLUBLG","dir":"Westbound","now":null,"onset_p30":0.72,"risk":"high","onset_min":10,"top_reason":"delays_up_line"},
+              {"station":"Liverpool Street","naptan":"HUBLST","dir":"Westbound","now":null,"onset_p30":0.68,"risk":"high","onset_min":10,"top_reason":"delays_up_line"},
+              {"station":"Bank","naptan":"HUBBAN","dir":"Westbound","now":null,"onset_p30":0.61,"risk":"high","onset_min":20,"top_reason":"delays_up_line"}
+            ]
+          },
+          {
+            "id": "northern",
+            "tfl": { "status": "Minor Delays", "reason": "Longer gaps on southbound services", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.27, "alert": "watch" },
+            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":1,"mark":"nm"},{"h":20,"n":2,"mark":"pm"},{"h":30,"n":2,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"Camden Town","naptan":"940GZZLUCTN","dir":"Southbound","now":{"level":"minor","gap_min":8,"usual_min":3},"onset_p30":null,"risk":null},
+              {"station":"Kentish Town","naptan":"940GZZLUKSH","dir":"Southbound","now":null,"onset_p30":0.27,"risk":"elevated","onset_min":20,"top_reason":"delays_up_line"}
+            ]
+          },
+          {
+            "id": "jubilee",
+            "tfl": { "status": "Good Service", "reason": "", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.23, "alert": "watch" },
+            "cols": [{"h":0,"n":0,"mark":"pg"},{"h":10,"n":0,"mark":"pg"},{"h":20,"n":1,"mark":"pm"},{"h":30,"n":1,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [{"station":"Canary Wharf","naptan":"HUBCAW","dir":"Westbound","now":null,"onset_p30":0.23,"risk":"elevated","onset_min":20,"top_reason":"network_pattern"}]
+          },
+          {
+            "id": "district",
+            "tfl": { "status": "Minor Delays", "reason": "Longer gaps on eastbound services", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.19, "alert": null },
+            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":1,"mark":"nm"},{"h":20,"n":1,"mark":"nm"},{"h":30,"n":1,"mark":"nm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [{"station":"Earl's Court","naptan":"940GZZLUECT","dir":"Eastbound","now":{"level":"minor","gap_min":7,"usual_min":3},"onset_p30":null,"risk":null}]
+          },
+          {
+            "id": "victoria",
+            "tfl": { "status": "Good Service", "reason": "", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.18, "alert": null },
+            "cols": [{"h":0,"n":0,"mark":"pg"},{"h":10,"n":0,"mark":"pg"},{"h":20,"n":0,"mark":"pg"},{"h":30,"n":1,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [{"station":"Victoria","naptan":"HUBVIC","dir":"Northbound","now":null,"onset_p30":0.18,"risk":"elevated","onset_min":30,"top_reason":"network_pattern"}]
+          }
+        ]
+      }
+    }
+  ]
+}
