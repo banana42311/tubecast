@@ -189,7 +189,7 @@
     $('live').textContent = s === 'all' ? 'All lines overview, 1 of ' + ALL.length : m.name + ' line, ' + (i + 1) + ' of ' + ALL.length;
   }
   var pager = Motion.pager({
-    root: root, filter:function(e){var r=root.getBoundingClientRect();return e.clientX>r.left+24 && e.clientX<r.right-24 && !e.target.closest('input,button,a');}, track: { style: {}, parentNode: root }, count: ALL.length, index: idx,
+    root: root, filter:function(e){var r=root.getBoundingClientRect();return e.clientX>r.left+24 && e.clientX<r.right-24 && !e.target.closest('input,button,select,textarea');}, track: { style: {}, parentNode: root }, count: ALL.length, index: idx,
     width: function () { return 390 * S(); },
     onProgress: function (x) { track.style.transform = 'translate3d(' + (x / S()) + 'px,0,0)'; },
     onPrepare:function(i){clearTimeout(neighbourTask);ensure(i-1);ensure(i+1);},
@@ -218,7 +218,7 @@
     if(warmedMap||document.hidden)return;
     var connection=navigator.connection;if(connection&&(connection.saveData||/2g/.test(connection.effectiveType)))return;
     warmedMap=true;
-    var urls=[$('btnmap').getAttribute('data-href'),'css/search.css?v=20261101-clarity6','css/map.css?v=20261101-clarity6','css/flow.css?v=20261101-clarity6','js/search.js?v=20261101-clarity6','js/map-page.js?v=20261101-clarity6','assets/network-samples.js?v=20261101-clarity6','js/flow-geo.js?v=20261101-clarity6','js/flow-sheet.js?v=20261101-clarity6','js/flow-map.js?v=20261101-clarity6'];
+    var urls=[$('btnmap').getAttribute('data-href'),'css/search.css?v=20261102-service7','css/map.css?v=20261102-service7','css/flow.css?v=20261102-service7','js/search.js?v=20261102-service7','js/map-page.js?v=20261102-service7','assets/network-samples.js?v=20261102-service7','js/flow-geo.js?v=20261102-service7','js/flow-sheet.js?v=20261102-service7','js/flow-map.js?v=20261102-service7'];
     urls.forEach(function(url){fetch(url,{cache:'force-cache',credentials:'same-origin',priority:'low'}).catch(function(){});});
   }
   $('btnmap').addEventListener('pointerenter',warmMap,{once:true});

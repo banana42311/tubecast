@@ -111,11 +111,12 @@
       }
     }
     function effectiveCancel(d){return d.e&&d.e.type==='pointercancel';}
-    var base = 0;
+    var base = 0,suppressClick=false;
+    (o.root||o.track.parentNode).addEventListener('click',function(e){if(suppressClick){e.preventDefault();e.stopImmediatePropagation();suppressClick=false;}},true);
     M.drag(o.root || o.track.parentNode, {
-      axis: 'x', threshold: 8, filter: o.filter,
-      onDown: function () { if (sp) { x = sp.stop(); } W = o.width ? o.width() : W; base = x; },
-      onStart: function () { o.onPrepare&&o.onPrepare(idx);o.root&&o.root.classList.add('dragging','is-moving'); },
+      axis: 'x', threshold: 6, filter: o.filter,
+      onDown: function () { suppressClick=false;if (sp) { x = sp.stop(); } W = o.width ? o.width() : W; base = x; },
+      onStart: function () { suppressClick=true;o.onPrepare&&o.onPrepare(idx);o.root&&o.root.classList.add('dragging','is-moving'); },
       onCancel:function(){go(idx);},
       onTap: function () { if(Math.abs(x+idx*W)>.4)go(idx);else{o.root&&o.root.classList.remove('is-moving');} },
       onMove: function (d) {
@@ -129,7 +130,7 @@
         var projected = x + M.project(d.vx,.996);
         var target = Math.round(-projected / W);
         target = M.clamp(target, idx - 1, idx + 1); /* a pager never skips more than one page */
-        if(Math.abs(d.dx)>W*.16)target=idx+(d.dx<0?1:-1);
+        if(Math.abs(d.dx)>Math.min(42,W*.11))target=idx+(d.dx<0?1:-1);
         if (Math.abs(d.dx) < 6 && Math.abs(d.vx) < 100) target = Math.round(-x / W);
         go(effectiveCancel(d)?idx:target,d.e.type==='pointercancel'?0:d.vx);
       }

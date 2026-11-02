@@ -1,18 +1,19 @@
 /* Unified map hub: station → route preview → selected journey.
-   Filled station points = now; dashed rings + arrows = forecast.
+   Filled station points = now; three-part rings + flowing light = forecast.
    Lists navigate to index.html#all-lines. The browser history restores sheet/option state. */
 (function () {
   var C = window.MapCtx; if (!C) return;
   var M = window.Motion, FD = window.FlowData, NS = 'http://www.w3.org/2000/svg';
   var phone = document.querySelector('.phone'), svg = C.svg, world = C.world, view = C.view, cam = C.cam, N = C.N, S = C.S;
   var G = window.FlowGeo.build({ N: N, S: S, slugs: C.slugs, linePaths: C.linePaths, lineOff: C.lineOff });
+  if(window.TFLMap)G.stations.forEach(function(st){var c=StationCatalog[st.name];st.x=c.x*S;st.y=c.y*S;st.lines=c.lines.slice();});
   var kebab = G.kebab, LBS = window.LINE_BY_SLUG;
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
   function $(sel, r) { return (r || document).querySelector(sel); }
   function el(t, a, p) { return C.el(t, a, p); }
-  function lineName(sl) { return (LBS[sl] && LBS[sl].name || sl).replace(/ line$/, ''); }
+  function lineName(sl) { if(sl==='walking')return 'Walk';return (LBS[sl] && LBS[sl].name || sl).replace(/ line$/, ''); }
   function lineCol(sl) { return (LBS[sl] && LBS[sl].color) || '#7c8794'; }
-  G.stations.forEach(function(st){
+  if(!window.TFLMap)G.stations.forEach(function(st){
     var cat=StationCatalog[st.name];if(!cat||!st.lines.length)return;
     var x=cat.x*S,y=cat.y*S,best=null,dist=Infinity;
     st.lines.forEach(function(line){var id=st.nodes[line],n=G.nodes[id];[-1,1].forEach(function(step){var b=G.nodes[id+step];if(!b||b.l!==line||Math.hypot(n.x-b.x,n.y-b.y)>14)return;var dx=b.x-n.x,dy=b.y-n.y,t=Math.max(0,Math.min(1,((x-n.x)*dx+(y-n.y)*dy)/(dx*dx+dy*dy||1)));var q={x:n.x+t*dx,y:n.y+t*dy},d=Math.hypot(q.x-x,q.y-y);if(d<dist){best=q;dist=d;}});});
@@ -53,9 +54,11 @@
     d.branches.forEach(function(branch){
       var path=G.stretch(d.line,kebab(branch.from),kebab(branch.to));if(!path)return;
       el('path',{d:dOf(path.pts),'class':'dz-glow',stroke:lineCol(d.line)},group);
-      var beam=el('g',{'class':'direction-light','data-kind':'next'},group);
-      el('ellipse',{rx:26,ry:2.4,fill:'url(#flow-light-'+d.nextSev+')'},beam);
-      el('animateMotion',{path:dOf(path.pts),dur:Math.max(2.2,Math.min(4,path.pts.length*.045))+'s',repeatCount:'indefinite',rotate:'auto',calcMode:'paced'},beam);
+      var beam=el('g',{'class':'direction-light','data-kind':'next'},group),duration=Math.max(2.4,Math.min(4,path.pts.length*.045));
+      for(var tail=0;tail<9;tail++){
+        var part=el('path',{d:dOf(path.pts),pathLength:100,fill:'none',stroke:SEVCOL[d.nextSev],'stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round','stroke-dasharray':'2 98','stroke-dashoffset':tail*1.7,opacity:(9-tail)/11},beam);
+        el('animate',{attributeName:'stroke-dashoffset',from:tail*1.7,to:tail*1.7-100,dur:duration+'s',repeatCount:'indefinite'},part);
+      }
       path.ids.forEach(function(i){set[i]=1;});
     });
     DZ.push({d:d,seg:seg || {pts:[],ids:[]},set:set});
@@ -164,7 +167,7 @@
       '<div class="station-body"><div class="fs-chips">' + st.lines.map(function (l) { return '<button class="lpa" data-act="station-line" data-line="'+l+'" aria-pressed="'+(state.stationLine===l)+'">'+pill(l)+'</button>'; }).join('') + '</div>' +
       statusRow(st) +
       '<div class="fs-sec">Example arrivals</div><div class="fs-dirs">' + dirs + '</div>' +
-      '</div><div class="fs-actions"><button class="btn-p" data-act="route-from"' + (st.vn < 0 ? ' disabled' : '') + '><svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M7 26V18a6 6 0 0 1 6-6h12M19 5l7 7-7 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Route from here</button>' +
+      '</div><div class="fs-actions"><button class="btn-p" data-act="route-from"' + (st.vn < 0 && !window.TFLMap ? ' disabled' : '') + '><svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M7 26V18a6 6 0 0 1 6-6h12M19 5l7 7-7 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Route from here</button>' +
       '<button class="btn-s" data-act="route-to">To here</button></div>';
   }
 
@@ -179,12 +182,12 @@
       '<button class="rp-f' + (f === 'to' ? ' on' : '') + '" data-act="field" data-f="to"><small>To</small><b>' + (esc(nm(state.to)) || '<u>Choose destination</u>') + '</b></button></div>' +
       '<button class="rp-sw" data-act="swap" aria-label="Swap"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 15V3M5 3 2 6m3-3 3 3M13 3v12m0 0 3-3m-3 3-3-3" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>' +
       '<button class="pick-search-toggle" data-act="search-pick">'+(state.search?'Choose on map':'Search stations instead')+'</button><div class="rp-search"><input id="rpq" type="search" placeholder="' + (f === 'from' ? 'Search a start station' : 'Search a destination') + '" autocomplete="off" spellcheck="false" aria-label="Search stations"></div>' +
-      '<div class="rp-quick">' + QUICK.filter(function (q) { return G.byName[q] && G.byName[q].vn >= 0; }).map(function (q) { return '<button data-act="pickst" data-n="' + esc(q) + '">' + esc(q) + '</button>'; }).join('') + '</div>' +
-      '<div class="rp-list" id="rpl"></div>';
+      '<div class="rp-quick">' + QUICK.filter(function (q) { return G.byName[q] && (window.TFLMap || G.byName[q].vn >= 0); }).map(function (q) { return '<button data-act="pickst" data-n="' + esc(q) + '">' + esc(q) + '</button>'; }).join('') + '</div>' +
+      '<div class="rp-list" id="rpl"></div>'+(!state.search?'<button class="btn-p find-journey" data-act="find-route"'+(state.from&&state.to&&state.from!==state.to?'':' disabled')+'>Find routes</button>':'');
   }
   function fillPickList(q) {
     var box = $('#rpl', sheet.pane); if (!box) return; q = (q || '').trim().toLowerCase();
-    var list = G.stations.filter(function (s) { return s.vn >= 0 && (!q || s.name.toLowerCase().indexOf(q) > -1) && s.id !== (state.field === 'from' ? state.to : state.from); })
+    var list = G.stations.filter(function (s) { return (window.TFLMap || s.vn >= 0) && (!q || s.name.toLowerCase().indexOf(q) > -1) && s.id !== (state.field === 'from' ? state.to : state.from); })
       .sort(function (a, b) { return a.name.localeCompare(b.name); }).slice(0, q ? 60 : 24);
     box.innerHTML = list.length ? list.map(function (s) {
       return '<button class="rp-r" data-act="pickst" data-n="' + esc(s.name) + '"><span class="dots">' + s.lines.slice(0, 4).map(function (l) { return '<i style="background:' + lineCol(l) + '"></i>'; }).join('') + '</span><span>' + esc(s.name) + '</span><b>&rsaquo;</b></button>';
@@ -192,49 +195,35 @@
   }
 
   /* route options */
-  var MIN_PER_PX = 0.0185;
-  function delayNodes() { var m = {}; DZ.forEach(function (z) { Object.keys(z.set).forEach(function (k) { m[k] = 1; }); }); return m; }
-  function crossing(r) {
-    var out = [];
-    DZ.forEach(function (z) { r.legs.forEach(function (l) { if (l.line !== z.d.line) return; if (l.ids.some(function (i) { return z.set[i]; })) { if (out.indexOf(z) < 0) out.push(z); } }); });
-    return out;
-  }
-  function buildOptions(a, b) {
-    var defs = [{ o: { tp: 60 }, tag: 'Fastest' }, { o: { tp: 320 }, tag: 'Fewer changes' }, { o: { tp: 60, avoid: delayNodes(), avoidPen: 70 }, tag: 'Avoids delays' }];
-    var seen = {}, out = [];
-    defs.forEach(function (d) {
-      var r = G.route(a, b, d.o); if (!r || !r.legs.length) return;
-      var key = r.legs.map(function (l) { return l.line + l.ids[0] + '-' + l.ids[l.ids.length - 1]; }).join('|'); if (seen[key]) return; seen[key] = 1;
-      var cr = crossing(r), extra = 0; cr.forEach(function (z) { extra = Math.max(extra, z.d.sev === 'severe' ? 14 : 6); });
-      var base = Math.round(2 + r.len * MIN_PER_PX + r.transfers * 4);
-      out.push({ r: r, tag: d.tag, min: base, extra: extra, cr: cr, stops: r.legs.reduce(function (n, l) { return n + Math.max(0, l.stops.length - 1); }, 0) });
-    });
-    /* rank by expected time incl. delay; label the best "Fastest" (or "Fastest incl. delays") */
-    out.sort(function (x, y) { return (x.min + x.extra) - (y.min + y.extra); });
-    out.forEach(function (o, i) {
-      if (i === 0) o.tag = o.cr.length ? 'Fastest, even with delays' : 'Fastest';
-      else if (o.cr.length === 0 && out[0].cr.length) o.tag = 'Avoids delays';
-      else o.tag = o.r.transfers < out[0].r.transfers ? 'Fewer changes' : 'Alternative';
-    });
-    return out;
+  var routeRequest=null,requestKey=null;
+  function loadJourney(key){
+    if(requestKey===key)return;
+    if(routeRequest)routeRequest.abort();routeRequest=new AbortController();requestKey=key;
+    var a=state.from,b=state.to,controller=routeRequest;
+    var timeout=setTimeout(function(){controller.abort();},15000);
+    JourneyAPI.plan(G.byId[a],G.byId[b],controller.signal).then(function(opts){
+      RC[key]={from:a,to:b,opts:opts,fetchedAt:Date.now()};
+    }).catch(function(error){if(controller!==routeRequest)return;RC[key]={from:a,to:b,opts:[],error:error.name==='AbortError'?'The request timed out. Please try again.':error.message,fetchedAt:Date.now()};
+    }).finally(function(){clearTimeout(timeout);if(controller!==routeRequest)return;requestKey=null;routeRequest=null;if(state.t==='route'&&state.from===a&&state.to===b)render('loaded');});
   }
   function routeHTML(rs) {
     var A = G.byId[rs.from], B = G.byId[rs.to], opts = rs.opts, h = '';
     opts.forEach(function (o, i) {
       var legs = o.r.legs.map(function (l, j) { return (j ? '<em>›</em>' : '') + pill(l.line); }).join('');
-      var dl = o.cr.length ? o.cr.map(function (z) { return '<span class="ro-dl ' + z.d.sev + '"><b>!</b>' + (z.d.sev === 'severe' ? 'Severe' : 'Minor') + ' delay · +' + (z.d.sev === 'severe' ? 14 : 6) + ' min</span>'; }).join('') : '';
+      var notices=[];o.r.legs.forEach(function(l){(l.disruptions||[]).forEach(function(n){if(notices.indexOf(n)<0)notices.push(n);});});
+      var dl=notices.map(function(n){return '<p class="provider-notice">'+esc(n)+'</p>';}).join('');
       h += '<button class="ro' + (i === (state.opt || 0) ? ' on' : '') + '" data-act="opt" data-i="' + i + '" aria-pressed="' + (i === (state.opt || 0)) + '">' +
         '<div class="ro-top"><b>' + (o.min + o.extra) + '<small> min</small></b><span class="tag">' + o.tag + '</span></div>' +
         '<div class="ro-legs">' + legs + '</div>' +
-        '<div class="ro-meta">' + o.stops + ' stops · ' + (o.r.transfers ? o.r.transfers + ' change' + (o.r.transfers > 1 ? 's' : '') : 'No changes') + (o.extra ? ' · usually ' + o.min + ' min' : '') + '</div>' + dl + '</button>';
+        '<div class="ro-meta">' + (o.r.legs.every(function(l){return l.walking;})?'Walking route':o.stops+' stops') + ' · ' + (o.r.transfers ? o.r.transfers + ' change' + (o.r.transfers > 1 ? 's' : '') : 'No changes') + (o.extra ? ' · usually ' + o.min + ' min' : '') + '</div><div class="ro-times">'+JourneyAPI.clock(o.departure)+' → '+JourneyAPI.clock(o.arrival)+' · Travel time excludes waiting</div>' + dl + '</button>';
     });
-    if (!opts.length) h = '<div class="rp-none">No route found between these stations.</div>';
-    var sub = opts.length + ' route' + (opts.length === 1 ? '' : 's') + ' · example journey times';
+    if (!opts.length) h = '<div class="rp-none">'+esc(rs.error||'TfL returned no journeys for these stations at this time.')+'</div><button class="btn-s" data-act="retry-route">Try again</button>';
+    var sub = opts.length + ' route' + (opts.length === 1 ? '' : 's') + ' · TfL Journey Planner';
     if (state.chosen && opts.length) {
       var selected=opts[state.opt||0];
       return head('Route selected',esc(A.name)+' → '+esc(B.name),false)+
-        '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · your selected route</b><small>Example journey · '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+'</small></div></div>'+
-        '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(i?'Change at '+esc(first?first.name:'interchange'):'Board at '+esc(A.name))+'</small><b>'+esc(lineName(l.line))+'</b><span>'+esc(first?first.name:A.name)+' → '+esc(last?last.name:B.name)+' · '+Math.max(0,l.stops.length-1)+' stops</span><details open><summary>Stations on this leg</summary><div class="leg-stops">'+l.stops.map(function(st,j){return '<span><i></i>'+esc(st.name)+(j===l.stops.length-1?(i===selected.r.legs.length-1?' · Arrive':' · Change here'):'')+'</span>';}).join('')+'</div></details></li>';}).join('')+'</ol><small class="journey-note">Stops shown on this schematic · example timings</small>'+
+        '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · '+JourneyAPI.clock(selected.departure)+' → '+JourneyAPI.clock(selected.arrival)+'</b><small>TfL · '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+'</small></div></div>'+
+        '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(l.walking?'Walk':(i?'Change at '+esc(first?first.name:'interchange'):'Board at '+esc(first?first.name:A.name)))+'</small><b>'+esc(lineName(l.line))+'</b><small>'+esc(l.instruction)+' · '+l.duration+' min · '+JourneyAPI.clock(l.departure)+'</small><span>'+esc(first?first.name:A.name)+' → '+esc(last?last.name:B.name)+' · '+Math.max(0,l.stops.length-1)+' stops</span><details open><summary>Stations on this leg</summary><div class="leg-stops">'+l.stops.map(function(st,j){return '<span><i></i>'+esc(st.name)+(j===l.stops.length-1?(i===selected.r.legs.length-1?' · Arrive':' · Change here'):'')+'</span>';}).join('')+'</div></details></li>';}).join('')+'</ol><small class="journey-note">Powered by the Transport for London Journey Planner API</small>'+
         '<div class="fs-actions"><button class="btn-p" data-act="change-route">Change route</button><button class="btn-s" data-act="close">Done</button></div>';
     }
     return head(esc(A.name)+' <span class="arr">→</span> '+esc(B.name),sub,true)+
@@ -257,15 +246,15 @@
     clearRouteDraw(); svg.classList.add('has-route');
     var legs = o.r.legs, delay = 0;
     legs.forEach(function (l) {
-      var d = dOf(l.pts);
+      if(!l.pts.length)return;var d = dOf(l.pts);
       el('path', { d: d, 'class': 'rt-case' }, gRt);
-      var p = el('path', { d: d, 'class': 'rt-line', stroke: lineCol(l.line) }, gRt);
+      var p = el('path', { d: d, 'class': 'rt-line'+(l.walking?' rt-walk':''), stroke: lineCol(l.line) }, gRt);
       // Route is visible immediately; option changes never wait for stroke drawing.
 
     });
     var A = o.r.from, B = o.r.to;
     routeMk.push(wdiv('fend a', A.x, A.y, '<i></i><b>' + esc(A.name) + '</b>'), wdiv('fend b', B.x, B.y, '<i></i><b>' + esc(B.name) + '</b>'));
-    for (var i = 1; i < legs.length; i++) { var p0 = legs[i].pts[0]; routeMk.push(wdiv('fxfer', p0[0], p0[1])); }
+    for (var i = 1; i < legs.length; i++) { var p0 = legs[i].pts[0]; if(!p0)continue;routeMk.push(wdiv('fxfer', p0[0], p0[1])); }
     var names=new Set([A.name,B.name]); legs.forEach(function(l){l.stops.forEach(function(st){names.add(st.name);});});
     world.querySelectorAll('.lbl').forEach(function(n){n.classList.toggle('route-label',names.has(n.dataset.st));n.classList.toggle('endpoint-label',n.dataset.st===A.name || n.dataset.st===B.name);});
     focusLines(o.r.legs.map(function (l) { return l.line; }), 'route');
@@ -292,6 +281,7 @@
   function render(prev) {
     document.body.classList.toggle('in-flow', !!state.t);
     sheet.el.classList.toggle('route-mode',state.t==='route');
+    if(state.t!=='route'&&routeRequest){routeRequest.abort();routeRequest=null;requestKey=null;}
     sheet.el.classList.toggle('station-mode',state.t==='station');
     phone.classList.toggle('routing',state.t==='route'||state.t==='pick');
     sheet.el.classList.toggle('pick-mode',state.t==='pick');
@@ -310,7 +300,11 @@
       state.focus = state.focus || state.from || null;
       sheet.open(pickHTML(), state.search ? 'mid' : 'compact', {dismissible:false}); fillPickList('');
     } else if (state.t === 'route') {
-      var key = state.from + '>' + state.to; if (!RC[key]) RC[key] = { from: state.from, to: state.to, opts: buildOptions(state.from, state.to) };
+      var key=state.from+'>'+state.to;
+      if(!RC[key]||(!state.chosen&&prev!=='loaded'&&prev!=='route'&&Date.now()-RC[key].fetchedAt>60000)){
+        hideSel();clearRouteDraw();clearFocus();curRoute=null;
+        sheet.open(head('Finding routes','Checking current TfL journey options',true)+'<div class="route-loading" role="status">Connecting to TfL…</div>','mid');loadJourney(key);return;
+      }
       curRoute = RC[key]; hideSel();
       if (!curRoute.opts[state.opt||0]) state.opt=0;
       var o = curRoute.opts[state.opt || 0]; if (o) drawRoute(o); else clearRouteDraw();
@@ -343,10 +337,10 @@
     go({ t: 'station', id: st.id }, state.t === 'station' ? { replace: true } : {});
   }
   function pickStation(name) {
-    var st = stationByName(name); if (!st || st.vn < 0) return;
+    var st = stationByName(name); if (!st || (!window.TFLMap && st.vn < 0)) return;
     var f = state.field || 'to', from = state.from, to = state.to;
     if (f === 'from') from = st.id; else to = st.id;
-    if (from && to && from !== to) { go({ t: 'route', from: from, to: to, opt: 0 }); return; }
+
     if (from === to) { if (f === 'from') to = null; else from = null; }
     go({ t: 'pick', from: from, to: to, field: from ? 'to' : 'from', focus: from || state.focus || null }, { replace: true });
     var q = $('#rpq', sheet.pane); q && q.focus && matchMedia('(pointer:fine)').matches && q.focus();
@@ -377,8 +371,10 @@
     else if (act === 'route-around') { var z = dzById(state.id), st0 = z && G.byName[z.d.now[0]]; go({ t: 'pick', from: null, to: null, field: 'from', focus: null }); }
     else if (act === 'stn') openStation(b.getAttribute('data-n'));
     else if (act === 'edit-route') go({t:'pick',from:state.from,to:state.to,field:'to',focus:state.from});
-    else if (act === 'field') { var s = { t: 'pick', from: state.from, to: state.to, field: b.getAttribute('data-f'), focus: state.focus }; go(s, { replace: true }); }
+    else if (act === 'field') { var s = { t: 'pick', from: state.from, to: state.to, field: b.getAttribute('data-f'), focus: state.focus,search:true }; go(s, { replace: true });var input=$('#rpq',sheet.pane);if(input)input.focus(); }
     else if (act === 'swap') { var a2 = state.from, b2 = state.to; if (state.t === 'route') go({ t: 'route', from: b2, to: a2, opt: 0 }, { replace: true }); else go({ t: 'pick', from: b2, to: a2, field: state.field, focus: state.focus }, { replace: true }); }
+    else if(act==='find-route'&&state.from&&state.to&&state.from!==state.to){go({t:'route',from:state.from,to:state.to,opt:0});}
+    else if(act==='retry-route'){delete RC[state.from+'>'+state.to];render('retry');}
     else if (act === 'pickst') pickStation(b.getAttribute('data-n'));
     else if (act === 'opt') { var i = +b.getAttribute('data-i'); state.opt = i; history.replaceState(state, '', urlFor(state)); var o = curRoute.opts[i]; sheet.pane.querySelectorAll('.ro').forEach(function (n, j) { n.classList.toggle('on', j === i); n.setAttribute('aria-pressed', j === i); }); drawRoute(o); reframe(sheet.visible); }
     else if (act === 'go') { go({t:'route',from:state.from,to:state.to,opt:state.opt||0,chosen:true}); }

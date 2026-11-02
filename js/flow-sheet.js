@@ -12,7 +12,7 @@
     var scroller = root.querySelector('.fs-scroll'), pane = root.querySelector('.fs-pane');
     var VH = 844, vis = 0, snap = null, sp = null, dismissible = true, busy = null;
 
-    function pts() { VH = phone.clientHeight || 844; return { compact: Math.min(280,VH*.42), peek: dismissible ? Math.min(168,VH*.24) : Math.min(280,VH*.42), mid: Math.round(VH * (VH < 700 ? .62 : .5)), full: Math.max(160, VH - 76) }; }
+    function pts() { VH = phone.clientHeight || 844; return { compact: Math.min(330,VH*.48), peek: dismissible ? Math.min(168,VH*.24) : Math.min(330,VH*.48), mid: Math.round(VH * (VH < 700 ? .62 : .5)), full: Math.max(160, VH - 76) }; }
     function paint(v) { vis = v; root.style.transform = 'translate3d(0,' + (VH - v) + 'px,0)'; cb.onChange && cb.onChange(v, false); }
     function animate(to, vel, done) {
       if (sp) sp.stop();

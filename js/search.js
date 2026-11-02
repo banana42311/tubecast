@@ -7,10 +7,10 @@
     "Earl's Court":'district', 'Gloucester Road':'district', 'South Kensington':'district', 'Victoria':'victoria',
     'Oxford Circus':'victoria', 'Euston':'victoria', "King's Cross":'piccadilly', 'Baker Street':'metropolitan' };
   function kebab(n) {
-    return n.toLowerCase().replace(/&/g, 'and').replace(/[’'()]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return n.toLowerCase().replace(/&/g, 'and').replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
   function names() {
-    var a = (window.TC_LABELS || []).map(function (l) { return l[0]; });
+    var a = window.TFL_NETWORK ? TFL_NETWORK.stations.map(function(s){return s.name;}) : (window.TC_LABELS || []).map(function (l) { return l[0]; });
     EXTRA.forEach(function (e) { if (a.indexOf(e) < 0) a.push(e); });
     return a.sort(function (x, y) { return x.localeCompare(y); });
   }

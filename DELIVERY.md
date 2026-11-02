@@ -69,3 +69,18 @@ Overview의 링 아래에 전체 노선 목록을 통합했습니다. 기존 `li
 `tests/ux.html`은 통합 목록, 하단 바 드래그, 환승역 노선 선택, 경로 입력 유지, 경로 상세, 온보딩을 검사합니다.
 
 최근 수정: 온보딩은 별도 버튼 없이 amber 로고만 3초 표시하고 Overview로 이동합니다. 지도는 확대 선명도를 위해 인라인 SVG를 사용하며, 노선 상세 배경은 상단까지 이어집니다. 기존 안내의 온보딩 시작 버튼 및 지도 이미지 캐시 설명은 이 수정으로 대체됩니다.
+
+
+## 2026-11-02 업데이트 — 실제 경로 API와 전체 역 범위
+
+이 절이 앞의 초기 프로토타입 경로/지도 설명을 대체합니다.
+
+- 지도는 TfL `/Line/{id}/Route/Sequence/all`의 12개 노선(Tube 11 + Elizabeth) 좌표를 사용합니다. 도심 106개 역에서 299개 역 레코드로 확장했습니다. DLR, Overground 및 기타 National Rail 전체망은 포함하지 않습니다.
+- 외곽을 포함하기 위해 지도 페이지는 실제 지리 좌표 기반으로 전환했습니다. Overview의 원래 링 다이어그램과 line 페이지 배경 아트워크는 유지합니다.
+- `assets/tfl-network.js/json`은 내려받은 고정 네트워크 스냅샷입니다. 새 역/노선 변경 시 다시 생성해야 합니다. `scripts/build-tfl-network.py <Route Sequence JSON 폴더>`로 갱신합니다.
+- From/To 검색 또는 지도 선택 → Find routes → TfL 옵션 → Choose this route → 정차역/환승 안내 순서입니다.
+- 경로는 브라우저에서 TfL Journey Planner를 호출합니다. ICS 역 ID, 운행 시각, 실제 경로/정차역 응답을 쓰며 도식상의 거리로 시간을 만들어내지 않습니다. 도착이 빠른 옵션 순서로 표시하며 출발 전 대기 시간은 큰 숫자의 이동 시간에 포함되지 않습니다.
+- 기본 API는 `https://api.tfl.gov.uk`. 필요하면 `TUBECAST_CONFIG.journeyBase`를 같은 계약의 프록시로 설정할 수 있습니다. 공개 API의 호출 제한이나 장애가 발생하면 오류와 재시도를 표시합니다. 비밀 API 키를 정적 프런트에 넣지 마세요.
+- 지연/예측 링과 Example arrivals는 별개로 데모입니다. 기존 사용자의 live-data 어댑터와 `apiBase` 설정은 유지했습니다. Google Maps와 제공 교통수단/순위가 같다는 보장은 없습니다.
+- API 출처: https://api.tfl.gov.uk/ ; 네트워크와 경로 데이터 제공: Transport for London.
+- `node tests/journey.cjs`, `node tests/motion.cjs`, `node tests/release.cjs`, 브라우저 `tests/ux.html`로 매핑/오류/이동/검색 흐름을 검증합니다. 실제 Holborn → Bank API 응답과 중간 정차역도 로컬 브라우저에서 확인했습니다.
