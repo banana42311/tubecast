@@ -2,6 +2,10 @@
    The API supplies what is delayed now; this fills onset_p30 / risk / onset_min for every
    station x direction from the learned weights: usual rate for this unit and hour band,
    delayed units up the line on the same line and direction (0-10 / 10-20 / 20-30 min), peak.
+   Two routes to a forecast: (1) a delay up the same line and direction that lifts the chance at
+   least 20% above the unit's usual rate; (2) with nothing up the line, a time-of-day pattern only
+   when this hour is well above the unit's own all-day usual. Stations whose gaps are irregular all
+   day from the timetable (e.g. Metropolitan branches) are therefore not flagged just for being themselves.
    It runs only on API data (not the fixture or demo scenario). Replaced when the server serves forecasts. */
 window.ForecastModel = (function () {
   var M = window.TUBECAST_MODEL;
@@ -26,7 +30,11 @@ window.ForecastModel = (function () {
     M.unit_list.forEach(function (u) {
       if (delayed[u]) return;
       var parts = u.split('|'), L = byLine[parts[0]]; if (!L) return;
-      var s = score(u, delayed, clock), risk = s.p >= M.cut_top5 ? 'high' : (s.up && s.p >= Math.max(2 * s.base, M.cut_top5 * .6) ? 'elevated' : null);
+      var s = score(u, delayed, clock), lift = s.p / s.base, hourly = M.units[u].b.slice(1).sort(function (a, b) { return a - b; }), usualAllDay = hourly[Math.floor(hourly.length / 2)];
+      // with a delay up the line: a clear rise above this unit's own usual rate
+      // without one: only a time-specific pattern (this hour well above the unit's all-day usual), not timetable irregularity
+      var risk = s.up ? (lift >= 1.2 ? (s.p >= M.cut_top5 ? 'high' : 'elevated') : null)
+                      : (s.p >= M.cut_top5 && s.base >= 1.5 * usualAllDay ? 'elevated' : null);
       if (!risk) return;
       var row = (L.rows || []).find(function (r) { return String(r.naptan || '').toUpperCase() === parts[1] && dirKey(r.dir) === parts[2]; });
       if (!row) { row = { station: null, naptan: parts[1], dir: M.dir_label[parts[2]] || parts[2], now: null }; (L.rows = L.rows || []).push(row); }
