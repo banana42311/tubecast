@@ -48,19 +48,23 @@
   function wdiv(cls, x, y, html, tag) {
     var d = document.createElement(tag || 'div'); d.className = cls; d.style.left = x + 'px'; d.style.top = y + 'px'; if (html) d.innerHTML = html; world.appendChild(d); return d;
   }
-
-  /* Every marker uses its station's anchor on the affected line. No screen-coordinate exceptions. */
-  var DZ = [];
-  function directionOffset(st,item){
-    var id=st.nodes[item.d.line],node=G.nodes[id],before=G.nodes[id-1],after=G.nodes[id+1];
-    if(!node)return{x:0,y:0};if(!before||before.l!==item.d.line)before=node;if(!after||after.l!==item.d.line)after=node;
-    var dx=after.x-before.x,dy=after.y-before.y,len=Math.hypot(dx,dy)||1,dir=item.d.direction||'';
-    if((/West/.test(dir)&&dx>0)||(/East/.test(dir)&&dx<0)||(/North/.test(dir)&&dy>0)||(/South/.test(dir)&&dy<0)){dx=-dx;dy=-dy;}
-    return{x:-dy/len*5.5,y:dx/len*5.5};
+  function lineAnchor(st,line){
+    var id=st&&line&&st.nodes[line],node=id==null?null:G.nodes[id];
+    return node||st;
   }
+
+  /* The visible marker, its tap target and the rendered line must use the same
+     projected anchor. Raw catalogue coordinates are only inputs to FlowGeo. */
+  var hitByStation={};
+  world.querySelectorAll('.hit[data-st]').forEach(function(hit){hitByStation[hit.dataset.st]=hit;});
+  G.stations.forEach(function(st){var hit=hitByStation[st.name];if(hit){hit.style.left=(st.x-16)+'px';hit.style.top=(st.y-16)+'px';}});
+
+  /* Every marker uses the exact anchor of the affected line. Direction is shown
+     by the flowing line treatment, never by pushing a station dot off its line. */
+  var DZ = [];
   G.stations.forEach(function(st){
     var items=FD.atStation(st.name),current=items.filter(function(i){return i.k==='now';}),future=items.filter(function(i){return i.k==='next';});
-    var base=wdiv('station-base'+(st.lines.length===2?' interchange':''),st.x,st.y,'<i></i>');
+    var base=wdiv('station-base'+(st.lines.length===2?' interchange':''),st.x,st.y,'<i></i>');base.dataset.st=st.name;
     if(st.lines.length===2){
       var angle=0,votes=[0,0,0,0],cat=StationCatalog[st.name];
       ((window.SCHEMATIC_EXTENSION||{paths:{}}).paths[st.lines[0]]||[]).forEach(function(edge){edge.points.slice(1).forEach(function(b,i){var a=edge.points[i],dx=b[0]-a[0],dy=b[1]-a[1],len=dx*dx+dy*dy;if(!len)return;var t=Math.max(0,Math.min(1,((cat.x-a[0])*dx+(cat.y-a[1])*dy)/len)),dist=Math.hypot(cat.x-a[0]-t*dx,cat.y-a[1]-t*dy);if(dist<8){var bucket=((Math.round(Math.atan2(dy,dx)*4/Math.PI)%4)+4)%4;votes[bucket]+=Math.sqrt(len)/(dist+2);}});});
@@ -70,8 +74,8 @@
     ['now','next'].forEach(function(kind){var items=kind==='now'?current:future;if(!items.length)return;
       var sev=items.some(function(i){return (kind==='now'?i.d.sev:i.d.nextSev)==='severe';})?'severe':'minor';
       var html=kind==='now'?'<span class="nowglow '+sev+'"></span><span class="nowdot '+sev+'"></span>':'<span class="pred '+sev+'" style="--s:.85"><i class="g"></i><i class="p"></i><i class="c"></i></span>';
-      var off=directionOffset(st,items[0]),delay=kind==='next'&&window.DemoMode&&DemoMode.active?Math.max(0,items[0].d.next.indexOf(st.name))*.22:0;
-      var dot=wdiv('station-marker '+kind+' '+sev+(delay?' demo-forecast':''),st.x+off.x,st.y+off.y,html,'button');dot.style.setProperty('--forecast-delay',delay+'s');dot.dataset.st=st.name;dot.dataset.kind=kind;dot.dataset.line=items[0].d.line;dot.setAttribute('aria-label',st.name+' · '+(kind==='now'?'delayed now':'predicted in 30 min'));
+      var anchor=lineAnchor(st,items[0].d.line),delay=kind==='next'&&window.DemoMode&&DemoMode.active?Math.max(0,items[0].d.next.indexOf(st.name))*.22:0;
+      var dot=wdiv('station-marker '+kind+' '+sev+(delay?' demo-forecast':''),anchor.x,anchor.y,html,'button');dot.style.setProperty('--forecast-delay',delay+'s');dot.dataset.st=st.name;dot.dataset.kind=kind;dot.dataset.line=items[0].d.line;dot.setAttribute('aria-label',st.name+' · '+(kind==='now'?'delayed now':'predicted in 30 min'));
     });
   });
   ['minor','severe'].forEach(function(sev){var grad=el('linearGradient',{id:'flow-light-'+sev,x1:'0%',x2:'100%'},C.defs);[[0,0],[.55,.22],[.85,.85],[1,0]].forEach(function(stop){el('stop',{offset:stop[0],'stop-color':sev==='minor'?'#FFA12B':'#DC241F','stop-opacity':stop[1]},grad);});});
@@ -124,7 +128,7 @@
 
   /* world markers: selected station ring, route endpoints */
   var selRing = null, routeMk = [];
-  function showSel(st) { hideSel(); if (!st) return;labelNodes('.lbl').forEach(function(n){n.classList.toggle('selected-label',n.dataset.st===st.name);}); selRing = wdiv('fsel', st.x, st.y, '<i></i><i></i><b>' + esc(st.name) + '</b>'); C.refreshLabels && C.refreshLabels(); }
+  function showSel(st,line) { hideSel(); if (!st) return;var anchor=lineAnchor(st,line);labelNodes('.lbl').forEach(function(n){n.classList.toggle('selected-label',n.dataset.st===st.name);}); selRing = wdiv('fsel', anchor.x, anchor.y, '<i></i><i></i><b>' + esc(st.name) + '</b>'); C.refreshLabels && C.refreshLabels(); }
   function hideSel() { labelNodes('.selected-label').forEach(function(n){n.classList.remove('selected-label');});if (selRing) { selRing.remove(); selRing = null; } C.refreshLabels && C.refreshLabels(); }
   function clearRouteDraw() { world.classList.remove('route-focus'); labelLayer && labelLayer.classList.remove('route-focus'); labelNodes('.route-label').forEach(function(n){n.classList.remove('route-label','endpoint-label');}); gRt.innerHTML = ''; routeMk.forEach(function (n) { n.remove(); }); routeMk = []; svg.classList.remove('has-route'); C.refreshLabels && C.refreshLabels(); }
 
@@ -314,8 +318,8 @@
       if(!M.reduced){var dot=el('circle',{'class':'rt-traveler',r:2.8,fill:'#fff',opacity:0},gRt);el('animateMotion',{dur:'.82s',begin:(delay*.42)+'.18s',fill:'freeze',path:d},dot);el('animate',{attributeName:'opacity',values:'0;1;1;0',keyTimes:'0;.08;.86;1',dur:'.9s',begin:(delay*.42)+'.12s',fill:'freeze'},dot);}
       delay++;
     });
-    var A = o.r.from, B = o.r.to;
-    routeMk.push(wdiv('fend a', A.x, A.y, '<i></i><b>' + esc(A.name) + '</b>'), wdiv('fend b', B.x, B.y, '<i></i><b>' + esc(B.name) + '</b>'));
+    var A = o.r.from, B = o.r.to,firstLeg=legs[0],lastLeg=legs[legs.length-1],ap=firstLeg&&firstLeg.pts[0]||[A.x,A.y],bp=lastLeg&&lastLeg.pts[lastLeg.pts.length-1]||[B.x,B.y];
+    routeMk.push(wdiv('fend a', ap[0], ap[1], '<i></i><b>' + esc(A.name) + '</b>'), wdiv('fend b', bp[0], bp[1], '<i></i><b>' + esc(B.name) + '</b>'));
     for (var i = 1; i < legs.length; i++) { var p0 = legs[i].pts[0]; if(!p0)continue;routeMk.push(wdiv('fxfer', p0[0], p0[1])); }
     var names=new Set([A.name,B.name]);
     legs.forEach(function(l,i){
@@ -331,7 +335,7 @@
     if(legs.length!==2)return false;
     svg.classList.add('has-route');
     legs.forEach(function(l){var d=dOf(l.pts);el('path',{d:d,'class':'rt-case rt-preview'},gRt);el('path',{d:d,'class':'rt-line rt-preview',stroke:lineCol(l.line)},gRt);});
-    var xfer=G.byId['bond-street'];if(xfer)routeMk.push(wdiv('fxfer preview',xfer.x,xfer.y));
+    var xfer=legs[1]&&legs[1].pts[0];if(xfer)routeMk.push(wdiv('fxfer preview',xfer[0],xfer[1]));
     labelNodes('.lbl').forEach(function(n){n.classList.toggle('route-label',n.dataset.st==='Bond Street');});
     focusLines(['elizabeth','central'],'route');C.refreshLabels&&C.refreshLabels();return true;
   }
@@ -373,14 +377,14 @@
     if (state.t === 'station') {
       var st = G.byId[state.id]; if (!st) return;
       state.stationLine=st.lines.indexOf(state.stationLine)>=0?state.stationLine:(st.lines.indexOf(C.slug)>=0?C.slug:st.lines[0]);
-      clearRouteDraw(); showSel(st); focusLines([state.stationLine]);
+      clearRouteDraw(); showSel(st,state.stationLine); focusLines([state.stationLine]);
       sheet.open(stationHTML(st), sheet.snap && sheet.snap !== 'full' ? sheet.snap : 'mid', { instant: false });
     } else if (state.t === 'pick') {
       clearRouteDraw(); var f = G.byId[state.focus || state.from], commutePreview=window.DemoMode&&DemoMode.active&&state.from==='stratford'&&state.to==='white-city'&&!state.search;
       if(commutePreview){hideSel();drawCommutePreview();}
       else if (f) { showSel(f); focusLines(state.from&&state.to&&!state.search?['central','elizabeth']:f.lines); } else { hideSel(); clearFocus(); }
       state.focus = state.focus || state.from || null;
-      if(state.from && state.to){hideSel();[state.from,state.to].forEach(function(id,i){var st=G.byId[id];routeMk.push(wdiv('fend '+(i?'b':'a'),st.x,st.y,'<i></i><b>'+esc(st.name)+'</b>'));});world.classList.add('route-preview');labelLayer&&labelLayer.classList.add('route-preview');}
+      if(state.from && state.to){hideSel();[state.from,state.to].forEach(function(id,i){var st=G.byId[id],line=commutePreview?(i?'central':'elizabeth'):null,anchor=lineAnchor(st,line);routeMk.push(wdiv('fend '+(i?'b':'a'),anchor.x,anchor.y,'<i></i><b>'+esc(st.name)+'</b>'));});world.classList.add('route-preview');labelLayer&&labelLayer.classList.add('route-preview');}
       sheet.open(pickHTML(), state.search ? 'full' : 'compact', {dismissible:false}); fillPickList(state.query || '');
     } else if (state.t === 'route') {
       var key=state.from+'>'+state.to;
