@@ -74,7 +74,9 @@
           risk: row.risk,
           probability: row.onset_p30,
           onsetMin: Number.isFinite(row.onset_min) ? row.onset_min : 30,
-          reason: row.top_reason || ''
+          reason: row.top_reason || '',
+          reasonText: row.reason_text || '',
+          model: row.model || api.serving_model_id || ''
         } : null;
         if (!now && !predicted) return;
         var dir = direction(row.dir), record = { line: slug, station: name, naptan: row.naptan || '', dir: dir, now: now, predicted: predicted };

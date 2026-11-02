@@ -6,7 +6,7 @@
   function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
   function lineName(sl){return (LB[sl]&&LB[sl].name||sl).replace(/ line$/,'');}
   function clock(v){var d=new Date(v||Date.now());return isNaN(d)?'--:--':String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');}
-  function reason(r){return r==='delays_up_line'||r==='upstream'?'Delays up the line':r==='network_pattern'?'Network pattern':(r||'Current network conditions');}
+  function reason(p){var t=p.reasonText||(p.reason==='delays_up_line'||p.reason==='upstream'?'Delays up the line':p.reason==='network_pattern'?'Often delayed at this hour':'Network conditions');return t+(p.model?' · Forecast · model '+p.model:'');}
   function app(){try{return iframe.contentWindow;}catch(_){return null;}}
   function mapAPI(){var w=app();return w&&w.FlowMap;}
 
@@ -22,7 +22,7 @@
   function row(record,kind){
     var item=kind==='now'?record.now:record.predicted,sev=kind==='now'?item.level:(item.risk==='high'?'severe':'minor');
     var value=kind==='now'?(item.level==='severe'?'Severe delay':'Minor delay'):((item.risk==='high'?'High chance':'Caution')+' within '+item.onsetMin+' min · '+Math.round(item.probability*100)+'%');
-    return '<button class="station-status-row" data-station="'+esc(record.station)+'"><span class="delay-dot '+kind+' '+sev+'"></span><div><small>'+esc(lineName(record.line))+' · '+esc(record.dir)+'</small><b>'+esc(record.station)+'</b><small>'+esc(value)+(kind==='next'?' · '+esc(reason(item.reason)):'')+'</small></div></button>';
+    return '<button class="station-status-row" data-station="'+esc(record.station)+'"><span class="delay-dot '+kind+' '+sev+'"></span><div><small>'+esc(lineName(record.line))+' · '+esc(record.dir)+'</small><b>'+esc(record.station)+'</b><small>'+esc(value)+(kind==='next'?' · '+esc(reason(item)):'')+'</small></div></button>';
   }
   var current=(LS.rows||[]).filter(function(r){return r.now;}),future=(LS.rows||[]).filter(function(r){return r.predicted;});
   document.getElementById('now-list').innerHTML=current.map(function(r){return row(r,'now');}).join('');

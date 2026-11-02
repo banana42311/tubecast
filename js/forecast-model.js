@@ -15,15 +15,22 @@ window.ForecastModel = (function () {
     var h = +f.find(function (p) { return p.type === 'hour'; }).value, wd = f.find(function (p) { return p.type === 'weekday'; }).value;
     return { band: Math.floor(h / 3), peak: !/Sat|Sun/.test(wd) && ((h >= 7 && h < 10) || (h >= 16 && h < 19)) ? 1 : 0 };
   }
+  function title(naptan) {
+    var n = (window.TUBECAST_NAPTAN_NAMES || {})[naptan] || naptan;
+    return String(n).replace(/\b([a-z])/g, function (m) { return m.toUpperCase(); }).replace(/\bAnd\b/g, '&').replace(/\bSt\b/g, 'St');
+  }
   function sig(z) { return 1 / (1 + Math.exp(-z)); }
   function score(u, delayed, clock) {
     var info = M.units[u], c = M.coef, b = info.b[clock.band], up = [0, 0, 0], near = null;
-    info.up.forEach(function (x) { var v = M.unit_list[x[0]]; if (!delayed[v]) return; up[Math.min(2, Math.floor(x[1] / 10))]++; if (near == null || x[1] < near) near = x[1]; });
+    var nearUnit = null;
+    info.up.forEach(function (x) { var v = M.unit_list[x[0]]; if (!delayed[v]) return; up[Math.min(2, Math.floor(x[1] / 10))]++; if (near == null || x[1] < near) { near = x[1]; nearUnit = v; } });
     var p = sig(M.intercept + c[0] * Math.log(b / (1 - b)) + c[1] * up[0] + c[2] * up[1] + c[3] * up[2] + c[4] * clock.peak);
-    return { p: p, up: up[0] + up[1] + up[2], near: near, base: b };
+    return { p: p, up: up[0] + up[1] + up[2], near: near, nearUnit: nearUnit, base: b };
   }
   function augment(api) {
     if (!M || !api || !api.lines || api.mode === 'scenario') return api;
+    // once the server serves its own forecasts, show those as they are
+    if (api.lines.some(function (L) { return (L.rows || []).some(function (r) { return r.onset_p30 != null; }); })) return api;
     api = JSON.parse(JSON.stringify(api));
     var clock = london(new Date(api.as_of || Date.now())), delayed = {}, byLine = {};
     api.lines.forEach(function (L) { byLine[L.id] = L; (L.rows || []).forEach(function (r) { if (r.now && r.now.level) delayed[L.id + '|' + String(r.naptan || '').toUpperCase() + '|' + dirKey(r.dir)] = 1; }); });
@@ -41,6 +48,7 @@ window.ForecastModel = (function () {
       row.onset_p30 = Math.round(s.p * 1000) / 1000; row.risk = risk;
       row.onset_min = s.near == null ? 30 : s.near <= 10 ? 10 : s.near <= 20 ? 20 : 30;
       row.top_reason = s.up ? 'delays_up_line' : 'network_pattern'; row.model = M.model_id;
+      row.reason_text = s.up ? 'Delays up the line' + (s.nearUnit ? ' at ' + title(s.nearUnit.split('|')[1]) : '') + ' · about ' + Math.max(1, Math.round(s.near)) + ' min away' : 'Often delayed at this hour';
     });
     api.lines.forEach(function (L) {
       var rows = L.rows || [], now = rows.filter(function (r) { return r.now && r.now.level; }).length, pb = L.line_forecast && L.line_forecast.p_base_30;
