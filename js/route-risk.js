@@ -54,6 +54,11 @@
     var t = Date.parse(option.arrival || '');
     return (Number.isFinite(t) ? t : option.min * 60000) + ((option.risk && option.risk.extra) || 0) * 60000;
   }
+  function signature(option) {
+    return (option.r.legs || []).filter(function (leg) { return !leg.walking; }).map(function (leg) {
+      return leg.line + ':' + (leg.stops || []).map(function (stop) { return stop.name; }).join('>');
+    }).join('|');
+  }
   function rank(options, state) {
     var assessed = (options || []).map(function (option, index) {
       var copy = Object.assign({}, option), risk = score(option, state || {});
@@ -61,9 +66,10 @@
     });
     assessed.sort(function (a, b) { return adjusted(a) - adjusted(b) || a.providerRank - b.providerRank; });
     assessed.forEach(function (option, index) {
-      option.tag = index === 0 ? 'Recommended now' : (option.providerRank === 0 ? 'Usual route' : 'Alternative');
+      var sameEarlier = assessed.some(function (candidate) { return candidate.providerRank < option.providerRank && signature(candidate) === signature(option); });
+      option.tag = index === 0 ? 'Recommended now' : (option.providerRank === 0 ? 'Usual route' : (sameEarlier ? 'Later departure' : 'Alternative route'));
     });
     return assessed;
   }
-  return { score: score, rank: rank, explain: explain };
+  return { score: score, rank: rank, explain: explain, signature: signature };
 });

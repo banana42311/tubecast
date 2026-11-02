@@ -15,22 +15,17 @@
   function lineCol(sl) { return (LBS[sl] && LBS[sl].color) || '#7c8794'; }
   function labelNodes(sel) { return (labelLayer || world).querySelectorAll(sel || '.lbl'); }
   function googleRouteURL(A,B,option){
-    var p=new URLSearchParams({api:'1',origin:A.name+' Station, London',destination:B.name+' Station, London',travelmode:'transit'}),via=[],sequence=[],transfers=[];
+    var p=new URLSearchParams({api:'1',origin:A.name+' Station, London',destination:B.name+' Station, London',travelmode:'transit'}),via=[],transfers=[];
     if(option&&option.r&&option.r.legs){
-      option.r.legs.forEach(function(leg,i){
-        (leg.stops||[]).forEach(function(st){if(st&&st.name&&sequence[sequence.length-1]!==st.name)sequence.push(st.name);});
-        var stops=leg.stops||[],last=stops[stops.length-1];if(i<option.r.legs.length-1&&last&&last.name)transfers.push(last.name);
+      var transitLegs=option.r.legs.filter(function(leg){return !leg.walking;});
+      transitLegs.forEach(function(leg,i){
+        var stops=leg.stops||[],last=stops[stops.length-1];if(i<transitLegs.length-1&&last&&last.name)transfers.push(last.name);
       });
-      var interior=sequence.filter(function(name){return name!==A.name&&name!==B.name;});
       transfers.forEach(function(name){if(via.length<3&&via.indexOf(name)<0)via.push(name);});
-      while(via.length<3&&interior.some(function(name){return via.indexOf(name)<0;})){
-        var pool=interior.filter(function(name){return via.indexOf(name)<0;}),target=(via.length+1)/(Math.min(3,interior.length)+1),pick=pool[0],best=Infinity;
-        pool.forEach(function(name){var delta=Math.abs((sequence.indexOf(name)/(sequence.length-1||1))-target);if(delta<best){best=delta;pick=name;}});via.push(pick);
-      }
-      via.sort(function(a,b){return sequence.indexOf(a)-sequence.indexOf(b);});
     }
-    /* Maps URLs accept at most three waypoints on mobile browsers. These ordered
-       interchanges constrain Google's route to the journey Tubecast selected. */
+    /* Ordinary stops must not become waypoints: Google treats each as a separate
+       destination and can replace a direct Tube journey with walking/bus legs.
+       Only actual interchange stations are retained for multi-line journeys. */
     if(via.length)p.set('waypoints',via.slice(0,3).map(function(name){return name+' Station, London';}).join('|'));
     return {url:'https://www.google.com/maps/dir/?'+p.toString(),via:via.slice(0,3)};
   }
@@ -245,7 +240,7 @@
   function routeHTML(rs) {
     var A = G.byId[rs.from], B = G.byId[rs.to], opts = rs.opts, h = '';
     var selectedOption=opts[state.opt||0],google=googleRouteURL(A,B,selectedOption);
-    var googleLink='<a class="google-route" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(google.url)+'"><span>G</span><b>Open this route in Google Maps</b><small>'+(google.via.length?'Via '+google.via.map(esc).join(' → ')+' · ':'')+'Current transit directions</small></a>';
+    var googleLink='<a class="google-route" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(google.url)+'"><span>G</span><b>Continue in Google Maps</b><small>'+(google.via.length?'Transfer via '+google.via.map(esc).join(' → ')+' · ':'')+'Google recalculates transit directions</small></a>';
     opts.forEach(function (o, i) {
       var legs = o.r.legs.map(function (l, j) { return (j ? '<em>›</em>' : '') + pill(l.line); }).join('');
       var notices=[];o.r.legs.forEach(function(l){(l.disruptions||[]).forEach(function(n){if(notices.indexOf(n)<0)notices.push(n);});});
@@ -267,7 +262,7 @@
         googleLink+'<div class="fs-actions"><button class="btn-p" data-act="change-route">Change route</button><button class="btn-s" data-act="edit-route">Edit journey</button></div>';
     }
     return head(esc(A.name)+' <span class="arr">→</span> '+esc(B.name),sub,true)+
-      '<button class="route-edit" data-act="edit-route">Edit start or destination</button><div class="ro-list">'+h+'</div>'+(opts.length?googleLink:'')+'<div class="fs-actions"><button class="btn-p" data-act="go"'+(opts.length?'':' disabled')+'>Choose this route</button><button class="btn-s" data-act="swap" aria-label="Reverse route">⇅</button></div>';
+      '<button class="route-edit" data-act="edit-route">Edit start or destination</button><div class="ro-list">'+h+'</div><div class="fs-actions"><button class="btn-p" data-act="go"'+(opts.length?'':' disabled')+'>Choose this route</button><button class="btn-s" data-act="swap" aria-label="Reverse route">⇅</button></div>';
   }
 
   /* disruption */
@@ -439,7 +434,7 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && state.t && !/INPUT/.test(e.target.tagName)) { back(); } });
   if (window.TCSearch) { var q = $('#q'); /* search → fly to the station instead of navigating */ q.__pick = openStation; }
   window.addEventListener('shellfit',function(){if(state.t)reframe(sheet.visible);});
-  window.FlowMap = { go: go, openStation: openStation, state: function () { return state; }, geo: G, sheet: sheet };
+  window.FlowMap = { go: go, openStation: openStation, state: function () { return state; }, geo: G, sheet: sheet, googleRouteURL: googleRouteURL };
 
   /* ---------------------------------------------------------------- deep links */
   (function () {

@@ -8,6 +8,14 @@
 - `route.html`과 `station.html`은 계속 지도 시트로 리다이렉트합니다. 역·노선 지연 화면의 대체 경로 진입과 선택 경로의 Google Maps 전달을 유지했습니다.
 - `tests/state.cjs`와 `tests/route-risk.cjs`에 공통 수치, 오래된 응답/503 캐시, 위험 점수 정렬, 미매칭 경고 검사를 추가했습니다. 기존 motion/release/journey/schematic 및 브라우저 회귀 검사도 통과했습니다.
 
+## 경로 결과와 Google Maps 전달 보완
+
+- 같은 정차역·노선을 쓰는 후속 TfL 결과는 `Alternative`가 아니라 `Later departure`로 표시합니다. 다른 노선 조합일 때만 `Alternative route`를 사용합니다.
+- Google Maps 버튼은 경로 후보를 읽는 동안 제거하고 `Choose this route` 이후의 확정 화면에만 표시합니다.
+- 직통 경로의 일반 정차역을 Google 경유지로 넘기던 오류를 제거했습니다. 직통은 출발·도착만 전달하고, 환승 경로는 실제 환승역만 최대 3개까지 전달합니다.
+- Google Maps가 URL을 바탕으로 자체 대중교통 경로를 다시 계산한다는 점을 버튼 설명에 표시했습니다. Tubecast의 지연 반영 점수와 선택 결과는 Tubecast 화면에 유지됩니다.
+- 현재 지연 역 2개와 예측 고위험 역 2개가 후보 점수에 반영되는 fixture 검증, 후속 출발편 라벨, 직통/환승 Google URL, 선택 전후 버튼 노출을 회귀 검사에 추가했습니다.
+
 # 2026-11-01 — 모바일 웹 흐름·디자인 개선
 
 ## 수정 범위

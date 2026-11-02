@@ -8,6 +8,9 @@ const usual=option('2026-11-02T10:20:00Z','central','Westbound',['Mile End','Bet
 const alternative=option('2026-11-02T10:24:00Z','piccadilly','Westbound',['Holborn','Gloucester Road'],24);
 const ranked=RouteRisk.rank([usual,alternative],state);
 assert.equal(ranked[0].providerRank,1);assert.equal(ranked[0].tag,'Recommended now');assert.equal(ranked[0].extra,0);
-assert.equal(ranked[1].tag,'Usual route');assert(ranked[1].risk.current>=2);assert(ranked[1].risk.predicted>=2);assert(ranked[1].extra>10);
+assert.equal(ranked[1].tag,'Usual route');assert.equal(ranked[1].risk.current,2);assert.equal(ranked[1].risk.predicted,2);assert(ranked[1].extra>10);
 assert.match(ranked[1].explanation,/about \+\d+ min/);
+const nextDeparture=option('2026-11-02T10:28:00Z','piccadilly','Westbound',['Holborn','Gloucester Road'],24);
+const successive=RouteRisk.rank([alternative,nextDeparture],state);
+assert.equal(successive[0].tag,'Recommended now');assert.equal(successive[1].tag,'Later departure');
 console.log('PASS route risk scoring reorders only TfL candidates and labels current recommendation versus usual route');
