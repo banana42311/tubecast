@@ -1,2 +1,2 @@
-/* Live data endpoint. Empty = example mode (illustrative snapshot). Set to the HTTPS API origin, e.g. 'https://xxxx.trycloudflare.com'. */
-window.TUBECAST_CONFIG = { apiBase: '', refreshSec: 60, maxAgeSec: 300 };
+/* Empty apiBase uses the contract fixture. Set only apiBase to switch every screen to Hermes. */
+window.TUBECAST_CONFIG = { apiBase: '', stateFixture: 'data/state.sample.json', refreshSec: 60, maxAgeSec: 180 };

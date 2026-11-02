@@ -1,0 +1,79 @@
+{
+  "as_of": "2026-11-02T15:00:00Z",
+  "model_id": "tubecast-1102-fixture",
+  "coverage": { "units": 773, "fresh": 741 },
+  "sources": { "stale": false },
+  "lines": [
+    {
+      "id": "central",
+      "tfl": { "status": "Minor Delays", "reason": "Longer gaps between trains near Mile End", "planned_closure": null, "not_running": null },
+      "line_forecast": { "p_base_30": 0.52, "alert": "watch" },
+      "cols": [{"h":0,"n":2,"mark":"nm"},{"h":10,"n":3,"mark":"pm"},{"h":20,"n":4,"mark":"pm"},{"h":30,"n":5,"mark":"ps"},{"h":60,"n":0,"mark":"pg"}],
+      "rows": [
+        {"station":"Mile End","naptan":"940GZZLUMED","dir":"Westbound","now":{"level":"minor","gap_min":12,"usual_min":3},"onset_p30":null,"risk":null},
+        {"station":"Bethnal Green","naptan":"940GZZLUBLG","dir":"Westbound","now":{"level":"minor","gap_min":10,"usual_min":3},"onset_p30":null,"risk":null},
+        {"station":"Liverpool Street","naptan":"HUBLST","dir":"Westbound","now":null,"onset_p30":0.44,"risk":"high","onset_min":10,"top_reason":"upstream"},
+        {"station":"Bank","naptan":"HUBBAN","dir":"Westbound","now":null,"onset_p30":0.36,"risk":"high","onset_min":20,"top_reason":"upstream"},
+        {"station":"St. Paul's","naptan":"940GZZLUSPU","dir":"Westbound","now":null,"onset_p30":0.22,"risk":"elevated","onset_min":30,"top_reason":"upstream"}
+      ]
+    },
+    {
+      "id": "district",
+      "tfl": { "status": "Minor Delays", "reason": "Longer gaps around Earl's Court", "planned_closure": null, "not_running": null },
+      "line_forecast": { "p_base_30": 0.31, "alert": "watch" },
+      "cols": [{"h":0,"n":3,"mark":"nm"},{"h":10,"n":4,"mark":"pm"},{"h":20,"n":5,"mark":"pm"},{"h":30,"n":6,"mark":"ps"},{"h":60,"n":0,"mark":"pg"}],
+      "rows": [
+        {"station":"West Kensington","naptan":"940GZZLUWKN","dir":"Westbound","now":{"level":"minor","gap_min":9,"usual_min":3},"onset_p30":null,"risk":null},
+        {"station":"Earl's Court","naptan":"940GZZLUECT","dir":"Westbound","now":{"level":"minor","gap_min":9,"usual_min":3},"onset_p30":0.28,"risk":"elevated","onset_min":20,"top_reason":"upstream"},
+        {"station":"Gloucester Road","naptan":"940GZZLUGTR","dir":"Eastbound","now":{"level":"minor","gap_min":8,"usual_min":3},"onset_p30":null,"risk":null},
+        {"station":"Barons Court","naptan":"940GZZLUBSC","dir":"Westbound","now":null,"onset_p30":0.29,"risk":"high","onset_min":10,"top_reason":"upstream"},
+        {"station":"South Kensington","naptan":"940GZZLUSKS","dir":"Eastbound","now":null,"onset_p30":0.25,"risk":"elevated","onset_min":20,"top_reason":"upstream"},
+        {"station":"Sloane Square","naptan":"940GZZLUSSQ","dir":"Eastbound","now":null,"onset_p30":0.21,"risk":"elevated","onset_min":30,"top_reason":"upstream"}
+      ]
+    },
+    {
+      "id": "victoria",
+      "tfl": { "status": "Minor Delays", "reason": "Short gaps in both directions", "planned_closure": null, "not_running": null },
+      "line_forecast": { "p_base_30": 0.24, "alert": null },
+      "cols": [{"h":0,"n":3,"mark":"nm"},{"h":10,"n":3,"mark":"pg"},{"h":20,"n":3,"mark":"pg"},{"h":30,"n":3,"mark":"pg"},{"h":60,"n":0,"mark":"pg"}],
+      "rows": [
+        {"station":"Victoria","naptan":"HUBVIC","dir":"Northbound","now":{"level":"minor","gap_min":6,"usual_min":2},"onset_p30":null,"risk":null},
+        {"station":"Oxford Circus","naptan":"940GZZLUOXC","dir":"Northbound","now":{"level":"minor","gap_min":6,"usual_min":2},"onset_p30":null,"risk":null},
+        {"station":"Euston","naptan":"940GZZLUEUS","dir":"Northbound","now":{"level":"minor","gap_min":5,"usual_min":2},"onset_p30":null,"risk":null}
+      ]
+    },
+    {
+      "id": "jubilee",
+      "tfl": { "status": "Severe Delays", "reason": "Longer gaps near Westminster", "planned_closure": null, "not_running": null },
+      "line_forecast": { "p_base_30": 0.47, "alert": "alert" },
+      "cols": [{"h":0,"n":2,"mark":"ns"},{"h":10,"n":3,"mark":"ps"},{"h":20,"n":4,"mark":"ps"},{"h":30,"n":4,"mark":"ps"},{"h":60,"n":0,"mark":"pg"}],
+      "rows": [
+        {"station":"Green Park","naptan":"940GZZLUGPK","dir":"Eastbound","now":{"level":"severe","gap_min":15,"usual_min":3},"onset_p30":null,"risk":null},
+        {"station":"Westminster","naptan":"HUBWSM","dir":"Eastbound","now":{"level":"severe","gap_min":14,"usual_min":3},"onset_p30":null,"risk":null},
+        {"station":"Waterloo","naptan":"HUBWAT","dir":"Eastbound","now":null,"onset_p30":0.48,"risk":"high","onset_min":10,"top_reason":"upstream"},
+        {"station":"Southwark","naptan":"940GZZLUSWK","dir":"Eastbound","now":null,"onset_p30":0.39,"risk":"high","onset_min":20,"top_reason":"upstream"}
+      ]
+    },
+    {
+      "id": "bakerloo",
+      "tfl": { "status": "Minor Delays", "reason": "Longer gaps near Oxford Circus", "planned_closure": null, "not_running": null },
+      "line_forecast": { "p_base_30": 0.29, "alert": "watch" },
+      "cols": [{"h":0,"n":2,"mark":"nm"},{"h":10,"n":2,"mark":"pm"},{"h":20,"n":3,"mark":"pm"},{"h":30,"n":3,"mark":"pm"},{"h":60,"n":0,"mark":"pg"}],
+      "rows": [
+        {"station":"Oxford Circus","naptan":"940GZZLUOXC","dir":"Southbound","now":{"level":"minor","gap_min":8,"usual_min":3},"onset_p30":null,"risk":null},
+        {"station":"Piccadilly Circus","naptan":"940GZZLUPCC","dir":"Southbound","now":{"level":"minor","gap_min":7,"usual_min":3},"onset_p30":null,"risk":null},
+        {"station":"Charing Cross","naptan":"HUBCHX","dir":"Southbound","now":null,"onset_p30":0.29,"risk":"elevated","onset_min":20,"top_reason":"upstream"}
+      ]
+    },
+    {
+      "id": "hammersmith-city",
+      "tfl": { "status": "Minor Delays", "reason": "Longer gaps near Stepney Green", "planned_closure": null, "not_running": null },
+      "line_forecast": { "p_base_30": 0.22, "alert": null },
+      "cols": [{"h":0,"n":2,"mark":"nm"},{"h":10,"n":2,"mark":"pg"},{"h":20,"n":2,"mark":"pg"},{"h":30,"n":2,"mark":"pg"},{"h":60,"n":0,"mark":"pg"}],
+      "rows": [
+        {"station":"Stepney Green","naptan":"940GZZLUSGN","dir":"Eastbound","now":{"level":"minor","gap_min":7,"usual_min":3},"onset_p30":null,"risk":null},
+        {"station":"Mile End","naptan":"940GZZLUMED","dir":"Eastbound","now":{"level":"minor","gap_min":7,"usual_min":3},"onset_p30":null,"risk":null}
+      ]
+    }
+  ]
+}
