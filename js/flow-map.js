@@ -15,11 +15,20 @@
   function lineCol(sl) { return (LBS[sl] && LBS[sl].color) || '#7c8794'; }
   function labelNodes(sel) { return (labelLayer || world).querySelectorAll(sel || '.lbl'); }
   function googleRouteURL(A,B,option){
-    var p=new URLSearchParams({api:'1',origin:A.name+' Station, London',destination:B.name+' Station, London',travelmode:'transit'}),via=[];
-    if(option&&option.r&&option.r.legs)option.r.legs.slice(0,-1).forEach(function(leg){
-      var stops=leg.stops||[],st=stops[stops.length-1];
-      if(st&&st.name!==A.name&&st.name!==B.name&&via.indexOf(st.name)<0)via.push(st.name);
-    });
+    var p=new URLSearchParams({api:'1',origin:A.name+' Station, London',destination:B.name+' Station, London',travelmode:'transit'}),via=[],sequence=[],transfers=[];
+    if(option&&option.r&&option.r.legs){
+      option.r.legs.forEach(function(leg,i){
+        (leg.stops||[]).forEach(function(st){if(st&&st.name&&sequence[sequence.length-1]!==st.name)sequence.push(st.name);});
+        var stops=leg.stops||[],last=stops[stops.length-1];if(i<option.r.legs.length-1&&last&&last.name)transfers.push(last.name);
+      });
+      var interior=sequence.filter(function(name){return name!==A.name&&name!==B.name;});
+      transfers.forEach(function(name){if(via.length<3&&via.indexOf(name)<0)via.push(name);});
+      while(via.length<3&&interior.some(function(name){return via.indexOf(name)<0;})){
+        var pool=interior.filter(function(name){return via.indexOf(name)<0;}),target=(via.length+1)/(Math.min(3,interior.length)+1),pick=pool[0],best=Infinity;
+        pool.forEach(function(name){var delta=Math.abs((sequence.indexOf(name)/(sequence.length-1||1))-target);if(delta<best){best=delta;pick=name;}});via.push(pick);
+      }
+      via.sort(function(a,b){return sequence.indexOf(a)-sequence.indexOf(b);});
+    }
     /* Maps URLs accept at most three waypoints on mobile browsers. These ordered
        interchanges constrain Google's route to the journey Tubecast selected. */
     if(via.length)p.set('waypoints',via.slice(0,3).map(function(name){return name+' Station, London';}).join('|'));
