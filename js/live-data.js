@@ -12,7 +12,7 @@
     console.warn('[Tubecast] Unmatched API stations (' + list.length + ')', list);
   }
   function build(data, meta) {
-    var out = Model.transform(data, window.StationCatalog || {}, window.TFL_NETWORK || {});
+    var out = Model.transform(base && window.ForecastModel ? window.ForecastModel.augment(data) : data, window.StationCatalog || {}, window.TFL_NETWORK || {});
     warnUnmatched(out.unmatched);
     return Object.assign(out, {
       mode: meta.scenario ? 'scenario' : (meta.example ? 'example' : (meta.delayed || out.stale ? 'stale' : 'current')),
