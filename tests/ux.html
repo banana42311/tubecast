@@ -6,7 +6,7 @@ const load=url=>new Promise(resolve=>{frame.onload=()=>resolve(frame.contentWind
 const pause=()=>new Promise(r=>setTimeout(r,700));
 try{
 let w=await load('../map.html?station=holborn');await pause();let d=w.document,F=w.FlowMap;
-assert(!!F,'map initializes');assert(w.TFL_NETWORK.stations.length===299,'complete Tube and Elizabeth station catalogue');assert(w.StationCatalog.Reading&&w.StationCatalog.Epping,'outer termini included');assert(w.StationCatalog.Holborn.lines.length===2,'official interchange membership');
+assert(!!F,'map initializes');assert(w.TFL_NETWORK.stations.length===299,'complete Tube and Elizabeth station catalogue');assert(!w.TFLMap&&w.NET.central.off[0]!==undefined,'original schematic retained');assert(Object.keys(w.StationCatalog).length===106,'schematic catalogue preserved');assert(w.StationCatalog.Holborn.lines.length===2,'official interchange membership');
 assert(!d.querySelector('#world svg .base image'),'zoomable map stays inline vector');
 assert(getComputedStyle(d.querySelector('#chip')).display==='none','line summary removed from map');
 d.querySelector('[data-act="station-line"][data-line="piccadilly"]').click();
@@ -26,8 +26,7 @@ d.querySelector('[data-act="go"]').click();assert(d.querySelector('.leg-stops').
 F.go({t:'route',from:'bow-road',to:'ladbroke-grove',opt:0,chosen:true});await pause();
 assert(d.querySelector('.journey-steps').textContent.includes('Change at'),'selected multi-line route names interchange');
 w.JourneyAPI.plan=async()=>{throw Error('TfL is busy. Please try again shortly.');};
-F.go({t:'route',from:'reading',to:'epping',opt:0});await pause();assert(d.querySelector('.rp-none').textContent.includes('TfL is busy'),'provider failures display retry instead of invented routes');assert(d.querySelector('[data-act="go"]').disabled,'failed journey cannot be selected');
-F.go({t:'station',id:'reading'});await pause();let marker=d.querySelector('.fsel').getBoundingClientRect();assert(marker.x>100&&marker.x<280,'western terminus can be centered');F.go({t:'station',id:'shenfield'});await pause();marker=d.querySelector('.fsel').getBoundingClientRect();assert(marker.x>100&&marker.x<280,'eastern terminus can be centered');
+F.go({t:'route',from:'mile-end',to:'bank',opt:0});await pause();assert(d.querySelector('.rp-none').textContent.includes('TfL is busy'),'provider failures display retry instead of invented routes');assert(d.querySelector('[data-act="go"]').disabled,'failed journey cannot be selected');
 const marks=[...d.querySelectorAll('.station-marker')].map(n=>n.dataset.st+':'+n.dataset.kind);
 assert(new Set(marks).size===marks.length,'one status marker per station and time window');
 assert(!d.querySelector('[marker-end]'),'direction uses flow without arrowheads');
@@ -43,7 +42,7 @@ w=await load('../line.html?line=district');await pause();d=w.document;let active
 const row=active.querySelector('a.srow'),before=d.querySelector('.pd.cur').dataset.i;
 for(const [type,x] of [['pointerdown',230],['pointermove',220],['pointermove',160],['pointerup',160]])row.dispatchEvent(new w.PointerEvent(type,{pointerId:9,clientX:x,clientY:400,bubbles:true,button:0}));
 const click=new w.MouseEvent('click',{bubbles:true,cancelable:true});row.dispatchEvent(click);await pause();assert(click.defaultPrevented,'station link does not open after horizontal swipe');assert(d.querySelector('.pd.cur').dataset.i!==before,'swiping a station row changes line');
-w=await load('../onboarding.html');assert(w.document.querySelectorAll('.ring-light').length===48,'onboarding animates supplied forty-eight ring segments');
+w.localStorage.setItem('tubecast-welcome','1');w=await load('../index.html?v=return-visit');await new Promise(r=>setTimeout(r,150));assert(frame.contentWindow.location.pathname.endsWith('/onboarding.html'),'version link and returning visitor start with splash');w=frame.contentWindow;assert(w.document.querySelectorAll('.ring-light').length===48,'onboarding animates supplied forty-eight ring segments');
 assert(!w.document.querySelector('a,h1,p'),'onboarding contains only the logo');await new Promise(r=>setTimeout(r,3300));assert(w.location.pathname.endsWith('/index.html'),'splash proceeds to overview after three seconds');
 out.textContent='ALL CHECKS PASSED\n'+logs.join('\n');
 }catch(e){out.textContent=logs.join('\n')+'\nFAIL '+e.stack;}

@@ -126,7 +126,7 @@
     } else if (state.t === 'route') {
       var o = curRoute && curRoute.opts[state.opt || 0]; if (!o) { cam.fit(bboxOf([[G.byId[state.from].x, G.byId[state.from].y], [G.byId[state.to].x, G.byId[state.to].y]], 20), { t: 126, b: vis + 30, l: 70, r: 70 }, 2.6); return; }
       var pts = []; o.r.legs.forEach(function (l) { l.pts.forEach(function (p) { pts.push(p); }); });
-      cam.fit(bboxOf(pts, 6), { t: 126, b: vis + 30, l: 70, r: 70 }, 2.6);
+      if(!pts.length)pts=[[G.byId[state.from].x,G.byId[state.from].y],[G.byId[state.to].x,G.byId[state.to].y]];cam.fit(bboxOf(pts, 6), { t: 126, b: vis + 30, l: 70, r: 70 }, 2.6);
     } else if (state.t === 'dis') {
       var z = dzById(state.id); if (!z) return;
       cam.fit(bboxOf(z.seg.pts, 10), { t: 120, b: vis + 28, l: 50, r: 50 }, 2.2);

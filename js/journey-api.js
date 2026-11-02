@@ -11,8 +11,8 @@
     var stops=[{name:clean(l.departurePoint.commonName),id:l.departurePoint.naptanId}];
     ((l.path||{}).stopPoints||[]).forEach(function(s){if(stops[stops.length-1].name!==clean(s.name))stops.push({name:clean(s.name),id:s.id});});
     var end=clean(l.arrivalPoint.commonName);if(stops[stops.length-1].name!==end)stops.push({name:end,id:l.arrivalPoint.naptanId});
-    var pts=[];try{pts=JSON.parse((l.path||{}).lineString||'[]').map(function(p){return TFLMap.project(p[0],p[1]);});}catch(e){}
-    if(!pts.length){var a=point(l.departurePoint),b=point(l.arrivalPoint);if(a)pts.push(a);if(b)pts.push(b);}
+    var pts=[];if(window.SchematicJourney){pts=SchematicJourney.points(line,stops);}else try{pts=JSON.parse((l.path||{}).lineString||'[]').map(function(p){return TFLMap.project(p[0],p[1]);});}catch(e){}
+    if(!pts.length&&!window.SchematicJourney){var a=point(l.departurePoint),b=point(l.arrivalPoint);if(a)pts.push(a);if(b)pts.push(b);}
     return {line:line,pts:pts,ids:[],stops:stops,walking:line==='walking',duration:l.duration,departure:l.departureTime,arrival:l.arrivalTime,instruction:(l.instruction||{}).summary||'',detail:(l.instruction||{}).detailed||'',disruptions:(l.disruptions||[]).map(function(d){return d.description||d.summary||'';}).filter(Boolean)};
    });
    var transit=legs.filter(function(l){return !l.walking;});

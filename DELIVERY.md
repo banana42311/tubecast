@@ -84,3 +84,10 @@ Overview의 링 아래에 전체 노선 목록을 통합했습니다. 기존 `li
 - 지연/예측 링과 Example arrivals는 별개로 데모입니다. 기존 사용자의 live-data 어댑터와 `apiBase` 설정은 유지했습니다. Google Maps와 제공 교통수단/순위가 같다는 보장은 없습니다.
 - API 출처: https://api.tfl.gov.uk/ ; 네트워크와 경로 데이터 제공: Transport for London.
 - `node tests/journey.cjs`, `node tests/motion.cjs`, `node tests/release.cjs`, 브라우저 `tests/ux.html`로 매핑/오류/이동/검색 흐름을 검증합니다. 실제 Holborn → Bank API 응답과 중간 정차역도 로컬 브라우저에서 확인했습니다.
+
+
+## 2026-11-02 도식 복원 수정
+
+지리 좌표 지도 전환을 취소하고 원본 `assets/network.js` 도식 및 106개 역 배치를 복원했습니다. TfL 식별자와 Journey API는 유지하며 공식 응답의 노선/정차역을 기존 도식에 매핑합니다. 따라서 위의 299개 역 지도 확장 설명은 현재 배포에 적용되지 않습니다. 외곽역 확장은 기존 도식 디자인을 유지하는 별도 작업이 필요합니다. 원본 도식에 없는 구간은 임의로 직선을 그리지 않습니다.
+
+기본 URL과 `?v=…` URL은 방문 기록과 무관하게 3초 온보딩을 표시합니다. `#all-lines` 내부 탐색은 바로 목록으로 갑니다. 온보딩 완료 파라미터는 Overview 진입 시 지워 재방문에서도 온보딩이 나오게 했습니다.
