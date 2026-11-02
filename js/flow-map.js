@@ -15,19 +15,21 @@
   function lineCol(sl) { return (LBS[sl] && LBS[sl].color) || '#7c8794'; }
   function labelNodes(sel) { return (labelLayer || world).querySelectorAll(sel || '.lbl'); }
   function googleRouteURL(A,B,option){
-    var p=new URLSearchParams({api:'1',origin:A.name+' Station, London',destination:B.name+' Station, London',travelmode:'transit'}),via=[],transfers=[];
+    function directions(from,to){
+      return 'https://www.google.com/maps/dir/?'+new URLSearchParams({api:'1',origin:from+' Station, London',destination:to+' Station, London',travelmode:'transit'}).toString();
+    }
+    var via=[],transfers=[],legs=[];
     if(option&&option.r&&option.r.legs){
       var transitLegs=option.r.legs.filter(function(leg){return !leg.walking;});
       transitLegs.forEach(function(leg,i){
-        var stops=leg.stops||[],last=stops[stops.length-1];if(i<transitLegs.length-1&&last&&last.name)transfers.push(last.name);
+        var stops=leg.stops||[],first=stops[0],last=stops[stops.length-1];
+        if(first&&last&&first.name&&last.name)legs.push({line:leg.line,from:first.name,to:last.name,url:directions(first.name,last.name)});
+        if(i<transitLegs.length-1&&last&&last.name)transfers.push(last.name);
       });
       transfers.forEach(function(name){if(via.length<3&&via.indexOf(name)<0)via.push(name);});
     }
-    /* Ordinary stops must not become waypoints: Google treats each as a separate
-       destination and can replace a direct Tube journey with walking/bus legs.
-       Only actual interchange stations are retained for multi-line journeys. */
-    if(via.length)p.set('waypoints',via.slice(0,3).map(function(name){return name+' Station, London';}).join('|'));
-    return {url:'https://www.google.com/maps/dir/?'+p.toString(),via:via.slice(0,3)};
+    if(!legs.length)legs.push({line:null,from:A.name,to:B.name,url:directions(A.name,B.name)});
+    return {url:legs[0].url,via:via.slice(0,3),legs:legs};
   }
   if(!window.TFLMap && !window.SCHEMATIC_MAP)G.stations.forEach(function(st){
     var cat=StationCatalog[st.name];if(!cat||!st.lines.length)return;
@@ -261,7 +263,7 @@
   function routeHTML(rs) {
     var A = G.byId[rs.from], B = G.byId[rs.to], opts = rs.opts, h = '';
     var selectedOption=opts[state.opt||0],google=googleRouteURL(A,B,selectedOption);
-    var googleLink='<a class="google-route" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(google.url)+'"><span>G</span><b>Continue in Google Maps</b><small>'+(google.via.length?'Transfer via '+google.via.map(esc).join(' → ')+' · ':'')+'Google recalculates transit directions</small></a>';
+    var googleLink=google.legs.length>1?'<section class="google-legs"><div class="google-legs-head"><span>G</span><div><b>Continue this detour in Google Maps</b><small>Open each leg to keep the selected lines</small></div></div>'+google.legs.map(function(leg,i){return '<a class="google-leg" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(leg.url)+'"><i>'+(i+1)+'</i><span><b>'+esc(lineName(leg.line))+' line</b><small>'+esc(leg.from)+' → '+esc(leg.to)+'</small></span><strong>Open</strong></a>';}).join('')+'</section>':'<a class="google-route" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(google.url)+'"><span>G</span><b>Continue in Google Maps</b><small>Google recalculates transit directions</small></a>';
     opts.forEach(function (o, i) {
       var legs = o.r.legs.map(function (l, j) { return (j ? '<em>›</em>' : '') + pill(l.line); }).join('');
       var notices=[];o.r.legs.forEach(function(l){(l.disruptions||[]).forEach(function(n){if(notices.indexOf(n)<0)notices.push(n);});});
