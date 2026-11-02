@@ -484,7 +484,11 @@
   /* entry points on the existing page chrome */
   var stack = $('#stack'), rbtn = $('#route');
   stack.href='index.html#all-lines';
-  rbtn.addEventListener('click', function (e) { e.preventDefault(); var a=state.t==='station'?state.id:(draft&&draft.from),b=state.t==='station'?null:(draft&&draft.to);go({t:'pick',from:a||null,to:b||null,field:a?'to':'from',focus:a||null}); });
+  rbtn.addEventListener('click', function (e) {
+    e.preventDefault();var a=state.t==='station'?state.id:(draft&&draft.from),b=state.t==='station'?null:(draft&&draft.to),recording=window.DemoMode&&DemoMode.active&&!a;
+    go({t:'pick',from:a||null,to:b||null,field:a?'to':'from',focus:a||null,search:recording});
+    if(recording)focusSearchInput();
+  });
   var bk = $('[data-back]'); if (bk) bk.addEventListener('click', function (e) { if (state.t) { e.stopImmediatePropagation(); back(); } }, true);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && state.t && !/INPUT/.test(e.target.tagName)) { back(); } });
   if (window.TCSearch) { var q = $('#q'); /* search → fly to the station instead of navigating */ q.__pick = openStation; }
