@@ -14,6 +14,17 @@
   function lineName(sl) { if(sl==='walking')return 'Walk';return (LBS[sl] && LBS[sl].name || sl).replace(/ line$/, ''); }
   function lineCol(sl) { return (LBS[sl] && LBS[sl].color) || '#7c8794'; }
   function labelNodes(sel) { return (labelLayer || world).querySelectorAll(sel || '.lbl'); }
+  function googleRouteURL(A,B,option){
+    var p=new URLSearchParams({api:'1',origin:A.name+' Station, London',destination:B.name+' Station, London',travelmode:'transit'}),via=[];
+    if(option&&option.r&&option.r.legs)option.r.legs.slice(0,-1).forEach(function(leg){
+      var stops=leg.stops||[],st=stops[stops.length-1];
+      if(st&&st.name!==A.name&&st.name!==B.name&&via.indexOf(st.name)<0)via.push(st.name);
+    });
+    /* Maps URLs accept at most three waypoints on mobile browsers. These ordered
+       interchanges constrain Google's route to the journey Tubecast selected. */
+    if(via.length)p.set('waypoints',via.slice(0,3).map(function(name){return name+' Station, London';}).join('|'));
+    return {url:'https://www.google.com/maps/dir/?'+p.toString(),via:via.slice(0,3)};
+  }
   if(!window.TFLMap && !window.SCHEMATIC_MAP)G.stations.forEach(function(st){
     var cat=StationCatalog[st.name];if(!cat||!st.lines.length)return;
     var x=cat.x*S,y=cat.y*S,best=null,dist=Infinity;
@@ -223,8 +234,8 @@
   }
   function routeHTML(rs) {
     var A = G.byId[rs.from], B = G.byId[rs.to], opts = rs.opts, h = '';
-    var googleURL='https://www.google.com/maps/dir/?'+new URLSearchParams({api:'1',origin:A.name+' Station, London',destination:B.name+' Station, London',travelmode:'transit'}).toString();
-    var googleLink='<a class="google-route" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(googleURL)+'"><span>G</span><b>Open live transit in Google Maps</b><small>Google recalculates current alternatives</small></a>';
+    var selectedOption=opts[state.opt||0],google=googleRouteURL(A,B,selectedOption);
+    var googleLink='<a class="google-route" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(google.url)+'"><span>G</span><b>Open this route in Google Maps</b><small>'+(google.via.length?'Via '+google.via.map(esc).join(' → ')+' · ':'')+'Live transit directions</small></a>';
     opts.forEach(function (o, i) {
       var legs = o.r.legs.map(function (l, j) { return (j ? '<em>›</em>' : '') + pill(l.line); }).join('');
       var notices=[];o.r.legs.forEach(function(l){(l.disruptions||[]).forEach(function(n){if(notices.indexOf(n)<0)notices.push(n);});});
@@ -237,7 +248,7 @@
     if (!opts.length) h = '<div class="rp-none">'+esc(rs.error||'TfL returned no journeys for these stations at this time.')+'</div><button class="btn-s" data-act="retry-route">Try again</button>';
     var sub = opts.length + ' route' + (opts.length === 1 ? '' : 's') + ' · TfL Journey Planner';
     if (state.chosen && opts.length) {
-      var selected=opts[state.opt||0];
+      var selected=selectedOption;
       return head('Route selected',esc(A.name)+' → '+esc(B.name),false)+
         '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · '+JourneyAPI.clock(selected.departure)+' → '+JourneyAPI.clock(selected.arrival)+'</b><small>TfL · '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+' · London time</small></div></div>'+
         '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(l.walking?'Walk':(i?'Change at '+esc(first?first.name:'interchange'):'Board at '+esc(first?first.name:A.name)))+'</small><b>'+esc(lineName(l.line))+'</b><small>'+esc(l.instruction)+' · '+l.duration+' min · '+JourneyAPI.clock(l.departure)+'</small><span>'+esc(first?first.name:A.name)+' → '+esc(last?last.name:B.name)+' · '+Math.max(0,l.stops.length-1)+' stops</span><details><summary>Stations on this leg</summary><div class="leg-stops">'+l.stops.map(function(st,j){return '<span><i></i>'+esc(st.name)+(j===l.stops.length-1?(i===selected.r.legs.length-1?' · Arrive':' · Change here'):'')+'</span>';}).join('')+'</div></details></li>';}).join('')+'</ol><small class="journey-note">Powered by the Transport for London Journey Planner API</small>'+
