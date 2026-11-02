@@ -75,3 +75,8 @@
 @media (prefers-contrast: more) {
   .card, .glass { background-color: rgba(30, 38, 49, .98); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5); }
 }
+
+/* The inner vertical scroller is the browser's gesture boundary: set intent here too. */
+.pg .pager-page .scroll { touch-action:pan-y; }
+.pg .pager { -webkit-user-select:none;user-select:none; }
+.pg .pager a,.pg .pager img { -webkit-user-drag:none; }

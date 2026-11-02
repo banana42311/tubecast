@@ -73,9 +73,10 @@
       if (!st.on) {
         var ax = Math.abs(dx), ay = Math.abs(dy);
         if (Math.max(ax, ay) < thr) return;
-        if ((axis === 'x' && ay > ax) || (axis === 'y' && ax > ay)) { st=null;o.onCancel&&o.onCancel();return; } /* lose to scroll */
+        var bias=o.axisBias||1;
+        if ((axis === 'x' && ay > ax*bias) || (axis === 'y' && ax > ay*bias)) { st=null;o.onCancel&&o.onCancel();return; } /* lose to scroll */
         st.on = true; try { el.setPointerCapture(e.pointerId); } catch (_) {}
-        st.x0 = e.clientX; st.y0 = e.clientY; dx = 0; dy = 0; /* start tracking from here: no jump */
+        if(!o.keepOrigin){st.x0=e.clientX;st.y0=e.clientY;dx=0;dy=0;} /* pagers retain the initial movement */
         o.onStart && o.onStart(e);
       }
       tr.push(e.clientX, e.clientY);
@@ -114,7 +115,7 @@
     var base = 0,suppressClick=false;
     (o.root||o.track.parentNode).addEventListener('click',function(e){if(suppressClick){e.preventDefault();e.stopImmediatePropagation();suppressClick=false;}},true);
     M.drag(o.root || o.track.parentNode, {
-      axis: 'x', threshold: 6, filter: o.filter,
+      axis: 'x', threshold: 4, axisBias:1.35, keepOrigin:true, filter: o.filter,
       onDown: function () { suppressClick=false;if (sp) { x = sp.stop(); } W = o.width ? o.width() : W; base = x; },
       onStart: function () { suppressClick=true;o.onPrepare&&o.onPrepare(idx);o.root&&o.root.classList.add('dragging','is-moving'); },
       onCancel:function(){go(idx);},
@@ -127,11 +128,10 @@
       },
       onEnd: function (d) {
         o.root && o.root.classList.remove('dragging');
-        var projected = x + M.project(d.vx,.996);
-        var target = Math.round(-projected / W);
-        target = M.clamp(target, idx - 1, idx + 1); /* a pager never skips more than one page */
-        if(Math.abs(d.dx)>Math.min(42,W*.11))target=idx+(d.dx<0?1:-1);
-        if (Math.abs(d.dx) < 6 && Math.abs(d.vx) < 100) target = Math.round(-x / W);
+        var distance=Math.abs(d.dx),flick=distance>=10&&Math.abs(d.vx)>=220;
+        var target=idx;
+        if(flick)target=idx+(d.vx<0?1:-1);
+        else if(distance>=Math.min(28,W*.075))target=idx+(d.dx<0?1:-1);
         go(effectiveCancel(d)?idx:target,d.e.type==='pointercancel'?0:d.vx);
       }
     });
