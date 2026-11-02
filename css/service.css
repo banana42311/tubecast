@@ -298,6 +298,10 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .service-nav .demo-tag { font-size:8px;letter-spacing:0; }
 @media(prefers-reduced-motion:reduce){.direction-light{display:none}}
 
+/* Keep the camera input path light. Direction lights resume on release; station
+   status remains visible throughout the gesture. */
+.mapview.camera-moving .direction-light{visibility:hidden}
+
 /* Extended schematic labels keep a readable size; collision selection is camera-driven. */
 .map-phone .map-label-layer .lbl { font-size:11px; }
 

@@ -1,9 +1,10 @@
 /* V3 · Map — Figma 141:11262 (390×844). Map world = 1440×900 frame, panned by drag. */
 .mapview{position:absolute;inset:0;overflow:hidden;background:var(--surface-2);touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
 .mapview.drag{cursor:grabbing}
-#world{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;--ls:1;--hs:1}
+#world{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;--ls:1;--hs:1;will-change:transform;contain:layout style}
 #world>svg{position:absolute;left:0;top:0;display:block;overflow:visible}
 .map-label-layer{position:absolute;inset:0;z-index:7;overflow:hidden;pointer-events:none;contain:strict}
+.map-label-canvas{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none;will-change:transform}
 .map-label-layer .lbl{position:absolute;left:0;top:0;height:15px;pointer-events:auto;transform:translate3d(-999px,-999px,0);font:500 11px/15px "Atkinson Hyperlegible",var(--sf);color:#aeb8c3;white-space:nowrap;
      -webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;
      text-decoration:none;cursor:pointer;text-shadow:0 0 3px #1a2029,0 0 3px #1a2029}

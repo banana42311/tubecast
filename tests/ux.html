@@ -13,6 +13,12 @@ const anchor=w.StationCatalog['Southwark'],cam=w.MapCtx.cam,labelLayer=d.querySe
 assert(labelLayer&&labelLayer.parentNode===d.querySelector('#view'),'labels render outside zoomed world');
 let labelFont=null;
 for(const zoom of [1,3,6]){cam.flyTo(anchor.x*w.MapCtx.S,anchor.y*w.MapCtx.S,zoom,150,280,.1);await pause();const label=d.querySelector('.lbl[data-st="Southwark"]'),lr=label.getBoundingClientRect(),vr=d.querySelector('#view').getBoundingClientRect(),font=parseFloat(getComputedStyle(label).fontSize);labelFont=labelFont||font;assert(!label.style.transform.includes('scale'),'label is never compositor-scaled at zoom '+zoom);assert(Math.abs((lr.left-vr.left)-160)<2&&Math.abs((lr.top-vr.top)-256)<2,'label stays screen-anchored at zoom '+zoom);assert(font===labelFont,'label text keeps native resolution at zoom '+zoom);}
+const stableLabel=d.querySelector('.lbl[data-st="Southwark"]'),stableHit=d.querySelector('.hit[data-st="Southwark"]'),mapView=d.querySelector('#view');
+let labelState=getComputedStyle(stableLabel).visibility,offsets=[];
+mapView.dispatchEvent(new w.PointerEvent('pointerdown',{pointerId:77,clientX:190,clientY:320,button:0,bubbles:true}));
+for(const x of [175,150,122]){mapView.dispatchEvent(new w.PointerEvent('pointermove',{pointerId:77,clientX:x,clientY:320,button:0,bubbles:true}));await new Promise(r=>w.requestAnimationFrame(r));let lr=stableLabel.getBoundingClientRect(),hr=stableHit.getBoundingClientRect();offsets.push([lr.left-(hr.left+hr.width/2),lr.top-(hr.top+hr.height/2)]);assert(getComputedStyle(stableLabel).visibility===labelState,'label visibility stays stable during camera movement');}
+mapView.dispatchEvent(new w.PointerEvent('pointerup',{pointerId:77,clientX:122,clientY:320,button:0,bubbles:true}));
+assert(Math.max(...offsets.map(v=>v[0]))-Math.min(...offsets.map(v=>v[0]))<1&&Math.max(...offsets.map(v=>v[1]))-Math.min(...offsets.map(v=>v[1]))<1,'label and station anchor commit in the same frame');
 
 assert(getComputedStyle(d.querySelector('#chip')).display==='none','line summary removed from map');
 d.querySelector('[data-act="station-line"][data-line="piccadilly"]').click();

@@ -27,6 +27,10 @@
   /* Text never enters the zoomed compositor layer. Safari otherwise rasterises the
      labels with #world and they blur or drift during a pinch. */
   var labelLayer = div('map-label-layer', '', view);
+  /* Labels stay in screen space so Safari never scales their glyph bitmap. A
+     separate canvas carries pan translation; only pinch zoom updates the label
+     anchors. Ordinary dragging is one compositor write instead of 299 writes. */
+  var labelCanvas = div('map-label-canvas', '', labelLayer);
   var svg = el('svg', { width: 1440, height: 900, viewBox: '0 0 1440 900', fill: 'none' }, world);
   var defs = el('defs', {}, svg);
   var pat = el('pattern', { id: 'grid', width: 28.8, height: 28.8, patternUnits: 'userSpaceOnUse' }, defs);
@@ -90,7 +94,7 @@
   /* ---------- labels + tap targets ---------- */
   var labels = window.TC_LABELS.map(function (l) {
     var hot = slug === 'central' && /^(Liverpool Street|Bank|Mile End)$/.test(l[0]);
-    var a = div('lbl' + (hot ? ' hot' : ''), 'width:max-content', labelLayer, 'a');
+    var a = div('lbl' + (hot ? ' hot' : ''), 'width:max-content', labelCanvas, 'a');
     a.href = url(l[0]); a.setAttribute('data-st', l[0]); a.textContent = l[0]; return { n: l[0], x: l[1], y: l[2], w: l[3], el:a };
   });
   Object.keys(window.StationCatalog).forEach(function(name){
@@ -110,39 +114,62 @@
   function hard(v, b) { return M.clamp(v, b[0], b[1]); }
   function soft(v, b, dim) { return v > b[1] ? b[1] + M.rubberband(v - b[1], dim) : v < b[0] ? b[0] + M.rubberband(v - b[0], dim) : v; }
   function softK(v) { return v > KMAX ? KMAX * (1 + M.rubberband(v / KMAX - 1, 1, .3)) : v < KMIN ? KMIN / (1 + M.rubberband(KMIN / v - 1, 1, .3)) : v; }
-  var lastK = null;
-  function apply() {
-    world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')';
-    if(window.SCHEMATIC_MAP)scheduleLabels();
-    if (lastK !== k) {
-    world.style.setProperty('--ms',(1/k).toFixed(6));world.style.setProperty('--map-k',k);
-    world.style.setProperty('--ls', (1 / Math.sqrt(k)).toFixed(3));           /* labels grow slower than the map */
-    world.style.setProperty('--hs', Math.max(1, 44 / (32 * k)).toFixed(3));   /* tap targets stay >= 44 screen px */
-    window.MapCtx && window.MapCtx.onCam && window.MapCtx.onCam(k);
-    zbtn.in && zbtn.in.setAttribute('aria-disabled', k >= KMAX - .01);
-    zbtn.out && zbtn.out.setAttribute('aria-disabled', k <= KMIN + .01);
-    world.classList.toggle('zoom-wide', k < .7); labelLayer.classList.toggle('zoom-wide', k < .7); lastK = k; }
+  var lastK = null, renderedK = null, renderFrame = 0, layoutTimer = 0, layoutDirty = true;
+  var dpr = Math.max(1, window.devicePixelRatio || 1);
+  function snap(v){return Math.round(v*dpr)/dpr;}
+  function requestLabelLayout(delay){
+    clearTimeout(layoutTimer);
+    layoutTimer=setTimeout(function(){layoutTimer=0;layoutDirty=true;requestRender();},delay==null?84:delay);
   }
-  var labelFrame=0;
-  function scheduleLabels(){
-    if(labelFrame)return;
-    labelFrame=requestAnimationFrame(function(){
-      labelFrame=0;var occupied=[],vr=view.getBoundingClientRect(),scale=vr.width/VW,dpr=window.devicePixelRatio||1;
-      function snap(v){return Math.round(v*dpr)/dpr;}
-      world.querySelectorAll('.fend b,.fsel b').forEach(function(n){n.style.left='0px';var r=n.getBoundingClientRect(),left=(r.left-vr.left)/scale,right=(r.right-vr.left)/scale;var shift=left<10?10-left:right>VW-10?VW-10-right:0;n.style.left=shift+'px';r=n.getBoundingClientRect();if(r.width)occupied.push({x:(r.left-vr.left)/scale,y:(r.top-vr.top)/scale,w:r.width/scale,h:r.height/scale});});
-      function priority(l){var c=StationCatalog[l.n];return (l.el.classList.contains('route-label')?100:0)+(c.terminal?8:0)+c.lines.length;}
-      labels.slice().sort(function(a,b){return priority(b)-priority(a);}).forEach(function(l){
-        var node=l.el,station=StationCatalog[l.n],sx=tx+station.x*S*k,sy=ty+station.y*S*k;
-        var w=node.offsetWidth||l.w,x=snap(sx+10),y=snap(sy-24),selected=node.classList.contains('route-label');
-        /* Keep one fixed side relative to the station. Labels disappear at an edge
-           instead of jumping across their anchor while the map is moving. */
-        node.style.transform='translate3d('+x+'px,'+y+'px,0)';
-        var show=x>8&&x+w<VW-8&&y>125&&y<VH-24&&(selected||k>.38||station.terminal||station.lines.length>2);
-        show=show&&!node.classList.contains('endpoint-label')&&!node.classList.contains('selected-label')&&!occupied.some(function(b){return x<b.x+b.w+6&&x+w+6>b.x&&y<b.y+(b.h||18)&&y+18>b.y;});
-        node.style.visibility=show?'visible':'hidden';if(show)occupied.push({x:x,y:y,w:w});
+  function placeLabels(reflow){
+    var zoomChanged=renderedK===null||Math.abs(renderedK-k)>.00001;
+    var panX=snap(tx),panY=snap(ty);
+    labelCanvas.style.transform='translate3d('+panX+'px,'+panY+'px,0)';
+    if(zoomChanged){
+      labels.forEach(function(l){
+        var station=StationCatalog[l.n],lx=snap(station.x*S*k+10),ly=snap(station.y*S*k-24);
+        l.sx=lx;l.sy=ly;l.el.style.transform='translate3d('+lx+'px,'+ly+'px,0)';
       });
+      renderedK=k;
+    }
+    if(!reflow)return;
+    var occupied=[],vr=view.getBoundingClientRect(),scale=vr.width/VW;
+    /* Endpoint pills are in the map world. Clamp them only after camera motion
+       settles; reading their rectangles on every pointer event forced layout. */
+    world.querySelectorAll('.fend b,.fsel b').forEach(function(n){
+      n.style.left='0px';var r=n.getBoundingClientRect(),left=(r.left-vr.left)/scale,right=(r.right-vr.left)/scale;
+      var shift=left<10?10-left:right>VW-10?VW-10-right:0;n.style.left=shift+'px';r=n.getBoundingClientRect();
+      if(r.width)occupied.push({x:(r.left-vr.left)/scale,y:(r.top-vr.top)/scale,w:r.width/scale,h:r.height/scale});
     });
+    function priority(l){var c=StationCatalog[l.n];return (l.el.classList.contains('route-label')?100:0)+(c.terminal?8:0)+c.lines.length;}
+    labels.slice().sort(function(a,b){return priority(b)-priority(a);}).forEach(function(l){
+      var node=l.el,station=StationCatalog[l.n],w=l.width||(l.width=node.offsetWidth||l.w),x=panX+l.sx,y=panY+l.sy;
+      var selected=node.classList.contains('route-label');
+      var show=x>8&&x+w<VW-8&&y>125&&y<VH-24&&(selected||k>.38||station.terminal||station.lines.length>2);
+      show=show&&!node.classList.contains('endpoint-label')&&!node.classList.contains('selected-label')&&!occupied.some(function(b){return x<b.x+b.w+6&&x+w+6>b.x&&y<b.y+(b.h||18)&&y+18>b.y;});
+      node.style.visibility=show?'visible':'hidden';if(show)occupied.push({x:x,y:y,w:w});
+    });
+    layoutDirty=false;
   }
+  function render(){
+    renderFrame=0;
+    var panX=snap(tx),panY=snap(ty);
+    /* The vector world and label canvas commit in this same display frame. */
+    world.style.transform='translate3d('+panX+'px,'+panY+'px,0) scale('+k+')';
+    placeLabels(layoutDirty);
+    if(lastK===null||Math.abs(lastK-k)>.00001){
+      world.style.setProperty('--ms',(1/k).toFixed(6));world.style.setProperty('--map-k',k);
+      world.style.setProperty('--ls',(1/Math.sqrt(k)).toFixed(3));
+      world.style.setProperty('--hs',Math.max(1,44/(32*k)).toFixed(3));
+      window.MapCtx&&window.MapCtx.onCam&&window.MapCtx.onCam(k);
+      zbtn.in&&zbtn.in.setAttribute('aria-disabled',k>=KMAX-.01);
+      zbtn.out&&zbtn.out.setAttribute('aria-disabled',k<=KMIN+.01);
+      world.classList.toggle('zoom-wide',k<.7);labelLayer.classList.toggle('zoom-wide',k<.7);lastK=k;
+    }
+  }
+  function requestRender(){if(!renderFrame)renderFrame=requestAnimationFrame(render);}
+  function apply(){requestRender();requestLabelLayout();}
+  function scheduleLabels(){layoutDirty=true;requestRender();}
   function rect() { return view.getBoundingClientRect(); }
   function local(e) { var r = rect(), f = r.width / (view.offsetWidth || 390); return { x: (e.clientX - r.left) / f, y: (e.clientY - r.top) / f }; }
   function setZoomAt(kk, cx, cy, elastic) {          /* keep the world point under (cx,cy) fixed */
@@ -172,12 +199,13 @@
         k = k0 + (tk - k0) * p; tx = x0 + (tx1 - x0) * p; ty = y0 + (ty1 - y0) * p; apply(); }, onDone: function () { sp.z = null; } });
       return;
     }
-    vx=M.clamp(vx,-1800,1800);vy=M.clamp(vy,-1800,1800);
+    /* A short, critically damped coast feels direct on a dense schematic. */
+    vx=M.clamp(vx,-1200,1200);vy=M.clamp(vy,-1200,1200);
     var bX = bx(k), bY = by(k);
-    var gx = hard(x0 + M.project(M.clamp(vx,-1800,1800),.991), bX), gy = hard(y0 + M.project(M.clamp(vy,-1800,1800),.991), bY);
+    var gx = hard(x0 + M.project(vx,.987), bX), gy = hard(y0 + M.project(vy,.987), bY);
     var outX = tx < bX[0] || tx > bX[1], outY = ty < bY[0] || ty > bY[1];
-    sp.x = M.spring({ from: tx, to: gx, velocity: vx, response: .28, damping: 1, precision: .05, onUpdate: function (v) { tx = v; apply(); }, onDone: function () { sp.x = null; } });
-    sp.y = M.spring({ from: ty, to: gy, velocity: vy, response: .28, damping: 1, precision: .05, onUpdate: function (v) { ty = v; apply(); }, onDone: function () { sp.y = null; } });
+    sp.x = M.spring({ from: tx, to: gx, velocity: vx, response: .24, damping: 1, precision: .05, onUpdate: function (v) { tx = v; apply(); }, onDone: function () { sp.x = null; } });
+    sp.y = M.spring({ from: ty, to: gy, velocity: vy, response: .24, damping: 1, precision: .05, onUpdate: function (v) { ty = v; apply(); }, onDone: function () { sp.y = null; } });
   }
 
   var ptr = {}, mode = null, g0 = null, moved = false, tr = M.tracker(), lastC = { x: 195, y: 400 }, lastTap = null;
@@ -186,7 +214,7 @@
   view.addEventListener('pointerdown', function (e) {
     if (e.target.closest('.ui,.sp,.routebtn,.zoomctl')) return;
     if (e.pointerType === 'mouse' && e.button > 0) return;
-    stopAll(); measure(); ptr[e.pointerId] = local(e);
+    stopAll(); measure(); ptr[e.pointerId] = local(e);view.classList.add('camera-moving');
     if (ids().length === 1) { mode = 'pan'; moved = false; g0 = { x: ptr[e.pointerId].x, y: ptr[e.pointerId].y, tx: tx, ty: ty }; tr.reset(); tr.push(g0.x, g0.y); }
     else if (ids().length === 2) {
       var t = two(); mode = 'pinch'; moved = true; g0 = { d: t.d, k: k, wx: (t.x - tx) / k, wy: (t.y - ty) / k };
@@ -217,11 +245,11 @@
     var n = ids().length;
     if (mode === 'pinch') {
       if (n === 1) { var q = ptr[ids()[0]]; mode = 'pan'; g0 = { x: q.x, y: q.y, tx: tx, ty: ty }; tr.reset(); tr.push(q.x, q.y); moved = true; return; }  /* lifting one finger: keep panning with the other */
-      if (n === 0) { mode = null; view.classList.remove('drag'); settle(0, 0, lastC.x, lastC.y); }
+      if (n === 0) { mode = null; view.classList.remove('drag','camera-moving'); settle(0, 0, lastC.x, lastC.y); }
       return;
     }
     if (n === 0 && mode === 'pan') {
-      mode = null; view.classList.remove('drag');
+      mode = null; view.classList.remove('drag','camera-moving');
       if (moved) { var v = tr.velocity(); settle(e.type === 'pointercancel' ? 0 : v.x, e.type === 'pointercancel' ? 0 : v.y, p.x, p.y); }
       else if (e.type === 'pointerup' && !e.target.closest('a')) {      /* double-tap on empty map → zoom */
         var now = performance.now();
@@ -267,7 +295,7 @@
     var kk = M.clamp(Math.min(rw / bw, rh / bh, maxK || KMAX), KMIN, KMAX);
     flyTo((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, kk, pl + rw / 2, pt + rh / 2, resp);
   }
-  window.MapCtx = { N: N, S: S, svg: svg, defs: defs, base: base, hl: hl, ov: ov, world: world, view: view, labelLayer: labelLayer, el: el, sc: sc, div: div, slugs: slugs,
+  window.MapCtx = { N: N, S: S, svg: svg, defs: defs, base: base, hl: hl, ov: ov, world: world, view: view, labelLayer: labelLayer, labelCanvas: labelCanvas, el: el, sc: sc, div: div, slugs: slugs,
     linePaths: linePaths, lineOff: lineOff, slug: slug, labels: labels, refreshLabels: scheduleLabels, glowOn: glowOn, glowOff: glowOff, url: url,
     cam: { flyTo: flyTo, fit: fit, stop: stopAll, get: function () { measure(); return { k: k, tx: tx, ty: ty, VW: VW, VH: VH }; }, zoomBy: step, measure: measure,
            toScreen: function (x, y) { return [tx + x * k, ty + y * k]; } } };
@@ -282,6 +310,7 @@
     tx = VW / 2 - (bb.x + bb.width / 2 + foff[0]) * S; ty = VH * .47 - (bb.y + bb.height / 2 + foff[1]) * S;
   }
   tx = hard(tx, bx(k)); ty = hard(ty, by(k)); apply();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){labels.forEach(function(l){l.width=0;});scheduleLabels();});
   function relayout() { measure(); setZoomAt(k, VW / 2, VH / 2, false); }
   window.addEventListener('shellfit', relayout); window.addEventListener('resize', relayout);
   // No automatic glow over an idle map.
