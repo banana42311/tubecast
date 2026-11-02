@@ -3,8 +3,8 @@
 (function () {
   var C = window.TUBECAST_CONFIG || {}, p = new URLSearchParams(location.search);
   var active = !String(C.apiBase || '').trim() && p.get('demo') === 'commute';
-  var KEY = 'tubecast-demo-commute-step';
-  function readStep() { try { return DemoModeCore.stageId(sessionStorage.getItem(KEY)); } catch (_) { return 3; } }
+  var KEY = 'tubecast-demo-commute-step-v2';
+  function readStep() { try { var saved=sessionStorage.getItem(KEY);return saved==null?1:DemoModeCore.stageId(saved); } catch (_) { return 1; } }
   function url(value) {
     if (!active || !value || /^(?:https?:|mailto:|tel:|#)/.test(value)) return value;
     var bits = String(value).split('#'), u = new URL(bits[0], location.href);
@@ -26,7 +26,13 @@
       tag = document.createElement('div'); tag.className = 'demo-tag demo-scenario';
       var phone = document.querySelector('.phone'); if (phone) phone.appendChild(tag);
     }
-    if (tag) { tag.textContent = 'Example scenario'; tag.hidden = false; }
+    if (tag) {
+      tag.textContent = 'Example · ' + readStep() + '/3'; tag.hidden = false;
+      tag.classList.add('demo-control'); tag.setAttribute('role', 'button'); tag.setAttribute('tabindex', '0');
+      tag.setAttribute('aria-label', 'Example scenario step ' + readStep() + ' of 3. Tap for the next step.');
+      tag.addEventListener('click', function () { setStep(readStep() % 3 + 1); });
+      tag.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault();setStep(readStep() % 3 + 1); } });
+    }
     function patch(root) {
       (root.querySelectorAll ? root.querySelectorAll('a[href],[data-href]') : []).forEach(function (node) {
         if (node.hasAttribute('href')) node.setAttribute('href', url(node.getAttribute('href')));
@@ -36,17 +42,8 @@
     patch(document);
     new MutationObserver(function (records) { records.forEach(function (r) { r.addedNodes.forEach(function (n) { if (n.nodeType === 1) patch(n); }); }); }).observe(document.body, { childList: true, subtree: true });
   }
-  document.addEventListener('keydown', function (e) {
-    if (!active || /INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return;
-    if (/^[1230]$/.test(e.key)) { e.preventDefault(); setStep(+e.key); }
-    if (e.key.toLowerCase() === 'h') { e.preventDefault(); var open=document.documentElement.classList.toggle('demo-help-open'),help=document.querySelector('.demo-help');if(help)help.hidden=!open; }
-  });
   document.addEventListener('DOMContentLoaded', function () {
     mount();
-    if (!active) return;
-    var help = document.createElement('div'); help.className = 'demo-help'; help.setAttribute('role', 'status');
-    help.textContent = 'Demo: 1 normal · 2 current delay · 3 forecast · 0 reset · H help';
-    help.hidden=true;document.body.appendChild(help);
   });
   window.DemoMode = { active: active, step: readStep(), data: active ? window.TUBECAST_DEMO_COMMUTE : null, journey: active ? window.TUBECAST_DEMO_JOURNEY : null, url: url, setStep: setStep };
 })();

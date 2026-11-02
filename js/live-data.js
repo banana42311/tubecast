@@ -44,7 +44,7 @@
   window.LiveLabel = function () { return Model.label(window.LiveState); };
   function updateBadge() {
     var tag = document.querySelector('.demo-tag'); if (!tag) return;
-    var label = window.LiveLabel();
+    var label = Demo && Demo.active ? 'Example · ' + Demo.step + '/3' : window.LiveLabel();
     tag.textContent = label;
     tag.hidden = !label;
   }

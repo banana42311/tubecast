@@ -117,3 +117,10 @@ python3 -m http.server 8765 --bind 127.0.0.1
 - **Cause:** forecast severity was derived from the probability tier even when it was the same minor incident moving along one direction, so propagated rings could turn red. Propagated stations now retain the current incident severity while the ring still communicates that they are forecast.
 - Labels remain in a screen-space HTML layer while the vector network zooms underneath. The world and label canvas commit in the same animation frame, camera translations snap to device pixels and route mode avoids per-pointer layout reads.
 - 390×844 route screenshots at 1×, 2× and 4× are stored in `exports/`. Browser checks report native-size label text at zoom 1/3/6, stable visibility during camera movement and complete access to all 299 stations and the outer map boundary.
+
+## iPhone route search and route framing
+
+- **Cause:** iOS moves the visual viewport when its keyboard opens, while the fixed 390px canvas stayed attached to the layout viewport. The phone canvas now follows `visualViewport.offsetTop`, detects keyboard height changes and gives station search an opaque, nearly full-height focused sheet.
+- **Cause:** an empty destination query rendered the first 24 alphabetical stations, making the useful field and results harder to reach on a phone. Search now starts with eight useful suggestions and keeps its title, input and map-return action above the scrolling results.
+- **Cause:** route mode retained the global station search and used overview-sized camera padding with a low zoom cap. Route planning now hides overview controls and fits the selected geometry into the actual space above the sheet with tighter padding and a higher short-route zoom cap.
+- The recording scenario starts at step 1 and is controlled from the phone: tap the `Example · n/3` chip to advance through steps 1 → 2 → 3. The keyboard shortcut/help layer was removed from the demo UI.

@@ -132,7 +132,7 @@ html.mode-phone .map-phone .stackbtn,html.mode-phone .map-phone .routebtn { bott
 .station-mode .fs-head,.station-mode .fs-actions { flex:none; }
 .station-body { flex:1;overflow-y:auto;min-height:0;overscroll-behavior:contain; }
 .station-mode .fs-actions { margin-top:10px;padding-top:10px;border-top:1px solid #3b4654; }
-.map-phone.routing #chip,.map-phone.routing .map-key { display:none; }
+.map-phone.routing #chip,.map-phone.routing .map-key,.map-phone.routing .ui.sbox,.map-phone.routing #sp { display:none!important; }
 .map-label-layer .lbl { transition:none; }
 .map-label-layer.route-focus .lbl.endpoint-label { visibility:hidden; }
 /* Stable, legible end labels at any map zoom. */
@@ -300,6 +300,15 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .pick-mode.pick-search .fs-pane { display:flex;flex-direction:column;height:100%; }
 .pick-mode.pick-search .rp-list { flex:1;min-height:0;overflow:auto; }
 .pick-mode.pick-search .fs-head,.pick-mode.pick-search .rp-search,.pick-mode.pick-search .pick-search-toggle { flex:none; }
+.pick-mode.pick-search .fs-scroll { background:#202934; }
+.pick-mode.pick-search .rp-list-label { padding:8px 0 5px;color:#8f9eac;font-size:10px;line-height:14px;letter-spacing:.5px;text-transform:uppercase; }
+.pick-mode.pick-search .rp-r { min-height:48px; }
+html.keyboard-open .pick-mode.pick-search .fs-scroll { border-radius:18px 18px 0 0;padding-top:12px;padding-bottom:10px;background:#202934;box-shadow:0 -8px 28px #0008; }
+html.keyboard-open .pick-mode.pick-search .fs-head { min-height:40px;margin-bottom:6px; }
+html.keyboard-open .pick-mode.pick-search .fs-t h2 { font-size:18px;line-height:22px; }
+html.keyboard-open .pick-mode.pick-search .fs-t p { font-size:11px;line-height:15px; }
+html.keyboard-open .pick-mode.pick-search .fs-back,html.keyboard-open .pick-mode.pick-search .fs-x { width:36px;height:36px; }
+html.keyboard-open .pick-mode.pick-search .rp-search input { height:46px;border:1px solid #ffffff18;background:#151c24; }
 .route-loading{font-size:0;display:grid;gap:10px;padding:10px 0}
 .route-loading:before,.route-loading:after{content:'';display:block;height:112px;border:1px solid #3b4755;border-radius:16px;background:linear-gradient(100deg,#2a3440 20%,#36424f 38%,#2a3440 56%);background-size:240% 100%;animation:routeSkeleton 1.05s linear infinite}
 .route-loading:after{height:92px;opacity:.7}
@@ -311,6 +320,10 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .rt-walk { stroke-dasharray:3 5;stroke:#d9e2ea; }
 .direction-light { filter:none; }
 .service-nav .demo-tag { font-size:8px;letter-spacing:0; }
+.service-nav .demo-tag.demo-control { display:flex;align-items:center;justify-content:center;min-height:34px;padding:0 9px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
+.service-nav .demo-tag.demo-control:active { transform:scale(.96);background:#ffffff10; }
+.demo-scenario.demo-control { display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 10px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
+.demo-scenario.demo-control:active { transform:scale(.96);background:#202a35; }
 @media(prefers-reduced-motion:reduce){.direction-light{display:none}}
 
 /* Keep the camera input path light. Direction lights resume on release; station
