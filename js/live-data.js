@@ -12,7 +12,8 @@
     console.warn('[Tubecast] Unmatched API stations (' + list.length + ')', list);
   }
   function build(data, meta) {
-    var out = Model.transform(base && window.ForecastModel ? window.ForecastModel.augment(data) : data, window.StationCatalog || {}, window.TFL_NETWORK || {});
+    var input = data; try { if (base && window.ForecastModel) input = window.ForecastModel.augment(data); } catch (e) { console.warn('[Tubecast] forecast model skipped', e); }
+    var out = Model.transform(input, window.StationCatalog || {}, window.TFL_NETWORK || {});
     warnUnmatched(out.unmatched);
     return Object.assign(out, {
       mode: meta.scenario ? 'scenario' : (meta.example ? 'example' : (meta.delayed || out.stale ? 'stale' : 'current')),
