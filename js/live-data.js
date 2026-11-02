@@ -12,7 +12,9 @@
     console.warn('[Tubecast] Unmatched API stations (' + list.length + ')', list);
   }
   function build(data, meta) {
-    var input = data; try { if (base && !meta.scenario && window.ForecastModel) input = window.ForecastModel.augment(data); } catch (e) { console.warn('[Tubecast] forecast model skipped', e); }
+    /* The server contract is authoritative. A client-side forecast is an
+       explicit development opt-in and must never rewrite production counts. */
+    var input = data; try { if (base && C.clientForecast === true && !meta.scenario && window.ForecastModel) input = window.ForecastModel.augment(data); } catch (e) { console.warn('[Tubecast] forecast model skipped', e); }
     var out = Model.transform(input, window.StationCatalog || {}, window.TFL_NETWORK || {});
     warnUnmatched(out.unmatched);
     return Object.assign(out, {

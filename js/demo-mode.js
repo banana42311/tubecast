@@ -1,8 +1,15 @@
-/* Deterministic, offline commute demo. The explicit ?demo=commute URL wins
-   over apiBase so the recording scenario stays reproducible after launch. */
+/* Deterministic, offline commute demo. A configured API always wins. The
+   console is the only surface allowed to opt into the bundled scenario. */
 (function () {
   var C = window.TUBECAST_CONFIG || {}, p = new URLSearchParams(location.search);
-  var active = p.get('demo') === 'commute';
+  var hasAPI = !!String(C.apiBase || '').trim();
+  var consoleScenario = window.TUBECAST_CONSOLE_SCENARIO === true ||
+    (p.get('console') === '1' && p.get('scenario') === 'commute');
+  var active = consoleScenario || (!hasAPI && p.get('demo') === 'commute');
+  if (hasAPI && !consoleScenario && p.has('demo')) {
+    p.delete('demo');
+    history.replaceState(history.state, '', location.pathname + (p.size ? '?' + p.toString() : '') + location.hash);
+  }
   var step = 3;
   function url(value) {
     if (!active || !value || /^(?:https?:|mailto:|tel:|#)/.test(value)) return value;

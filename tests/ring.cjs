@@ -52,9 +52,13 @@ console.log('PASS current live contract supports planned service and probability
 
 const svg=RingChart.svg(state(demoApi,'scenario'),env);
 assert.equal((svg.match(/class="ring-wedge"/g)||[]).length,12);
-assert.equal((svg.match(/class="ring-band /g)||[]).length,84);
+assert.equal((svg.match(/class="ring-band /g)||[]).length,96);
 assert.match(svg,/data-line="central"/);
 assert.match(svg,/>\+30</);
-assert.match(svg,/filter="url\(#tc-ring-glow-severe\)"/);
+assert.doesNotMatch(svg,/filter="url\(/,'the data renderer must not add blur absent from the source artwork');
+const sourcePaths=[...fs.readFileSync('assets/ring.svg','utf8').matchAll(/<path\b[^>]*\bd="([^"]+)"/g)].map(m=>m[1]);
+const dataPaths=[...svg.matchAll(/<path\b[^>]*\bd="([^"]+)"/g)].map(m=>m[1]);
+assert.equal(dataPaths.length,sourcePaths.length);
+assert.deepEqual(dataPaths,sourcePaths,'every wedge, split forecast accent and line key uses the exact source geometry');
 assert.match(fs.readFileSync('js/ring-chart.js','utf8'),/addEventListener\('tubecaststate',refresh\)/);
-console.log('PASS original 12-wedge geometry, labels, glow and live refresh hook are retained');
+console.log('PASS original 12-wedge geometry, labels and live refresh hook are retained');

@@ -36,7 +36,7 @@
   var disposeRing=window.Overview&&Overview.mountRing?Overview.mountRing(document.getElementById('app-ring'),{onPick:function(slug){
     var d=FD.forLine(slug)[0],api=mapAPI();
     if(d&&api){api.go({t:'dis',id:d.id});return;}
-    var p=new URLSearchParams({line:slug,console:'1'});if(window.DemoMode&&DemoMode.active)p.set('demo','commute');iframe.src='map.html?'+p.toString();
+    var p=new URLSearchParams({line:slug,console:'1',scenario:'commute'});iframe.src='map.html?'+p.toString();
   }}):function(){};
   document.getElementById('stations').innerHTML=Object.keys(window.StationCatalog||{}).sort().map(function(name){return '<option value="'+esc(name)+'"></option>';}).join('');
 

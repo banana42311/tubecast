@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Tubecast · Console</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>(function(){var p=new URLSearchParams(location.search);if(p.get('demo')!=='commute'){p.set('demo','commute');location.replace(location.pathname+'?'+p.toString());}})();</script>
+<script>window.TUBECAST_CONSOLE_SCENARIO=true;</script>
 <link rel="stylesheet" href="styles.css?v=20261102-ring1">
 <link rel="stylesheet" href="css/flow.css?v=20261102-final2">
 <link rel="stylesheet" href="css/line.css?v=20261102-console2">
@@ -40,7 +40,7 @@
   </aside>
 
   <main class="console-map" aria-label="Interactive Tube delay map">
-    <iframe id="app-map" title="Tubecast interactive map" src="map.html?line=central&amp;demo=commute&amp;console=1"></iframe>
+    <iframe id="app-map" title="Tubecast interactive map" src="map.html?line=central&amp;console=1&amp;scenario=commute"></iframe>
     <div class="card console-timebar" aria-label="Forecast time">
       <div><b>TIME</b><span id="time-copy">Reported delays now</span></div>
       <div class="console-time-options" role="group" aria-label="Forecast minute">
@@ -70,15 +70,15 @@
 <script src="js/demo-mode-core.js?v=20261102-final2"></script>
 <script src="data/demo/commute.js?v=20261102-final2"></script>
 <script src="data/demo/journey_stratford_whitecity.js?v=20261102-console2"></script>
-<script src="js/demo-mode.js?v=20261102-ring1"></script>
+<script src="js/demo-mode.js?v=20261102-ring2"></script>
 <script src="js/state-model.js?v=20261102-live2"></script>
 <script src="data/model/tubecast-1102.js?v=20261102-m1"></script>
 <script src="js/forecast-model.js?v=20261102-m1"></script>
-<script src="js/live-data.js?v=20261102-ring1"></script>
+<script src="js/live-data.js?v=20261102-ring2"></script>
 <script src="js/flow-data.js?v=20261102-console2"></script>
 <script src="js/search.js?v=20261102-final2"></script>
 <script src="js/lines-page.js?v=20261102-console2"></script>
-<script src="js/ring-chart.js?v=20261102-ring1"></script>
+<script src="js/ring-chart.js?v=20261102-ring2"></script>
 <script src="js/overview-page.js?v=20261102-ring1"></script>
 <script src="js/console.js?v=20261102-ring1"></script>
 </body>

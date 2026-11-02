@@ -3,10 +3,11 @@
 ## 실데이터 기반 30분 링 차트
 
 - 원인: 홈과 데스크톱 콘솔이 `assets/ring.svg`의 고정 색을 그대로 표시해 `/api/state`, fixture, 촬영 시나리오의 수치가 바뀌어도 링은 갱신되지 않았습니다.
-- 원본 SVG의 12개 wedge path, 7개 시간 band, 라벨 좌표와 노선 순서를 `js/ring-chart.js`의 공용 기하로 옮겼습니다. Now는 현재 minor/severe, +5~+30은 예측 시작 시점·증가 역 수·확률로 색과 0.35~0.9 투명도를 계산합니다. 정상은 teal, 운행 중단은 planned grey를 사용합니다.
-- 홈과 콘솔은 같은 컴포넌트를 마운트하고 `tubecaststate`마다 다시 그립니다. wedge 클릭·키보드 선택, 범례, 기존 글로우와 line 이동을 유지했습니다.
-- 명시적인 `?demo=commute`는 실제 API 주소가 설정돼 있어도 고정 시나리오를 우선하며, 실시간 forecast 보정이 데모 fixture에 섞이지 않게 했습니다.
-- `tests/ring.cjs`에서 샘플 fixture, commute 시나리오, 합성 live/운행 중단 응답의 수치·색·opacity와 12 wedge/84 band를 검증합니다.
+- 원본 SVG의 12개 wedge, 108개 path, 고리 간격, 라벨 좌표·스타일과 노선 순서를 그대로 사용합니다. Circle/H&C의 분리된 forecast accent 경로도 보존하며 렌더러가 추가 blur를 만들지 않습니다. Now는 현재 minor/severe, +5~+30은 예측 시작 시점·증가 역 수·확률로 색과 0.35~0.9 투명도만 계산합니다.
+- 홈과 콘솔은 같은 컴포넌트를 마운트하고 `tubecaststate`마다 다시 그립니다. wedge 클릭·키보드 선택, 범례와 line 이동을 유지했습니다.
+- 원인: `9c80d3a`가 명시적인 `?demo=commute`를 `apiBase`보다 우선시해 제출 URL이 고정 촬영 시나리오의 7개 지연 역을 표시했습니다. 이전 계약으로 원복해 `apiBase`가 있으면 항상 `/api/state`를 사용하고 URL의 `demo`도 제거합니다. 번들 시나리오는 `apiBase`가 비어 있을 때만 사용하며, 데스크톱 콘솔만 명시적인 console scenario로 직접 읽습니다.
+- 원인: client forecast가 서버 응답의 null 시간 칸을 0/로컬 예측으로 바꾸어 `/api/state`와 화면 수치가 달라질 수 있었습니다. 운영에서는 서버 계약을 그대로 사용하고 `clientForecast: true`를 명시한 개발 환경에서만 보정을 허용합니다.
+- `tests/ring.cjs`에서 샘플 fixture, commute 시나리오, 합성 live/운행 중단 응답의 수치·색·opacity, 12 wedge/108 path와 원본 경로의 완전 일치를 검증합니다. `tests/data-priority.cjs`는 API 우선순위, demo URL 제거와 콘솔 예외를 검증합니다.
 
 ## 임시 최종 배포 안정화
 
