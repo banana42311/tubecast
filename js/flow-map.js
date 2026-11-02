@@ -69,7 +69,7 @@
       var sev=items.some(function(i){return (kind==='now'?i.d.sev:i.d.nextSev)==='severe';})?'severe':'minor';
       var html=kind==='now'?'<span class="nowglow '+sev+'"></span><span class="nowdot '+sev+'"></span>':'<span class="pred '+sev+'" style="--s:.85"><i class="g"></i><i class="p"></i><i class="c"></i></span>';
       var off=directionOffset(st,items[0]),delay=kind==='next'&&window.DemoMode&&DemoMode.active?Math.max(0,items[0].d.next.indexOf(st.name))*.22:0;
-      var dot=wdiv('station-marker '+kind+' '+sev+(delay?' demo-forecast':''),st.x+off.x,st.y+off.y,html,'button');dot.style.setProperty('--forecast-delay',delay+'s');dot.dataset.st=st.name;dot.dataset.kind=kind;dot.setAttribute('aria-label',st.name+' · '+(kind==='now'?'delayed now':'predicted in 30 min'));
+      var dot=wdiv('station-marker '+kind+' '+sev+(delay?' demo-forecast':''),st.x+off.x,st.y+off.y,html,'button');dot.style.setProperty('--forecast-delay',delay+'s');dot.dataset.st=st.name;dot.dataset.kind=kind;dot.dataset.line=items[0].d.line;dot.setAttribute('aria-label',st.name+' · '+(kind==='now'?'delayed now':'predicted in 30 min'));
     });
   });
   ['minor','severe'].forEach(function(sev){var grad=el('linearGradient',{id:'flow-light-'+sev,x1:'0%',x2:'100%'},C.defs);[[0,0],[.55,.22],[.85,.85],[1,0]].forEach(function(stop){el('stop',{offset:stop[0],'stop-color':sev==='minor'?'#FFA12B':'#DC241F','stop-opacity':stop[1]},grad);});});
@@ -155,7 +155,7 @@
     var c = cam.get(), snapFull = vis >= c.VH - 100;
     if (snapFull && state.t !== 'pick') return;
     if(state.t==='pick' && state.from && state.to && !state.search){
-      var a=G.byId[state.from],b=G.byId[state.to];cam.fit(bboxOf([[a.x,a.y],[b.x,b.y]],12),{t:130,b:vis+24,l:60,r:60},2.6);
+      var a=G.byId[state.from],b=G.byId[state.to];cam.fit(bboxOf([[a.x,a.y],[b.x,b.y]],8),{t:78,b:vis+16,l:24,r:24},3.2);
     } else if (state.t === 'station' || (state.t === 'pick' && state.focus)) {
       var st = G.byId[state.t === 'station' ? state.id : state.focus]; if (!st) return;
       if (snapFull) return;
@@ -224,14 +224,15 @@
         '<button class="pick-search-toggle" data-act="search-pick">Choose on map</button>' +
         '<div class="rp-list" id="rpl" aria-live="polite"></div>';
     }
-    return head(state.search ? (f === 'from' ? 'Choose start' : 'Choose destination') : 'Plan a route', state.search ? (f === 'to' && state.from ? 'From '+esc(nm(state.from)) : 'Search by station name') : 'Choose a start and a destination', !!state.search) +
+    var ready=state.from&&state.to&&state.from!==state.to;
+    var commute=window.DemoMode&&DemoMode.active&&state.from==='stratford'&&state.to==='white-city';
+    var readyHTML=ready?'<div class="route-ready'+(commute?' delay':'')+'"><i></i><div><b>'+(commute?'Central delays ahead':'Ready to compare routes')+'</b><span>'+(commute?'Mile End → Bank · current and predicted delays':'Compare current TfL journey options')+'</span></div></div><button class="btn-p find-journey" data-act="find-route">'+(commute?'Compare routes around delays':'Find routes')+'</button>':'';
+    return head('Plan a route', ready ? 'Review the journey before comparing routes' : 'Choose a start and a destination', false) +
       '<div class="rp-fields"><div class="rp-rail"><i class="a"></i><i class="l"></i><i class="b"></i></div><div class="rp-in">' +
       '<button class="rp-f' + (f === 'from' ? ' on' : '') + '" data-act="field" data-f="from"><small>From</small><b>' + (esc(nm(state.from)) || '<u>Choose start</u>') + '</b></button>' +
       '<button class="rp-f' + (f === 'to' ? ' on' : '') + '" data-act="field" data-f="to"><small>To</small><b>' + (esc(nm(state.to)) || '<u>Choose destination</u>') + '</b></button></div>' +
       '<button class="rp-sw" data-act="swap" aria-label="Swap"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 15V3M5 3 2 6m3-3 3 3M13 3v12m0 0 3-3m-3 3-3-3" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>' +
-      '<button class="pick-search-toggle" data-act="search-pick">'+(state.search?'Choose on map':'Search stations instead')+'</button><div class="rp-search"><input id="rpq" type="search" placeholder="' + (f === 'from' ? 'Search a start station' : 'Search a destination') + '" autocomplete="off" spellcheck="false" aria-label="Search stations" value="' + esc(state.query || '') + '"></div>' +
-      '<div class="rp-quick">' + QUICK.filter(function (q) { return G.byName[q] && (window.TFLMap || G.byName[q].vn >= 0); }).map(function (q) { return '<button data-act="pickst" data-n="' + esc(q) + '">' + esc(q) + '</button>'; }).join('') + '</div>' +
-      '<div class="rp-list" id="rpl" aria-live="polite"></div>'+(!state.search?'<button class="btn-p find-journey" data-act="find-route"'+(state.from&&state.to&&state.from!==state.to?'':' disabled')+'>Find routes</button>':'');
+      readyHTML+(ready?'':'<button class="pick-search-toggle" data-act="search-pick">Search stations instead</button>');
   }
   function searchKey(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,'and').replace(/[^a-z0-9]/g,'');}
   function fillPickList(q) {
@@ -323,6 +324,15 @@
     C.refreshLabels && C.refreshLabels();
     focusLines(o.r.legs.map(function (l) { return l.line; }), 'route');
   }
+  function drawCommutePreview() {
+    var legs=[G.stretch('elizabeth','stratford','bond-street'),G.stretch('central','bond-street','white-city')].filter(Boolean);
+    if(legs.length!==2)return false;
+    svg.classList.add('has-route');
+    legs.forEach(function(l){var d=dOf(l.pts);el('path',{d:d,'class':'rt-case rt-preview'},gRt);el('path',{d:d,'class':'rt-line rt-preview',stroke:lineCol(l.line)},gRt);});
+    var xfer=G.byId['bond-street'];if(xfer)routeMk.push(wdiv('fxfer preview',xfer.x,xfer.y));
+    labelNodes('.lbl').forEach(function(n){n.classList.toggle('route-label',n.dataset.st==='Bond Street');});
+    focusLines(['elizabeth','central'],'route');C.refreshLabels&&C.refreshLabels();return true;
+  }
 
   /* ---------------------------------------------------------------- state machine + history */
   var draft = null;
@@ -351,6 +361,9 @@
     phone.classList.toggle('routing',state.t==='route'||state.t==='pick');
     sheet.el.classList.toggle('pick-mode',state.t==='pick');
     sheet.el.classList.toggle('pick-search',!!state.search);
+    sheet.el.classList.toggle('pick-ready',state.t==='pick'&&!!state.from&&!!state.to&&!state.search);
+    world.classList.toggle('route-preview',state.t==='pick'&&!!state.from&&!!state.to&&!state.search);
+    labelLayer && labelLayer.classList.toggle('route-preview',state.t==='pick'&&!!state.from&&!!state.to&&!state.search);
     sheet.el.classList.toggle('route-chosen',!!state.chosen);
     if (state.t !== 'list') closeList(true);
     var morph = !!prev && prev !== 'list';
@@ -361,9 +374,11 @@
       clearRouteDraw(); showSel(st); focusLines([state.stationLine]);
       sheet.open(stationHTML(st), sheet.snap && sheet.snap !== 'full' ? sheet.snap : 'mid', { instant: false });
     } else if (state.t === 'pick') {
-      clearRouteDraw(); var f = G.byId[state.focus || state.from]; if (f) { showSel(f); focusLines(f.lines); } else { hideSel(); clearFocus(); }
+      clearRouteDraw(); var f = G.byId[state.focus || state.from], commutePreview=window.DemoMode&&DemoMode.active&&state.from==='stratford'&&state.to==='white-city'&&!state.search;
+      if(commutePreview){hideSel();drawCommutePreview();}
+      else if (f) { showSel(f); focusLines(state.from&&state.to&&!state.search?['central','elizabeth']:f.lines); } else { hideSel(); clearFocus(); }
       state.focus = state.focus || state.from || null;
-      if(state.from && state.to){hideSel();[state.from,state.to].forEach(function(id,i){var st=G.byId[id];routeMk.push(wdiv('fend '+(i?'b':'a'),st.x,st.y,'<i></i><b>'+esc(st.name)+'</b>'));});}
+      if(state.from && state.to){hideSel();[state.from,state.to].forEach(function(id,i){var st=G.byId[id];routeMk.push(wdiv('fend '+(i?'b':'a'),st.x,st.y,'<i></i><b>'+esc(st.name)+'</b>'));});world.classList.add('route-preview');labelLayer&&labelLayer.classList.add('route-preview');}
       sheet.open(pickHTML(), state.search ? 'full' : 'compact', {dismissible:false}); fillPickList(state.query || '');
     } else if (state.t === 'route') {
       var key=state.from+'>'+state.to;

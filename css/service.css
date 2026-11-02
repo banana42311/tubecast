@@ -287,10 +287,29 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .fit-network { display:block;width:44px;min-height:36px;background:#1a2029;color:#dbe7ee;border:0;border-top:1px solid #ffffff20;font-size:11px;border-radius:0 0 18px 18px;cursor:pointer; }
 .map-phone .zoomctl { height:auto;overflow:visible; }
 .map-label-layer.zoom-wide .lbl { visibility:hidden; }
-.find-journey { width:100%;min-height:44px;border-radius:13px;margin-top:4px; }
+.find-journey { width:100%;min-height:48px;border-radius:14px;margin-top:8px;flex:none; }
 .find-journey:disabled { opacity:.4; }
 .pick-mode .rp-fields { margin-bottom:0; }
 .pick-mode .pick-search-toggle { min-height:32px; }
+.pick-mode:not(.pick-search) .fs-pane { display:flex;flex-direction:column;height:100%;min-height:0; }
+.pick-ready .fs-head { margin-bottom:5px; }
+.pick-ready .rp-fields { padding-top:2px;padding-bottom:5px; }
+.route-ready { display:flex;align-items:center;gap:10px;margin-top:2px;padding:9px 11px;border:1px solid #ffffff18;border-radius:13px;background:#28333f; }
+.route-ready>i { width:10px;height:10px;flex:none;border-radius:50%;background:var(--good);box-shadow:0 0 12px #1fa6a688; }
+.route-ready.delay { border-color:#ffa12b55;background:#3a3025; }
+.route-ready.delay>i { background:var(--minor);box-shadow:0 0 12px #ffa12baa; }
+.route-ready b,.route-ready span { display:block; }
+.route-ready b { font-size:12px;line-height:16px; }
+.route-ready span { color:#b5c0cb;font-size:10px;line-height:14px; }
+.pick-ready .pick-search-toggle { margin-top:5px;color:#9fcece; }
+#world.route-preview svg .base { opacity:.055;filter:saturate(.08) brightness(.4); }
+#world.route-preview .station-base { opacity:.08; }
+#world.route-preview .station-marker { opacity:.08; }
+#world.route-preview .station-marker[data-line=central] { opacity:1; }
+.map-label-layer.route-preview .lbl { opacity:0;visibility:hidden!important; }
+.map-label-layer.route-preview .lbl.route-label:not(.endpoint-label) { opacity:1;visibility:visible!important;color:#fff; }
+#world.route-preview .rt-preview { opacity:1; }
+#world.route-preview .fxfer.preview:after { animation:transferPulse 1.8s ease-out infinite; }
 .pick-mode.pick-search .rp-search { margin:0 0 8px; }
 .pick-mode.pick-search .fs-pane { display:flex;flex-direction:column;height:100%; }
 .pick-mode.pick-search .rp-list { flex:1;min-height:0;overflow:auto; }
