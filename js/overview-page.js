@@ -8,11 +8,11 @@
     data: { title: 'All lines', num: String(window.FlowData ? FlowData.totals().now : 9), sub: 'stations delayed now', tone: 'delayed' },
     mount: function (host, o) {
       host.innerHTML = '<div class="scroll"><div class="content">' + BG + '<div class="view">' + BODY + '</div></div></div>';
-      if (window.LiveState && LiveState.mode !== 'example' && window.FlowData) { var tt = FlowData.totals(), svs = new Set(); FlowData.disruptions.forEach(function (d) { d.now.forEach(function (n) { if ((d.levels || {})[n] === 'severe') svs.add(n); }); }); var sv = svs.size;
+      if (window.LiveState && LiveState.hasData && window.FlowData) { var tt = FlowData.totals(), svs = new Set(); FlowData.disruptions.forEach(function (d) { d.now.forEach(function (n) { if ((d.levels || {})[n] === 'severe') svs.add(n); }); }); var sv = svs.size;
         var hv = host.querySelector('.hero .value'); if (hv) hv.textContent = tt.now; var cb = host.querySelectorAll('.hero .chip b'); if (cb[0]) cb[0].textContent = Math.max(0, tt.now - sv); if (cb[1]) cb[1].textContent = sv;
         var fu = host.querySelector('.footer .u'); if (fu) fu.textContent = LiveLabel();
-        var lg = host.querySelector('.ringcard .legend p'); if (lg) lg.textContent = 'Ring: illustrative pattern — the live version is in progress. Live counts are shown above and in the line list.'; var rw = host.querySelector('#ringwrap img'); if (rw) rw.style.opacity = '.45'; }
-      if(window.FlowData){var total=FlowData.totals().now;host.querySelector('.hero .value').textContent=total;if(!window.LiveState||LiveState.mode==='example'){var severe=new Set();FlowData.disruptions.forEach(function(d){d.now.forEach(function(n){if(((d.levels||{})[n]||d.sev)==='severe')severe.add(n);});});var chips=host.querySelectorAll('.hero .chip b');chips[0].textContent=Math.max(0,total-severe.size);chips[1].textContent=severe.size;}}
+      }
+      if(window.FlowData){var total=FlowData.totals().now;host.querySelector('.hero .value').textContent=total;var severe=new Set();FlowData.disruptions.forEach(function(d){d.now.forEach(function(n){if(((d.levels||{})[n]||d.sev)==='severe')severe.add(n);});});var chips=host.querySelectorAll('.hero .chip b');chips[0].textContent=Math.max(0,total-severe.size);chips[1].textContent=severe.size;}
       var oldLegend=host.querySelector('.ringcard .legend');if(oldLegend)oldLegend.remove();
       var watch=host.querySelector('.watch');watch.style.top=(host.querySelector('.ringcard').offsetTop+host.querySelector('.ringcard').offsetHeight+16)+'px';
       watch.classList.add('line-stack');

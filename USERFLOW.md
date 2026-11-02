@@ -1,6 +1,6 @@
 # Tubecast — unified mobile-web flow
 
-Updated 2026-11-01. This document describes the implemented prototype. The latest user request takes precedence over older documents and screenshots. All operating data is illustrative.
+Updated 2026-11-02. This document describes the implemented mobile web flow. The public build uses the Hermes contract fixture until `config.js.apiBase` is set.
 
 ## Entry points
 
@@ -32,21 +32,21 @@ Only the current slide and its immediate neighbours remain mounted (maximum thre
 | Dashed path and arrowhead | Direction in which a delay may spread |
 | White station outline | Selected station, not a delay |
 
-`js/flow-data.js` is the single example snapshot. Line details, line directory and map use it. The restored overview retains its original illustrative snapshot and radial SVG. Counts on a line are unique station names, not directions. The 30-minute total includes existing and newly affected stations. This changes some earlier inconsistent example numbers (e.g. Central now shows 2 rather than a hardcoded 4).
+`js/state-model.js` maps Hermes rows by `naptan`, line and direction; `js/flow-data.js` presents that one state to line details, the directory and map. Empty `apiBase` loads `data/state.sample.json` and shows `예시 데이터`. Counts on a line are unique station names, not directions. The 30-minute total includes current and newly predicted stations.
 
 `js/station-catalog.js` maps names to explicit schematic anchors and represented line memberships. The map no longer places rings using viewport-specific Central coordinates or a generic nearest label. A disruption marker is anchored to the correct affected line sample. The original ring/glow primitives remain in each view; explicit anchors correct the map placement.
 
 ## Map → station → journey
 
 1. Search or tap a station. Its represented lines remain bright; the surrounding network recedes.
-2. The station sheet separates **at this station now**, **next 30 minutes**, and **line-wide status**. A normal station can still have disruption elsewhere on its lines.
-3. `Route from here` / `To here` remains visible at the sheet bottom. Station content scrolls independently.
+2. The station sheet separates **current delay**, **predicted delay**, and **line-wide status**. Current rows show usual versus observed gaps; predictions show probability, risk and signal without claiming causality.
+3. `Find an alternative` / `To here` remains visible at the sheet bottom. Station content scrolls independently.
 4. Select the missing endpoint using search, quick suggestions or the map. Swap endpoints or edit either field.
-5. Preview route options. The selected path alone is drawn prominently; the rest of the network is transparent. Other sections of the selected lines are also subdued.
+5. Preview TfL Journey Planner options. Tubecast scores each option with current minor/severe delays, high-risk predictions and closures, then compares the adjusted arrival. `Recommended now` can differ from the provider's `Usual route`.
 6. Tap an option, then `Choose this route`. A selected-journey summary and ordered line legs appear. `Change route` restores options; `Done` returns to the map.
 7. The selected option and confirmation state are encoded in the URL. Browser Back restores the previous sheet/selection; reload restores the chosen route.
 
-A route with no result has a disabled confirmation button and an edit action. Unknown route deep links open the picker. Closed services are conservatively excluded from route calculations.
+A route with no result has a disabled confirmation button and an edit action. Unknown route deep links open the picker. The selected TfL option can be handed to Google Maps with ordered interchange/station waypoints.
 
 ## Mobile web behaviour
 

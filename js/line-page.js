@@ -6,6 +6,7 @@
   var slug0 = q.get('line');
   if (slug0 === 'all' || (HOME && !slug0)) slug0 = 'all'; else if (ORDER.indexOf(slug0) < 0) slug0 = 'central';
   var state0 = q.get('state'); if (state0 !== 'loading' && state0 !== 'stale' && state0 !== 'error') state0 = null;
+  if (!state0 && window.LiveState && LiveState.mode === 'stale') state0 = 'stale';
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
@@ -76,12 +77,12 @@
     function title() { var nm = /line$/i.test(meta.name) ? meta.name : meta.name + ' line'; return '<div class="title"' + (nm.length > 17 ? ' style="font-size:27px;white-space:nowrap"' : '') + '><span class="bar" style="background:' + meta.color + '"></span>' + esc(nm) + '</div>'; }
     function hero(top) {
       var st = 'top:' + top + 'px';
-      if (state === 'loading') return '<div class="hero" style="' + st + '">' + title() + '<div class="value" style="height:115px"><span class="sk skbox" style="margin:22px auto 0"></span></div><div class="sub">Checking live trains…</div></div>';
+      if (state === 'loading') return '<div class="hero" style="' + st + '">' + title() + '<div class="value" style="height:115px"><span class="sk skbox" style="margin:22px auto 0"></span></div><div class="sub">Checking current trains…</div></div>';
       if (D.kind === 'closure') return '<div class="hero pic enter" style="' + st + '">' + title() + '<svg width="96" height="115" viewBox="0 0 96 115" fill="none"><circle cx="48" cy="58" r="34" stroke="#5B6470" stroke-width="4" stroke-dasharray="7 5"/><path d="M26 82L70 36" stroke="#5B6470" stroke-width="4" stroke-linecap="round"/></svg><div class="sub">' + esc(D.hero.sub) + '</div></div>';
       return '<div class="hero enter" style="' + st + '">' + title() + '<div class="value">' + D.hero.value + '</div><div class="sub">' + D.hero.sub + '</div>' + (D.hero.chip ? '<div class="chip one"><i style="background:var(--good)"></i><b style="font-weight:510">' + D.hero.chip + '</b></div>' : '') + '</div>';
     }
     function banner() {
-      if (state === 'stale') return '<div class="banner st" data-act="refresh" role="button" tabindex="0" aria-label="Refresh"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.25" stroke="#fff" stroke-width="1.5"/><path d="M10 5.2V10l3.2 2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="tx"><b>Last update 6 min ago</b><span>Live data is delayed · tap to refresh</span></div></div>';
+      if (state === 'stale') return '<div class="banner st" data-act="refresh" role="button" tabindex="0" aria-label="Refresh"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.25" stroke="#fff" stroke-width="1.5"/><path d="M10 5.2V10l3.2 2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="tx"><b>' + esc(window.LiveLabel ? LiveLabel() : 'Update delayed') + '</b><span>Showing the last successful update · tap to retry</span></div></div>';
       if (state === 'error') return '<div class="banner er"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7.2a11.5 11.5 0 0 1 4-2.4M18 7.2a11.5 11.5 0 0 0-8-3.2M5 10.4a7 7 0 0 1 2.6-1.6M15 10.4a7 7 0 0 0-3.4-1.8M8 13.5a3 3 0 0 1 4 0"/><circle cx="10" cy="16" r=".6" fill="#fff"/><path d="M3 2.5L17 17.5"/></svg><div class="tx"><b>Can’t reach TfL</b><span>Showing last known status from 08:46</span></div><button class="retry" data-act="refresh">Retry</button></div>';
       return '';
     }
@@ -126,12 +127,12 @@
         st = skStations(stTop);
       } else { fcHtml = D.kind === 'closure' ? closureCard(324) : forecast(324); st = stations(stTop); }
       var ft = stTop + st.h + 20;
-      var u = state === 'loading' ? 'Updating…' : state === 'stale' ? 'Updated 6 min ago · may be out of date' : state === 'error' ? 'Last known · 08:46' : (window.LiveLabel ? LiveLabel() : 'Demo snapshot · illustrative values');
-      view.innerHTML = out + fcHtml + st.html + banner() + '<div class="footer enter" style="left:0;width:390px;top:' + ft + 'px;--i:3"><div class="u">' + u + '</div><a class="h" href="about.html">About the data</a></div>';
+      var u = state === 'loading' ? 'Updating…' : state === 'stale' ? (window.LiveLabel ? LiveLabel() : 'Update delayed') : state === 'error' ? 'Showing last successful update' : (window.LiveLabel ? LiveLabel() : '예시 데이터');
+      view.innerHTML = out + fcHtml + st.html + banner() + '<div class="footer wide enter" style="top:' + ft + 'px;--i:3"><div class="u">' + u + '</div>' + (D.kind === 'delayed' ? '<a class="h" href="map.html?line=' + slug + '&pick=1">Find an alternative route</a>' : '') + '<a class="h" href="about.html">About the data</a></div>';
       content.style.minHeight = 'var(--H,844px)'; content.style.height = Math.max(ft + 190, 844) + 'px';
       underlay();
       var nm = /line$/i.test(meta.name) ? meta.name : meta.name + ' line';
-      if (state === 'loading') P.hdr.set(nm, null, 'Checking live trains…', meta.color);
+      if (state === 'loading') P.hdr.set(nm, null, 'Checking current trains…', meta.color);
       else P.hdr.set(nm, D.kind === 'closure' ? null : plain(D.hero.value), D.kind === 'closure' ? (D.fc.lines.length>1?'Part closure':'Not running') : plain(D.hero.sub), meta.color);
     }
     P.refresh = function () {
@@ -154,7 +155,7 @@
   function ensure(i) {
     if (i < 0 || i >= pages.length || pages[i].page) return;
     var pg = pages[i];
-    pg.page = pg.slug === 'all' ? Overview.mount(pg.el, { onPick: function (sl) { jump(ALL.indexOf(sl)); } }) : Page(pg.slug, pg.el, states[pg.slug] || null);
+    pg.page = pg.slug === 'all' ? Overview.mount(pg.el, { onPick: function (sl) { jump(ALL.indexOf(sl)); } }) : Page(pg.slug, pg.el, states[pg.slug] || (window.LiveState && LiveState.mode === 'stale' ? 'stale' : null));
     if (pg.savedScroll) { pg.page.scroll.scrollTop=pg.savedScroll; }
     pg.el.classList.toggle('active', i === idx); pg.el.setAttribute('aria-hidden', String(i !== idx)); pg.el.inert = i !== idx;
     if (pg.slug === 'all') { pg.page.hdr = HeaderCollapse.attach(pg.el, pg.page.scroll); pg.page.hdr.set(Overview.data.title, Overview.data.num, Overview.data.sub, null); }

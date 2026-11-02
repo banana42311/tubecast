@@ -12,12 +12,7 @@
   function card(l){
     var sum=FlowData.summary(l.slug),ds=FlowData.forLine(l.slug),closed=l.status==='closed';
     if(!ds.length)return '<a class="card nrow" href="line.html?line='+l.slug+'"><span class="bar" style="background:'+l.color+'"></span><span class="nm">'+esc(l.name)+'</span><span class="sm">'+(closed?(l.slug==='waterloo-city'?'Not running':'Part closure'):'Good service')+'</span>'+(closed?'<span class="off-mark">—</span>':'<span class="ok"><i></i></span>')+'</a>';
-    var tracks='';ds.forEach(function(d){
-      if(l.slug==='district'){
-        tracks+=lane(d,['Barons Court','West Kensington',"Earl's Court"],'Westbound');
-        tracks+=lane(d,['Gloucester Road','South Kensington','Sloane Square'],'Eastbound');
-      }else tracks+=lane(d,d.now.concat(d.next).slice(0,4),d.direction==='Both directions'?'Both directions':d.direction);
-    });
+    var tracks='';ds.forEach(function(d){tracks+=lane(d,d.now.concat(d.next).slice(0,4),d.direction==='Both directions'?'Both directions':d.direction);});
     return '<a class="card lrow" href="line.html?line='+l.slug+'" style="--line-color:'+l.color+'"><div class="hdr"><span class="bar" style="background:'+l.color+'"></span><span class="nm">'+esc(l.name)+'</span><span class="sm">'+sum.now+' now · '+sum.total+' in 30 min</span><span class="big">'+sum.now+'</span></div>'+tracks+'</a>';
   }
   // Both the overview watch list and directory use one card renderer.
