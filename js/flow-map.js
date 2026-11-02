@@ -5,6 +5,7 @@
   var C = window.MapCtx; if (!C) return;
   var M = window.Motion, FD = window.FlowData, NS = 'http://www.w3.org/2000/svg';
   var phone = document.querySelector('.phone'), svg = C.svg, world = C.world, view = C.view, labelLayer = C.labelLayer, cam = C.cam, N = C.N, S = C.S;
+  var consoleMode = document.documentElement.classList.contains('mode-console-map');
   var G = window.FlowGeo.build({ N: N, S: S, slugs: C.slugs, linePaths: C.linePaths, lineOff: C.lineOff });
   if(window.TFLMap)G.stations.forEach(function(st){var c=StationCatalog[st.name];st.x=c.x*S;st.y=c.y*S;st.lines=c.lines.slice();});
   var kebab = G.kebab, LBS = window.LINE_BY_SLUG;
@@ -75,7 +76,9 @@
       var sev=items.some(function(i){return (kind==='now'?i.d.sev:i.d.nextSev)==='severe';})?'severe':'minor';
       var html=kind==='now'?'<span class="nowglow '+sev+'"></span><span class="nowdot '+sev+'"></span>':'<span class="pred '+sev+'" style="--s:.85"><i class="g"></i><i class="p"></i><i class="c"></i></span>';
       var anchor=lineAnchor(st,items[0].d.line),delay=kind==='next'&&window.DemoMode&&DemoMode.active?Math.max(0,items[0].d.next.indexOf(st.name))*.22:0;
-      var dot=wdiv('station-marker '+kind+' '+sev+(delay?' demo-forecast':''),anchor.x,anchor.y,html,'button');dot.style.setProperty('--forecast-delay',delay+'s');dot.dataset.st=st.name;dot.dataset.kind=kind;dot.dataset.line=items[0].d.line;dot.setAttribute('aria-label',st.name+' · '+(kind==='now'?'delayed now':'predicted in 30 min'));
+      var dot=wdiv('station-marker '+kind+' '+sev+(delay?' demo-forecast':''),anchor.x,anchor.y,html,'button');dot.style.setProperty('--forecast-delay',delay+'s');dot.dataset.st=st.name;dot.dataset.kind=kind;dot.dataset.line=items[0].d.line;
+      if(kind==='next')dot.dataset.onset=String(((window.LiveState&&LiveState.onset&&LiveState.onset[items[0].d.line])||{})[st.name]||30);
+      dot.setAttribute('aria-label',st.name+' · '+(kind==='now'?'delayed now':'predicted in 30 min'));
     });
   });
   ['minor','severe'].forEach(function(sev){var grad=el('linearGradient',{id:'flow-light-'+sev,x1:'0%',x2:'100%'},C.defs);[[0,0],[.55,.22],[.85,.85],[1,0]].forEach(function(stop){el('stop',{offset:stop[0],'stop-color':sev==='minor'?'#FFA12B':'#DC241F','stop-opacity':stop[1]},grad);});});
@@ -146,7 +149,7 @@
   sheet = window.FlowSheet.create(phone, {
     onChange: onSheet,
     onTarget: function (v) { reframe(v); },
-    onContent: function () { if (state.t === 'pick') fillPickList(state.query || ''); },
+    onContent: function () { if (state.t === 'pick') fillPickList(state.query || ''); window.dispatchEvent(new CustomEvent('flowcontentchange',{detail:{type:state.t||''}})); },
     onDismiss: function () { dismissAll(true); }
   });
 
@@ -158,6 +161,7 @@
   }
   function reframe(vis) {
     if (!state.t || state.t === 'list') return;
+    if(consoleMode)vis=0;
     var c = cam.get(), snapFull = vis >= c.VH - 100;
     if (snapFull && state.t !== 'pick') return;
     if(state.t==='pick' && state.from && state.to && !state.search){
@@ -504,7 +508,15 @@
     visualViewport.addEventListener('resize',holdSearch);
     visualViewport.addEventListener('scroll',holdSearch);
   }
-  window.FlowMap = { go: go, openStation: openStation, state: function () { return state; }, geo: G, sheet: sheet, googleRouteURL: googleRouteURL };
+  function setForecastMinute(minute){
+    if(!consoleMode)return;
+    minute=Math.max(0,Math.min(30,+minute||0));
+    world.dataset.forecastMinute=String(minute);
+    world.querySelectorAll('.station-marker.next').forEach(function(marker){marker.hidden=minute===0||+(marker.dataset.onset||30)>minute;});
+    gDz.querySelectorAll('.direction-light').forEach(function(light){light.hidden=minute===0;});
+  }
+  window.FlowMap = { go: go, openStation: openStation, state: function () { return state; }, geo: G, sheet: sheet, googleRouteURL: googleRouteURL, setForecastMinute:setForecastMinute, reframe:function(){reframe(0);} };
+  if(consoleMode)setForecastMinute(0);
 
   /* ---------------------------------------------------------------- deep links */
   (function () {

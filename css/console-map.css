@@ -1,0 +1,11 @@
+/* Desktop console host for the real app map. Every selector is gated so the
+   390 x 844 mobile pages retain their existing layout and interaction. */
+html.mode-console-map,html.mode-console-map body{width:100%;height:100%;overflow:hidden;background:var(--surface-2)}
+html.mode-console-map body{display:block;min-height:0;padding:0}
+html.mode-console-map .stage,html.mode-console-map .phone.map-phone{position:absolute;inset:0;width:100%;height:100%;margin:0;transform:none;border-radius:0;box-shadow:none}
+html.mode-console-map .caption,html.mode-console-map .statusbar,html.mode-console-map .safari,html.mode-console-map .service-nav,html.mode-console-map .sbox,html.mode-console-map #sp,html.mode-console-map #chip,html.mode-console-map .stackbtn,html.mode-console-map .routebtn{display:none!important}
+html.mode-console-map .mapview{position:absolute;inset:0;width:100%;height:100%;border-radius:0}
+html.mode-console-map .map-key{left:20px;right:auto;top:20px;width:auto;max-width:420px}
+html.mode-console-map .zoomctl{left:auto;right:20px;top:20px!important}
+html.mode-console-map .fsheet{display:none!important}
+html.mode-console-map .phone.has-sheet .zoomctl{opacity:1;pointer-events:auto}

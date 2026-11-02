@@ -6,6 +6,12 @@
   var ORDER = ['district','circle','hammersmith-city','metropolitan','piccadilly','jubilee','northern','victoria','central','bakerloo','waterloo-city','elizabeth'];
   window.Overview = {
     data: { title: 'All lines', num: String(window.FlowData ? FlowData.totals().now : 9), sub: 'stations delayed now', tone: 'delayed' },
+    /* The desktop console mounts the same ring component. Keep this markup in
+       one source so its SVG, legend and future app changes cannot drift. */
+    ringHTML: function () {
+      var box = document.createElement('div'); box.innerHTML = BODY;
+      var ring = box.querySelector('.ringcard'); return ring ? ring.outerHTML : '';
+    },
     mount: function (host, o) {
       host.innerHTML = '<div class="scroll"><div class="content">' + BG + '<div class="view">' + BODY + '</div></div></div>';
       if (window.LiveState && LiveState.hasData && window.FlowData) { var tt = FlowData.totals(), svs = new Set(); FlowData.disruptions.forEach(function (d) { d.now.forEach(function (n) { if ((d.levels || {})[n] === 'severe') svs.add(n); }); }); var sv = svs.size;

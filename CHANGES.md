@@ -136,3 +136,11 @@ python3 -m http.server 8765 --bind 127.0.0.1
 - **Cause:** the pager click handler could run before its asynchronous link observer had restored `record=1`, so an immediate tap on Map sometimes entered the normal picker. The click handler now applies the demo URL contract synchronously before every chrome navigation.
 - **Cause:** Google Maps does not support waypoints for transit directions, so its single handoff link discarded Bond Street and recalculated the Central direct route. Multi-line recommendations now hand off one Google Maps link per selected leg, preserving Stratford → Bond Street and Bond Street → White City as two explicit steps.
 - **Cause:** direction status markers were deliberately shifted 5.5px perpendicular to the track and interchange markers inherited the station's first-line coordinate. Status dots, selection rings, route endpoints and touch targets now use the exact sampled anchor of the line they represent; direction remains visible through the line-flow animation.
+
+## Desktop console uses the mobile product components
+
+- **Cause:** the first console implementation independently redrew the network, forecasts, ring summary and route cards, so its design and numbers could drift from the mobile product. The console is now a layout shell around the real `map.html` runtime, the overview ring markup and the map route sheet.
+- The map iframe runs `map-page.js` and `flow-map.js` with the shared commute state. Its console-only host mode changes container sizing and hides phone chrome while preserving the mobile page selectors and behavior.
+- The desktop time control calls the map forecast state at Now, +10, +20 and +30 minutes. Current points remain visible while the app's three-part prediction rings and flowing direction light follow each station's onset time.
+- Delays, forecast rows and TfL status use the app's `station-status-row`, `delay-dot` and `fl-row` components. The right panel mounts the same ring SVG and legend as Overview.
+- Route checking opens the app's ranked route sheet in the right panel, relays option and confirmation actions to the real map state, and retains the two-leg Google Maps handoff for the recommended Stratford → Bond Street → White City journey.

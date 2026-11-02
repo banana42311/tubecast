@@ -1,6 +1,6 @@
 /* Static deployment contract: node tests/release.cjs */
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-for(const name of ['index.html','line.html','lines.html','map.html','about.html','onboarding.html']){
+for(const name of ['index.html','line.html','lines.html','map.html','console.html','about.html','onboarding.html']){
  const html=fs.readFileSync(name,'utf8');
  for(const [,ref] of html.matchAll(/(?:src|href)="([^"]+)"/g)){
   if(/^(?:https?:|mailto:|#|data:|blob:)/.test(ref))continue;
