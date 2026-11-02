@@ -127,7 +127,7 @@
         st = skStations(stTop);
       } else { fcHtml = D.kind === 'closure' ? closureCard(324) : forecast(324); st = stations(stTop); }
       var ft = stTop + st.h + 20;
-      var u = state === 'loading' ? 'Updating…' : state === 'stale' ? (window.LiveLabel ? LiveLabel() : 'Update delayed') : state === 'error' ? 'Showing last successful update' : (window.LiveLabel ? LiveLabel() : '예시 데이터');
+      var u = state === 'loading' ? 'Updating…' : state === 'stale' ? (window.LiveLabel ? LiveLabel() : 'Update delayed') : state === 'error' ? 'Showing last successful update' : (window.LiveLabel ? LiveLabel() : 'Updated recently');
       view.innerHTML = out + fcHtml + st.html + banner() + '<div class="footer wide enter" style="top:' + ft + 'px;--i:3"><div class="u">' + u + '</div>' + (D.kind === 'delayed' ? '<a class="h" href="map.html?line=' + slug + '&pick=1">Find an alternative route</a>' : '') + '<a class="h" href="about.html">About the data</a></div>';
       content.style.minHeight = 'var(--H,844px)'; content.style.height = Math.max(ft + 190, 844) + 'px';
       underlay();

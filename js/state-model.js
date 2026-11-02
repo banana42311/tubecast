@@ -121,8 +121,7 @@
     return Number.isFinite(d.getTime()) ? d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
   }
   function label(state) {
-    if (!state || state.mode === 'example') return 'Example data';
-    if (state.mode === 'scenario') return 'Example scenario';
+    if (!state || state.mode === 'example' || state.mode === 'scenario') return '';
     if (state.delayed || state.mode === 'stale') return 'Update delayed · as of ' + hhmm(state.asOf || state.fetchedAt);
     return '';
   }

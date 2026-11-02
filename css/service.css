@@ -9,13 +9,8 @@ a { color:inherit; }
 .service-nav>a { display:flex; align-items:center; gap:6px; min-height:44px; text-decoration:none; font-size:14px; font-weight:600; }
 .service-nav>span { font-size:10px; letter-spacing:2px; color:#9ba9b8; }
 .service-nav .demo-tag { letter-spacing:.4px; border:1px solid #526070; border-radius:6px; padding:4px 7px; font-size:10px; }
-.demo-scenario{position:absolute;z-index:64;right:16px;top:16px;padding:5px 8px;border:1px solid #526070;border-radius:8px;background:#161c24e8;color:#aeb8c3;font:600 9px/12px var(--sf);letter-spacing:.25px;box-shadow:inset 0 1px #ffffff12}
-.demo-help{position:fixed;z-index:999;left:50%;bottom:24px;max-width:calc(100vw - 32px);padding:9px 12px;border-radius:10px;background:#0e1319ee;color:#dce5ed;font:500 11px/15px system-ui;opacity:0;transform:translate(-50%,8px);pointer-events:none;transition:opacity .18s var(--ease),transform .18s var(--ease);white-space:nowrap}
-.demo-help-open .demo-help{opacity:1;transform:translate(-50%,0)}
 .demo-commute .footer .u{visibility:hidden}
-.demo-switching{opacity:.55;transition:opacity .12s ease-out}
 .notice-dot{width:9px;height:9px;border-radius:50%;background:var(--minor);box-shadow:0 0 12px #ffa12b88}
-html.mode-phone .demo-scenario{top:calc(10px + env(safe-area-inset-top,0px)/var(--s,1))}
 html.mode-phone .service-nav { top:calc(6px + env(safe-area-inset-top,0px)/var(--s,1)); }
 .statusbar { display:none; }
 .safari { background:none; backdrop-filter:none; -webkit-backdrop-filter:none; pointer-events:none; }
@@ -320,10 +315,6 @@ html.keyboard-open .pick-mode.pick-search .rp-search input { height:46px;border:
 .rt-walk { stroke-dasharray:3 5;stroke:#d9e2ea; }
 .direction-light { filter:none; }
 .service-nav .demo-tag { font-size:8px;letter-spacing:0; }
-.service-nav .demo-tag.demo-control { display:flex;align-items:center;justify-content:center;min-height:34px;padding:0 9px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
-.service-nav .demo-tag.demo-control:active { transform:scale(.96);background:#ffffff10; }
-.demo-scenario.demo-control { display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 10px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
-.demo-scenario.demo-control:active { transform:scale(.96);background:#202a35; }
 @media(prefers-reduced-motion:reduce){.direction-light{display:none}}
 
 /* Keep the camera input path light. Direction lights resume on release; station

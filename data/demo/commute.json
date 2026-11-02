@@ -124,10 +124,10 @@
             "id": "central",
             "tfl": { "status": "Minor Delays", "reason": "Longer gaps westbound at Mile End", "planned_closure": null, "not_running": null },
             "line_forecast": { "p_base_30": 0.67, "alert": "watch" },
-            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":3,"mark":"pm"},{"h":20,"n":4,"mark":"pm"},{"h":30,"n":4,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "cols": [{"h":0,"n":2,"mark":"nm"},{"h":10,"n":3,"mark":"pm"},{"h":20,"n":4,"mark":"pm"},{"h":30,"n":4,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
             "rows": [
               {"station":"Mile End","naptan":"940GZZLUMED","dir":"Westbound","now":{"level":"minor","gap_min":12,"usual_min":3},"onset_p30":null,"risk":null},
-              {"station":"Bethnal Green","naptan":"940GZZLUBLG","dir":"Westbound","now":null,"onset_p30":0.72,"risk":"high","onset_min":10,"top_reason":"delays_up_line"},
+              {"station":"Bethnal Green","naptan":"940GZZLUBLG","dir":"Westbound","now":{"level":"minor","gap_min":10,"usual_min":3},"onset_p30":null,"risk":null},
               {"station":"Liverpool Street","naptan":"HUBLST","dir":"Westbound","now":null,"onset_p30":0.68,"risk":"high","onset_min":10,"top_reason":"delays_up_line"},
               {"station":"Bank","naptan":"HUBBAN","dir":"Westbound","now":null,"onset_p30":0.61,"risk":"high","onset_min":20,"top_reason":"delays_up_line"}
             ]
@@ -136,25 +136,34 @@
             "id": "northern",
             "tfl": { "status": "Minor Delays", "reason": "Longer gaps on southbound services", "planned_closure": null, "not_running": null },
             "line_forecast": { "p_base_30": 0.27, "alert": "watch" },
-            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":1,"mark":"nm"},{"h":20,"n":2,"mark":"pm"},{"h":30,"n":2,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "cols": [{"h":0,"n":2,"mark":"ns"},{"h":10,"n":2,"mark":"ns"},{"h":20,"n":3,"mark":"ps"},{"h":30,"n":3,"mark":"ps"},{"h":60,"n":null,"mark":"pg"}],
             "rows": [
               {"station":"Camden Town","naptan":"940GZZLUCTN","dir":"Southbound","now":{"level":"minor","gap_min":8,"usual_min":3},"onset_p30":null,"risk":null},
-              {"station":"Kentish Town","naptan":"940GZZLUKSH","dir":"Southbound","now":null,"onset_p30":0.27,"risk":"elevated","onset_min":20,"top_reason":"delays_up_line"}
+              {"station":"Euston","naptan":"940GZZLUEUS","dir":"Southbound","now":{"level":"severe","gap_min":14,"usual_min":3},"onset_p30":null,"risk":null},
+              {"station":"Warren Street","naptan":"940GZZLUWRR","dir":"Southbound","now":null,"onset_p30":0.58,"risk":"high","onset_min":20,"top_reason":"delays_up_line"}
             ]
           },
           {
             "id": "jubilee",
-            "tfl": { "status": "Good Service", "reason": "", "planned_closure": null, "not_running": null },
-            "line_forecast": { "p_base_30": 0.23, "alert": "watch" },
-            "cols": [{"h":0,"n":0,"mark":"pg"},{"h":10,"n":0,"mark":"pg"},{"h":20,"n":1,"mark":"pm"},{"h":30,"n":1,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
-            "rows": [{"station":"Canary Wharf","naptan":"HUBCAW","dir":"Westbound","now":null,"onset_p30":0.23,"risk":"elevated","onset_min":20,"top_reason":"network_pattern"}]
+            "tfl": { "status": "Severe Delays", "reason": "Longer gaps westbound through London Bridge", "planned_closure": null, "not_running": null },
+            "line_forecast": { "p_base_30": 0.64, "alert": "watch" },
+            "cols": [{"h":0,"n":1,"mark":"ns"},{"h":10,"n":1,"mark":"ns"},{"h":20,"n":2,"mark":"ps"},{"h":30,"n":3,"mark":"ps"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"London Bridge","naptan":"HUBLBG","dir":"Westbound","now":{"level":"severe","gap_min":15,"usual_min":3},"onset_p30":null,"risk":null},
+              {"station":"Southwark","naptan":"940GZZLUSWK","dir":"Westbound","now":null,"onset_p30":0.64,"risk":"high","onset_min":20,"top_reason":"delays_up_line"},
+              {"station":"Waterloo","naptan":"HUBWLO","dir":"Westbound","now":null,"onset_p30":0.47,"risk":"elevated","onset_min":30,"top_reason":"delays_up_line"}
+            ]
           },
           {
             "id": "district",
             "tfl": { "status": "Minor Delays", "reason": "Longer gaps on eastbound services", "planned_closure": null, "not_running": null },
             "line_forecast": { "p_base_30": 0.19, "alert": null },
-            "cols": [{"h":0,"n":1,"mark":"nm"},{"h":10,"n":1,"mark":"nm"},{"h":20,"n":1,"mark":"nm"},{"h":30,"n":1,"mark":"nm"},{"h":60,"n":null,"mark":"pg"}],
-            "rows": [{"station":"Earl's Court","naptan":"940GZZLUECT","dir":"Eastbound","now":{"level":"minor","gap_min":7,"usual_min":3},"onset_p30":null,"risk":null}]
+            "cols": [{"h":0,"n":2,"mark":"nm"},{"h":10,"n":2,"mark":"nm"},{"h":20,"n":3,"mark":"pm"},{"h":30,"n":3,"mark":"pm"},{"h":60,"n":null,"mark":"pg"}],
+            "rows": [
+              {"station":"West Kensington","naptan":"940GZZLUWKN","dir":"Eastbound","now":{"level":"minor","gap_min":8,"usual_min":3},"onset_p30":null,"risk":null},
+              {"station":"Earl's Court","naptan":"940GZZLUECT","dir":"Eastbound","now":{"level":"minor","gap_min":7,"usual_min":3},"onset_p30":null,"risk":null},
+              {"station":"Gloucester Road","naptan":"940GZZLUGTR","dir":"Eastbound","now":null,"onset_p30":0.42,"risk":"elevated","onset_min":20,"top_reason":"delays_up_line"}
+            ]
           },
           {
             "id": "victoria",

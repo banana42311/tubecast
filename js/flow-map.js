@@ -202,13 +202,13 @@
     var o = orient(st), w = FD.worst(FD.atStation(st.name)), dirs = '';
     o.forEach(function (n) {
       var t = FD.trains(st.name + state.stationLine, n), t3 = t[1] + 4 + (FD.hash(st.name + n) % 5);
-      dirs += '<section class="arrival-card" aria-label="'+esc(n)+' example arrivals"><h3>'+esc(n)+'</h3><div class="arrival-next"><b>'+(t[0]===0?'Due':t[0])+'</b>'+(t[0]===0?'':'<span>min</span>')+'<small>Next train</small></div><div class="arrival-later"><span>Then</span><b>'+t[1]+'</b><i>·</i><b>'+t3+'</b><span>min</span></div></section>';
+      dirs += '<section class="arrival-card" aria-label="'+esc(n)+' arrivals"><h3>'+esc(n)+'</h3><div class="arrival-next"><b>'+(t[0]===0?'Due':t[0])+'</b>'+(t[0]===0?'':'<span>min</span>')+'<small>Next train</small></div><div class="arrival-later"><span>Then</span><b>'+t[1]+'</b><i>·</i><b>'+t3+'</b><span>min</span></div></section>';
     });
     var primary = st.lines[0] || 'central';
     return head(esc(st.name), (st.lines.length || 1) + ' line' + (st.lines.length === 1 ? '' : 's') + ' · current and predicted delays') +
       '<div class="station-body"><div class="fs-chips">' + st.lines.map(function (l) { return '<button class="lpa" data-act="station-line" data-line="'+l+'" aria-pressed="'+(state.stationLine===l)+'">'+pill(l)+'</button>'; }).join('') + '</div>' +
       statusRow(st) +
-      '<div class="fs-sec">Example arrivals</div><div class="fs-dirs">' + dirs + '</div>' +
+      '<div class="fs-sec">Arrivals</div><div class="fs-dirs">' + dirs + '</div>' +
       '</div><div class="fs-actions"><button class="btn-p" data-act="route-from"' + (st.vn < 0 && !window.TFLMap ? ' disabled' : '') + '><svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M7 26V18a6 6 0 0 1 6-6h12M19 5l7 7-7 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'+(window.DemoMode&&DemoMode.active&&st.name==='Liverpool Street'?'See a way around':'Find an alternative')+'</button>' +
       '<button class="btn-s" data-act="route-to">To here</button></div>';
   }

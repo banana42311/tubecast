@@ -123,4 +123,9 @@ python3 -m http.server 8765 --bind 127.0.0.1
 - **Cause:** iOS moves the visual viewport when its keyboard opens, while the fixed 390px canvas stayed attached to the layout viewport. The phone canvas now follows `visualViewport.offsetTop`, detects keyboard height changes and gives station search an opaque, nearly full-height focused sheet.
 - **Cause:** an empty destination query rendered the first 24 alphabetical stations, making the useful field and results harder to reach on a phone. Search now starts with eight useful suggestions and keeps its title, input and map-return action above the scrolling results.
 - **Cause:** route mode retained the global station search and used overview-sized camera padding with a low zoom cap. Route planning now hides overview controls and fits the selected geometry into the actual space above the sheet with tighter padding and a higher short-route zoom cap.
-- The recording scenario starts at step 1 and is controlled from the phone: tap the `Example · n/3` chip to advance through steps 1 → 2 → 3. The keyboard shortcut/help layer was removed from the demo UI.
+
+## Phone recording snapshot
+
+- **Cause:** the staged demo opened on a near-empty state and required a control that was not appropriate for a phone recording. The recording URL now opens one complete snapshot immediately and shows no Example badge or stage control.
+- The snapshot contains seven current delayed stations across Central, Northern, Jubilee and District: five minor and two severe. Seven additional stations carry 30-minute predictions across those lines and Victoria.
+- Central now shows two current westbound delays at Mile End and Bethnal Green, followed by prediction rings at Liverpool Street and Bank. The Stratford → White City recommendation still compares the affected Central route with the walk-free Elizabeth → Central change at Bond Street.
