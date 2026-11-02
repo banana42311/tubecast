@@ -60,12 +60,12 @@ html.mode-phone .map-phone .stackbtn,html.mode-phone .map-phone .routebtn { bott
 #world svg.route .base { filter:none;opacity:.12; }
 #world svg.route .hl { opacity:0; }
 #world.route-focus .station-marker { opacity:.13;pointer-events:none; }
-#world.route-focus .lbl { opacity:.12;pointer-events:none; }
-#world.route-focus .lbl.route-label { opacity:1;color:#fff; }
-#world .lbl { font-family:var(--sf);font-size:11px;font-weight:500;text-shadow:0 1px 3px #141b23,0 0 5px #141b23; }
-#world.zoom-wide .lbl { visibility:hidden; }
-#world.zoom-wide .lbl.route-label { visibility:visible; }
-#world.zoom-wide .lbl.route-label:not(.endpoint-label) { visibility:hidden; }
+.map-label-layer.route-focus .lbl { opacity:.12;pointer-events:none; }
+.map-label-layer.route-focus .lbl.route-label { opacity:1;color:#fff; }
+.map-label-layer .lbl { font-family:var(--sf);font-size:11px;font-weight:600;text-shadow:0 0 3px #1a2029,0 0 6px #1a2029,0 1px 1px #1a2029; }
+.map-label-layer.zoom-wide .lbl { visibility:hidden; }
+.map-label-layer.zoom-wide .lbl.route-label { visibility:visible; }
+.map-label-layer.zoom-wide .lbl.route-label:not(.endpoint-label) { visibility:hidden; }
 .station-marker { position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;display:flex;align-items:center;justify-content:center;background:none;border:0;cursor:pointer;transform:scale(var(--ls));z-index:4; }
 .station-marker .delay-dot { width:18px;height:18px;flex-basis:18px;pointer-events:none; }
 #world[data-filter=now] [data-kind=next],#world[data-filter=next] [data-kind=now] { display:none; }
@@ -125,8 +125,8 @@ html.mode-phone .map-phone .stackbtn,html.mode-phone .map-phone .routebtn { bott
 .station-body { flex:1;overflow-y:auto;min-height:0;overscroll-behavior:contain; }
 .station-mode .fs-actions { margin-top:10px;padding-top:10px;border-top:1px solid #3b4654; }
 .map-phone.routing #chip,.map-phone.routing .map-key { display:none; }
-#world .lbl { transition:none; }
-#world.route-focus .lbl.endpoint-label { visibility:hidden; }
+.map-label-layer .lbl { transition:none; }
+.map-label-layer.route-focus .lbl.endpoint-label { visibility:hidden; }
 /* Stable, legible end labels at any map zoom. */
 .fend b,.fsel b { transform:translateX(-50%) scale(var(--ms,1));transform-origin:50% 100%; }
 .fend i { transform:scale(var(--ms,1)); }
@@ -223,7 +223,7 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .station-base { position:absolute;width:0;height:0;pointer-events:none;z-index:3;transform:scale(var(--ls)); }
 .station-base>i { position:absolute;width:12px;height:12px;left:-6px;top:-6px;background:#f1f4f7;border:2px solid #151c24;border-radius:50%;box-sizing:border-box; }
 #world.route-focus .station-base { opacity:.15; }
-#world .lbl { z-index:6;font-weight:600;text-shadow:0 0 3px #1a2029,0 0 6px #1a2029,0 1px 1px #1a2029; }
+.map-label-layer .lbl { z-index:6; }
 .dz-i .dz-glow { stroke-width:7;opacity:.22;animation:none;filter:none; }
 .dz-i .dz-current { stroke-width:3;opacity:.35; }
 .dz-i .dz-flow { stroke-width:3;stroke-dasharray:14 86;stroke-linecap:round;animation:directionFlow 2.4s linear infinite;filter:drop-shadow(0 0 3px currentColor);opacity:.9; }
@@ -245,7 +245,7 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .leg-stops i { width:6px;height:6px;border:1px solid #dce5ed;border-radius:50%; }
 .journey-note { font-size:10px;color:#aab9c7;margin:6px 0; }
 @media(prefers-reduced-motion:reduce){.dz-i .dz-flow{animation:none;stroke-dasharray:none;opacity:.5}}
-#world .lbl.selected-label { visibility:hidden; }
+.map-label-layer .lbl.selected-label { visibility:hidden; }
 .line-alerts>a { display:block;font-size:12px;line-height:20px;margin-top:7px; }
 /* Single-height map legend and vector artwork. */
 .map-phone #chip { display:none; }
@@ -281,7 +281,7 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .directory-key .severity-key i { width:auto;flex:1;min-width:24px;height:4px; }
 .fit-network { display:block;width:44px;min-height:36px;background:#1a2029;color:#dbe7ee;border:0;border-top:1px solid #ffffff20;font-size:11px;border-radius:0 0 18px 18px;cursor:pointer; }
 .map-phone .zoomctl { height:auto;overflow:visible; }
-#world.zoom-wide .lbl { visibility:hidden; }
+.map-label-layer.zoom-wide .lbl { visibility:hidden; }
 .find-journey { width:100%;min-height:44px;border-radius:13px;margin-top:4px; }
 .find-journey:disabled { opacity:.4; }
 .pick-mode .rp-fields { margin-bottom:0; }
@@ -299,7 +299,7 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 @media(prefers-reduced-motion:reduce){.direction-light{display:none}}
 
 /* Extended schematic labels keep a readable size; collision selection is camera-driven. */
-.map-phone #world .lbl { font-size:11px;transform-origin:0 0; }
+.map-phone .map-label-layer .lbl { font-size:11px; }
 
 #world.zoom-wide .network-lines path { stroke-width:calc(.6px * var(--ms)); }
 
@@ -335,3 +335,10 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 #world .fsel i+i{animation-delay:.9s}
 @keyframes anchorPulse{from{opacity:.8;transform:scale(.65)}to{opacity:0;transform:scale(1.4)}}
 @media(prefers-reduced-motion:reduce){#world .fsel i{animation:none;transform:none}}
+
+/* One-tap handoff after Tubecast has explained the delay and route options. */
+.google-route{display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;min-height:50px;margin:10px 0 0;padding:9px 12px;border:1px solid #ffffff20;border-radius:14px;background:#2a3440;color:#fff;text-decoration:none}
+.google-route>span{grid-row:1/3;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#fff;color:#4285f4;font:700 16px/1 var(--sf,system-ui)}
+.google-route>b{font-size:12px;line-height:16px}.google-route>small{font-size:9px;line-height:12px;color:#aebcc9}
+.google-route:active{transform:scale(.985)}
+.route-mode.peek .google-route{display:none}

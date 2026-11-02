@@ -3,7 +3,9 @@
 .mapview.drag{cursor:grabbing}
 #world{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0;--ls:1;--hs:1}
 #world>svg{position:absolute;left:0;top:0;display:block;overflow:visible}
-.lbl{position:absolute;height:13px;transform-origin:0 50%;transform:scale(var(--ls));font:400 10.8px/13px "Atkinson Hyperlegible",var(--sf);color:#aeb8c3;white-space:nowrap;
+.map-label-layer{position:absolute;inset:0;z-index:7;overflow:hidden;pointer-events:none;contain:strict}
+.map-label-layer .lbl{position:absolute;left:0;top:0;height:15px;pointer-events:auto;transform:translate3d(-999px,-999px,0);font:500 11px/15px "Atkinson Hyperlegible",var(--sf);color:#aeb8c3;white-space:nowrap;
+     -webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;
      text-decoration:none;cursor:pointer;text-shadow:0 0 3px #1a2029,0 0 3px #1a2029}
 .lbl.hot{font-weight:700;color:#cfd6de}
 .hit{position:absolute;border-radius:50%;cursor:pointer;display:block;transform:scale(var(--hs))}

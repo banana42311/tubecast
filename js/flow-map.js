@@ -4,7 +4,7 @@
 (function () {
   var C = window.MapCtx; if (!C) return;
   var M = window.Motion, FD = window.FlowData, NS = 'http://www.w3.org/2000/svg';
-  var phone = document.querySelector('.phone'), svg = C.svg, world = C.world, view = C.view, cam = C.cam, N = C.N, S = C.S;
+  var phone = document.querySelector('.phone'), svg = C.svg, world = C.world, view = C.view, labelLayer = C.labelLayer, cam = C.cam, N = C.N, S = C.S;
   var G = window.FlowGeo.build({ N: N, S: S, slugs: C.slugs, linePaths: C.linePaths, lineOff: C.lineOff });
   if(window.TFLMap)G.stations.forEach(function(st){var c=StationCatalog[st.name];st.x=c.x*S;st.y=c.y*S;st.lines=c.lines.slice();});
   var kebab = G.kebab, LBS = window.LINE_BY_SLUG;
@@ -13,6 +13,7 @@
   function el(t, a, p) { return C.el(t, a, p); }
   function lineName(sl) { if(sl==='walking')return 'Walk';return (LBS[sl] && LBS[sl].name || sl).replace(/ line$/, ''); }
   function lineCol(sl) { return (LBS[sl] && LBS[sl].color) || '#7c8794'; }
+  function labelNodes(sel) { return (labelLayer || world).querySelectorAll(sel || '.lbl'); }
   if(!window.TFLMap && !window.SCHEMATIC_MAP)G.stations.forEach(function(st){
     var cat=StationCatalog[st.name];if(!cat||!st.lines.length)return;
     var x=cat.x*S,y=cat.y*S,best=null,dist=Infinity;
@@ -91,15 +92,16 @@
       cs.forEach(function (d) { el('path', { d: d, stroke: '#0b0d11', 'stroke-width': 5.4 }, gg); });
       cs.forEach(function (d) { el('path', { d: d, stroke: lineCol(sl), 'stroke-width': 3.5 }, gg); });
     });
-    world.classList.toggle('route-focus',mode==='route'); svg.classList.toggle('route', mode === 'route'); svg.classList.add('focus');
+    world.classList.toggle('route-focus',mode==='route'); labelLayer && labelLayer.classList.toggle('route-focus',mode==='route'); svg.classList.toggle('route', mode === 'route'); svg.classList.add('focus');
+    C.refreshLabels && C.refreshLabels();
   }
-  function clearFocus() { world.classList.remove('route-focus'); clearTimeout(focusTimer); svg.classList.remove('focus', 'route'); focusTimer = setTimeout(function () { if (!svg.classList.contains('focus')) C.hl.innerHTML = ''; }, 500); }
+  function clearFocus() { world.classList.remove('route-focus'); labelLayer && labelLayer.classList.remove('route-focus'); clearTimeout(focusTimer); svg.classList.remove('focus', 'route'); C.refreshLabels && C.refreshLabels(); focusTimer = setTimeout(function () { if (!svg.classList.contains('focus')) C.hl.innerHTML = ''; }, 500); }
 
   /* world markers: selected station ring, route endpoints */
   var selRing = null, routeMk = [];
-  function showSel(st) { hideSel(); if (!st) return;world.querySelectorAll('.lbl').forEach(function(n){n.classList.toggle('selected-label',n.dataset.st===st.name);}); selRing = wdiv('fsel', st.x, st.y, '<i></i><i></i><b>' + esc(st.name) + '</b>'); }
-  function hideSel() { world.querySelectorAll('.selected-label').forEach(function(n){n.classList.remove('selected-label');});if (selRing) { selRing.remove(); selRing = null; } }
-  function clearRouteDraw() { world.classList.remove('route-focus'); world.querySelectorAll('.route-label').forEach(function(n){n.classList.remove('route-label');}); gRt.innerHTML = ''; routeMk.forEach(function (n) { n.remove(); }); routeMk = []; svg.classList.remove('has-route'); }
+  function showSel(st) { hideSel(); if (!st) return;labelNodes('.lbl').forEach(function(n){n.classList.toggle('selected-label',n.dataset.st===st.name);}); selRing = wdiv('fsel', st.x, st.y, '<i></i><i></i><b>' + esc(st.name) + '</b>'); C.refreshLabels && C.refreshLabels(); }
+  function hideSel() { labelNodes('.selected-label').forEach(function(n){n.classList.remove('selected-label');});if (selRing) { selRing.remove(); selRing = null; } C.refreshLabels && C.refreshLabels(); }
+  function clearRouteDraw() { world.classList.remove('route-focus'); labelLayer && labelLayer.classList.remove('route-focus'); labelNodes('.route-label').forEach(function(n){n.classList.remove('route-label','endpoint-label');}); gRt.innerHTML = ''; routeMk.forEach(function (n) { n.remove(); }); routeMk = []; svg.classList.remove('has-route'); C.refreshLabels && C.refreshLabels(); }
 
   /* strokes keep a readable screen width when zoomed far out */
   C.onCam = function (k) { svg.style.setProperty('--rw', Math.max(6, 5 / k).toFixed(2)); svg.style.setProperty('--dw', Math.max(3.4, 3 / k).toFixed(2)); svg.style.setProperty('--gw', Math.max(12, 11 / k).toFixed(2)); };
@@ -221,6 +223,8 @@
   }
   function routeHTML(rs) {
     var A = G.byId[rs.from], B = G.byId[rs.to], opts = rs.opts, h = '';
+    var googleURL='https://www.google.com/maps/dir/?'+new URLSearchParams({api:'1',origin:A.name+' Station, London',destination:B.name+' Station, London',travelmode:'transit'}).toString();
+    var googleLink='<a class="google-route" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(googleURL)+'"><span>G</span><b>Open live transit in Google Maps</b><small>Google recalculates current alternatives</small></a>';
     opts.forEach(function (o, i) {
       var legs = o.r.legs.map(function (l, j) { return (j ? '<em>›</em>' : '') + pill(l.line); }).join('');
       var notices=[];o.r.legs.forEach(function(l){(l.disruptions||[]).forEach(function(n){if(notices.indexOf(n)<0)notices.push(n);});});
@@ -237,10 +241,10 @@
       return head('Route selected',esc(A.name)+' → '+esc(B.name),false)+
         '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · '+JourneyAPI.clock(selected.departure)+' → '+JourneyAPI.clock(selected.arrival)+'</b><small>TfL · '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+' · London time</small></div></div>'+
         '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(l.walking?'Walk':(i?'Change at '+esc(first?first.name:'interchange'):'Board at '+esc(first?first.name:A.name)))+'</small><b>'+esc(lineName(l.line))+'</b><small>'+esc(l.instruction)+' · '+l.duration+' min · '+JourneyAPI.clock(l.departure)+'</small><span>'+esc(first?first.name:A.name)+' → '+esc(last?last.name:B.name)+' · '+Math.max(0,l.stops.length-1)+' stops</span><details><summary>Stations on this leg</summary><div class="leg-stops">'+l.stops.map(function(st,j){return '<span><i></i>'+esc(st.name)+(j===l.stops.length-1?(i===selected.r.legs.length-1?' · Arrive':' · Change here'):'')+'</span>';}).join('')+'</div></details></li>';}).join('')+'</ol><small class="journey-note">Powered by the Transport for London Journey Planner API</small>'+
-        '<div class="fs-actions"><button class="btn-p" data-act="change-route">Change route</button><button class="btn-s" data-act="edit-route">Edit journey</button></div>';
+        googleLink+'<div class="fs-actions"><button class="btn-p" data-act="change-route">Change route</button><button class="btn-s" data-act="edit-route">Edit journey</button></div>';
     }
     return head(esc(A.name)+' <span class="arr">→</span> '+esc(B.name),sub,true)+
-      '<button class="route-edit" data-act="edit-route">Edit start or destination</button><div class="ro-list">'+h+'</div><div class="fs-actions"><button class="btn-p" data-act="go"'+(opts.length?'':' disabled')+'>Choose this route</button><button class="btn-s" data-act="swap" aria-label="Reverse route">⇅</button></div>';
+      '<button class="route-edit" data-act="edit-route">Edit start or destination</button><div class="ro-list">'+h+'</div>'+(opts.length?googleLink:'')+'<div class="fs-actions"><button class="btn-p" data-act="go"'+(opts.length?'':' disabled')+'>Choose this route</button><button class="btn-s" data-act="swap" aria-label="Reverse route">⇅</button></div>';
   }
 
   /* disruption */
@@ -269,7 +273,8 @@
     routeMk.push(wdiv('fend a', A.x, A.y, '<i></i><b>' + esc(A.name) + '</b>'), wdiv('fend b', B.x, B.y, '<i></i><b>' + esc(B.name) + '</b>'));
     for (var i = 1; i < legs.length; i++) { var p0 = legs[i].pts[0]; if(!p0)continue;routeMk.push(wdiv('fxfer', p0[0], p0[1])); }
     var names=new Set([A.name,B.name]); legs.forEach(function(l){l.stops.forEach(function(st){names.add(st.name);});});
-    world.querySelectorAll('.lbl').forEach(function(n){n.classList.toggle('route-label',names.has(n.dataset.st));n.classList.toggle('endpoint-label',n.dataset.st===A.name || n.dataset.st===B.name);});
+    labelNodes('.lbl').forEach(function(n){n.classList.toggle('route-label',names.has(n.dataset.st));n.classList.toggle('endpoint-label',n.dataset.st===A.name || n.dataset.st===B.name);});
+    C.refreshLabels && C.refreshLabels();
     focusLines(o.r.legs.map(function (l) { return l.line; }), 'route');
   }
 
