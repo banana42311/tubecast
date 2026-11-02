@@ -7,6 +7,14 @@
 })(typeof window !== 'undefined' ? window : null, function () {
   var DIR = { east: 'Eastbound', west: 'Westbound', north: 'Northbound', south: 'Southbound' };
 
+  // The API sends empty containers ([] or {affected_stops: []}) when nothing is closed.
+  function present(v) {
+    if (!v) return false;
+    if (Array.isArray(v)) return v.length > 0;
+    if (typeof v === 'object') return ['affected_stops', 'affected_routes', 'stops', 'routes', 'sections'].some(function (k) { var x = v[k]; return Array.isArray(x) ? x.length > 0 : !!x; }) || !!v.description;
+    return !!v;
+  }
+
   function norm(s) {
     return String(s || '').toLowerCase()
       .replace(/ underground station| station/g, '')
@@ -48,7 +56,7 @@
         status: tfl.status || '',
         reason: tfl.reason || '',
         cause: tfl.cause || '',
-        closed: !!(tfl.planned_closure || tfl.not_running),
+        closed: present(tfl.planned_closure) || present(tfl.not_running),
         p30: Number.isFinite(forecast.p_base_30) ? forecast.p_base_30 : null,
         alert: forecast.alert || null,
         cols: (line.cols || []).map(function (c) { return { h: +c.h, n: c.n, mark: c.mark || '' }; })
