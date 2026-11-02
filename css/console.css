@@ -8,12 +8,14 @@ body.console-page{display:block;min-height:0;padding:0}
 .console-brand{display:flex;align-items:center;gap:18px;color:#fff;text-decoration:none;white-space:nowrap}
 .console-brand span{font-size:19px;font-weight:700;letter-spacing:4px}
 .console-brand small{color:var(--sec);font-size:12px}
-.console-route{justify-self:center;display:flex;align-items:center;gap:10px;min-width:560px}
+.console-route{position:relative;justify-self:center;display:flex;align-items:center;gap:10px;min-width:560px}
 .console-route label{height:49px;min-width:190px;display:grid;grid-template-columns:48px 1fr;align-items:center;padding:0 14px;border-radius:14px;background:var(--surface-2);border:1px solid rgba(255,255,255,.1)}
 .console-route label small{color:var(--sec);font-size:11px}
 .console-route input{width:100%;border:0;outline:0;background:none;color:#fff;font-size:15px;font-weight:600}
 .console-route>span{color:var(--sec)}
 .console-route .btn-p{width:auto;min-width:112px;height:49px;padding:0 18px;border-radius:14px}
+.console-route-error{position:absolute;left:0;right:0;top:52px;margin:0;text-align:center;color:#ffb25b;font-size:11px;line-height:16px}
+.console-route label.invalid{border-color:var(--severe);background:rgba(220,36,31,.1)}
 .console-meta{justify-self:end;display:flex;align-items:center;gap:9px;white-space:nowrap;font-size:12px;color:var(--sec)}
 .console-meta b{font-size:15px;color:#fff;font-variant-numeric:tabular-nums}
 .console-meta a{margin-left:12px;color:#fff;text-decoration:none;font-weight:600}

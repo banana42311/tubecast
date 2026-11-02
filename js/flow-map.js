@@ -19,8 +19,12 @@
     function directions(from,to){
       return 'https://www.google.com/maps/dir/?'+new URLSearchParams({api:'1',origin:from+' Station, London',destination:to+' Station, London',travelmode:'transit'}).toString();
     }
-    var via=[],transfers=[],legs=[];
+    var via=[],transfers=[],legs=[],walking=[];
     if(option&&option.r&&option.r.legs){
+      option.r.legs.filter(function(leg){return leg.walking;}).forEach(function(leg){
+        var stops=leg.stops||[],first=stops[0],last=stops[stops.length-1];
+        if(first&&last)walking.push({from:first.name,to:last.name,duration:leg.duration||0});
+      });
       var transitLegs=option.r.legs.filter(function(leg){return !leg.walking;});
       transitLegs.forEach(function(leg,i){
         var stops=leg.stops||[],first=stops[0],last=stops[stops.length-1];
@@ -30,7 +34,7 @@
       transfers.forEach(function(name){if(via.length<3&&via.indexOf(name)<0)via.push(name);});
     }
     if(!legs.length)legs.push({line:null,from:A.name,to:B.name,url:directions(A.name,B.name)});
-    return {url:legs[0].url,via:via.slice(0,3),legs:legs};
+    return {url:legs[0].url,via:via.slice(0,3),legs:legs,walking:walking};
   }
   if(!window.TFLMap && !window.SCHEMATIC_MAP)G.stations.forEach(function(st){
     var cat=StationCatalog[st.name];if(!cat||!st.lines.length)return;
@@ -175,9 +179,7 @@
       var o = curRoute && curRoute.opts[state.opt || 0]; if (!o) { cam.fit(bboxOf([[G.byId[state.from].x, G.byId[state.from].y], [G.byId[state.to].x, G.byId[state.to].y]], 12), routePadding, 4.8); return; }
       var pts = []; o.r.legs.forEach(function (l) { l.pts.forEach(function (p) { pts.push(p); }); });
       if(!pts.length)pts=[[G.byId[state.from].x,G.byId[state.from].y],[G.byId[state.to].x,G.byId[state.to].y]];
-      var requested=window.DemoMode&&DemoMode.active?parseFloat(new URLSearchParams(location.search).get('demoZoom')):0;
-      if(requested===1||requested===2||requested===4){var rb=bboxOf(pts,6);cam.flyTo((rb.x0+rb.x1)/2,(rb.y0+rb.y1)/2,requested,c.VW/2,Math.max(190,(c.VH-vis)/2));}
-      else cam.fit(bboxOf(pts, 4), routePadding, 4.8);
+      cam.fit(bboxOf(pts, 4), routePadding, 4.8);
     } else if (state.t === 'dis') {
       var z = dzById(state.id); if (!z) return;
       cam.fit(bboxOf(z.seg.pts, 10), { t: 120, b: vis + 28, l: 50, r: 50 }, 2.2);
@@ -258,37 +260,54 @@
 
   /* route options */
   var routeRequest=null,requestKey=null;
+  function rankOptions(options){return window.RouteRisk?RouteRisk.rank(options,window.LiveState||{}):options;}
+  function routeIndex(options,routeState){
+    var index=Math.max(0,parseInt(routeState.opt,10)||0);
+    if(routeState.rid&&options[index]&&options[index].routeId===routeState.rid)return index;
+    if(routeState.rid){var byId=options.findIndex(function(option){return option.routeId===routeState.rid;});if(byId>=0)return byId;}
+    return options[index]?index:0;
+  }
+  function arrivalClock(option){
+    if(!option)return '';
+    var extra=+option.extra||0,time=Date.parse(option.arrival||'');
+    if(!extra||!Number.isFinite(time))return JourneyAPI.clock(option.arrival);
+    return new Date(time+extra*60000).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Europe/London'});
+  }
+  function changesText(count){return count?(count+' change'+(count===1?'':'s')):'No changes';}
   function loadJourney(key){
     if(requestKey===key)return;
     if(routeRequest)routeRequest.abort();routeRequest=new AbortController();requestKey=key;
     var a=state.from,b=state.to,controller=routeRequest;
     var timeout=setTimeout(function(){controller.abort();},15000);
     JourneyAPI.plan(G.byId[a],G.byId[b],controller.signal).then(function(opts){
-      RC[key]={from:a,to:b,opts:window.RouteRisk?RouteRisk.rank(opts,window.LiveState||{}):opts,fetchedAt:Date.now()};
+      RC[key]={from:a,to:b,rawOpts:opts,opts:rankOptions(opts),fetchedAt:Date.now()};
     }).catch(function(error){if(controller!==routeRequest)return;RC[key]={from:a,to:b,opts:[],error:error.name==='AbortError'?'The request timed out. Please try again.':error.message,fetchedAt:Date.now()};
     }).finally(function(){clearTimeout(timeout);if(controller!==routeRequest)return;requestKey=null;routeRequest=null;if(state.t==='route'&&state.from===a&&state.to===b)render('loaded');});
   }
   function routeHTML(rs) {
     var A = G.byId[rs.from], B = G.byId[rs.to], opts = rs.opts, h = '';
     var selectedOption=opts[state.opt||0],google=googleRouteURL(A,B,selectedOption);
-    var googleLink=google.legs.length>1?'<section class="google-legs"><div class="google-legs-head"><span>G</span><div><b>Continue this detour in Google Maps</b><small>Open each leg to keep the selected lines</small></div></div>'+google.legs.map(function(leg,i){return '<a class="google-leg" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(leg.url)+'"><i>'+(i+1)+'</i><span><b>'+esc(lineName(leg.line))+' line</b><small>'+esc(leg.from)+' → '+esc(leg.to)+'</small></span><strong>Open</strong></a>';}).join('')+'</section>':'<a class="google-route" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(google.url)+'"><span>G</span><b>Continue in Google Maps</b><small>Google recalculates transit directions</small></a>';
+    var walkingNote=google.walking.length?'<small class="google-walk-note">Walking connections remain in the Tubecast steps above.</small>':'';
+    var googleLink=google.legs.length>1?'<section class="google-legs"><div class="google-legs-head"><span>G</span><div><b>Continue in Google Maps</b><small>Open each transit leg. Google may recalculate the service.</small></div></div>'+google.legs.map(function(leg,i){return '<a class="google-leg" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(leg.url)+'"><i>'+(i+1)+'</i><span><b>'+esc(lineName(leg.line))+' line</b><small>'+esc(leg.from)+' → '+esc(leg.to)+'</small></span><strong>Open</strong></a>';}).join('')+walkingNote+'</section>':'<a class="google-route" data-nodrag target="_blank" rel="noopener noreferrer" href="'+esc(google.url)+'"><span>G</span><b>Continue in Google Maps</b><small>Google recalculates transit directions</small></a>';
     opts.forEach(function (o, i) {
       var legs = o.r.legs.map(function (l, j) { return (j ? '<em>›</em>' : '') + pill(l.line); }).join('');
       var notices=[];o.r.legs.forEach(function(l){(l.disruptions||[]).forEach(function(n){if(notices.indexOf(n)<0)notices.push(n);});});
       var dl=notices.map(function(n){return '<p class="provider-notice">'+esc(n)+'</p>';}).join('');
       var risk=o.risk||{current:0,predicted:0,extra:0,hits:[]};
       var riskText=risk.hits&&risk.hits.length?'<div class="ro-risk '+(risk.worst||'')+'"><b>Estimated +'+risk.extra+' min</b><span>'+risk.current+' current · '+risk.predicted+' predicted high-risk station'+(risk.predicted===1?'':'s')+'</span><small>'+esc(o.explanation||'')+'</small></div>':'<div class="ro-risk clear"><b>No current or predicted delays on this route</b></div>';
-      h += '<button class="ro' + (i === (state.opt || 0) ? ' on' : '') + '" data-act="opt" data-i="' + i + '" aria-pressed="' + (i === (state.opt || 0)) + '">' +
+      var adjusted=arrivalClock(o),scheduled=JourneyAPI.clock(o.arrival),timeCopy=JourneyAPI.clock(o.departure)+' → '+adjusted+(o.extra?' · estimated':' · London time');
+      if(o.extra&&adjusted!==scheduled)timeCopy+='<small> TfL scheduled arrival '+scheduled+'</small>';
+      h += '<button class="ro' + (i === (state.opt || 0) ? ' on' : '') + '" data-act="opt" data-i="' + i + '" data-rid="'+esc(o.routeId||'')+'" aria-pressed="' + (i === (state.opt || 0)) + '">' +
         '<div class="ro-top"><b>' + (o.min + o.extra) + '<small> min</small></b><span class="tag">' + o.tag + '</span></div>' +
         '<div class="ro-legs">' + legs + '</div>' +
-        '<div class="ro-meta">' + (o.r.legs.every(function(l){return l.walking;})?'Walking route':o.stops+' stops') + ' · ' + (o.r.transfers ? o.r.transfers + ' change' + (o.r.transfers > 1 ? 's' : '') : 'No changes') + (o.extra ? ' · usual journey ' + o.min + ' min' : '') + '</div><div class="ro-times">'+JourneyAPI.clock(o.departure)+' → '+JourneyAPI.clock(o.arrival)+' · London time</div>' + riskText + dl + '</button>';
+        '<div class="ro-meta">' + (o.r.legs.every(function(l){return l.walking;})?'Walking route':o.stops+' stops') + ' · ' + changesText(o.r.transfers) + (o.extra ? ' · usual journey ' + o.min + ' min' : '') + '</div><div class="ro-times">'+timeCopy+'</div>' + riskText + dl + '</button>';
     });
     if (!opts.length) h = '<div class="rp-none">'+esc(rs.error||'TfL returned no journeys for these stations at this time.')+'</div><button class="btn-s" data-act="retry-route">Try again</button>';
     var sub = opts.length + ' route' + (opts.length === 1 ? '' : 's') + ' · TfL Journey Planner';
     if (state.chosen && opts.length) {
       var selected=selectedOption;
       return head('Route selected',esc(A.name)+' → '+esc(B.name),false)+
-        '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · '+JourneyAPI.clock(selected.departure)+' → '+JourneyAPI.clock(selected.arrival)+'</b><small>TfL journey '+(selected.extra?'· estimated +'+selected.extra+' min from Tubecast delays ':'')+'· '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+'</small></div></div>'+
+        '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · '+JourneyAPI.clock(selected.departure)+' → '+arrivalClock(selected)+'</b><small>'+(selected.extra?'Estimated arrival · +'+selected.extra+' min from Tubecast delays · ':'TfL journey · ')+changesText(selected.r.transfers)+'</small></div></div>'+
         '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(l.walking?'Walk':(i?'Change at '+esc(first?first.name:'interchange'):'Board at '+esc(first?first.name:A.name)))+'</small><b>'+esc(lineName(l.line))+'</b><small>'+esc(l.instruction)+' · '+l.duration+' min · '+JourneyAPI.clock(l.departure)+'</small><span>'+esc(first?first.name:A.name)+' → '+esc(last?last.name:B.name)+' · '+Math.max(0,l.stops.length-1)+' stops</span><details><summary>Stations on this leg</summary><div class="leg-stops">'+l.stops.map(function(st,j){return '<span><i></i>'+esc(st.name)+(j===l.stops.length-1?(i===selected.r.legs.length-1?' · Arrive':' · Change here'):'')+'</span>';}).join('')+'</div></details></li>';}).join('')+'</ol><small class="journey-note">Powered by the Transport for London Journey Planner API</small>'+
         googleLink+'<div class="fs-actions"><button class="btn-p" data-act="change-route">Change route</button><button class="btn-s" data-act="edit-route">Edit journey</button></div>';
     }
@@ -328,7 +347,6 @@
     var names=new Set([A.name,B.name]);
     legs.forEach(function(l,i){
       if(i<legs.length-1&&l.stops.length)names.add(l.stops[l.stops.length-1].name);
-      l.stops.forEach(function(st){if(FD.atStation(st.name).some(function(item){return item.d.line===l.line;}))names.add(st.name);});
     });
     labelNodes('.lbl').forEach(function(n){n.classList.toggle('route-label',names.has(n.dataset.st));n.classList.toggle('endpoint-label',n.dataset.st===A.name || n.dataset.st===B.name);});
     C.refreshLabels && C.refreshLabels();
@@ -351,7 +369,7 @@
   function urlFor(s) {
     if (s.t === 'station') return base + '&station=' + s.id + (s.stationLine?'&stationLine='+s.stationLine:'');
     if (s.t === 'pick') return base + '&pick=1' + (s.from ? '&from=' + s.from : '') + (s.to ? '&to=' + s.to : '') + (s.field ? '&field=' + s.field : '') + (s.search ? '&search=1' : '');
-    if (s.t === 'route') return base + '&route=' + s.from + ',' + s.to + '&opt=' + (s.opt||0) + (s.chosen?'&chosen=1':'');
+    if (s.t === 'route') return base + '&route=' + s.from + ',' + s.to + '&opt=' + (s.opt||0) + (s.rid?'&rid='+encodeURIComponent(s.rid):'') + (s.chosen?'&chosen=1':'');
     if (s.t === 'dis') return base + '&dis=' + s.id;
     if (s.t === 'list') return 'index.html#all-lines';
     return base;
@@ -397,7 +415,11 @@
         sheet.open(head('Finding routes','Checking current TfL journey options',true)+'<div class="route-loading" role="status">Connecting to TfL…</div>','mid',{dismissible:false,peekHeight:148});loadJourney(key);return;
       }
       curRoute = RC[key]; hideSel();
-      if (!curRoute.opts[state.opt||0]) state.opt=0;
+      var resolvedIndex=routeIndex(curRoute.opts,state),resolvedOption=curRoute.opts[resolvedIndex];
+      if(state.opt!==resolvedIndex || (resolvedOption&&state.rid!==resolvedOption.routeId)){
+        state.opt=resolvedIndex;state.rid=resolvedOption&&resolvedOption.routeId||'';
+        history.replaceState(state,'',urlFor(state));
+      }
       var o = curRoute.opts[state.opt || 0]; if (o) drawRoute(o); else clearRouteDraw();
       sheet.open(routeHTML(curRoute)+'<button class="route-expand" data-act="expand-route">Show journey details</button>', 'mid', {dismissible:false,peekHeight:148});
     } else if (state.t === 'dis') {
@@ -419,7 +441,11 @@
   });
   function back() {
     if(state.t==='pick' && state.search){if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();go(Object.assign({},state,{search:false,query:''}),{replace:true});return true;}
-    if(state.t==='route'){go({t:state.chosen?'route':'pick',from:state.from,to:state.to,opt:state.opt||0,field:'to',focus:state.from},{replace:true});return true;}
+    if(state.t==='route'){
+      if(state.chosen)go({t:'route',from:state.from,to:state.to,opt:state.opt||0,rid:state.rid},{replace:true});
+      else go({t:'pick',from:state.from,to:state.to,field:'to',focus:state.from},{replace:true});
+      return true;
+    }
     if (state.t) { dismissAll(false); return true; } return false;
   }
 
@@ -484,20 +510,27 @@
     else if(act==='find-route'&&state.from&&state.to&&state.from!==state.to){go({t:'route',from:state.from,to:state.to,opt:0});}
     else if(act==='retry-route'){delete RC[state.from+'>'+state.to];render('retry');}
     else if (act === 'pickst') pickStation(b.getAttribute('data-n'));
-    else if (act === 'opt') { var i = +b.getAttribute('data-i'); state.opt = i; history.replaceState(state, '', urlFor(state)); var o = curRoute.opts[i]; sheet.pane.querySelectorAll('.ro').forEach(function (n, j) { n.classList.toggle('on', j === i); n.setAttribute('aria-pressed', j === i); }); drawRoute(o); reframe(sheet.visible); }
-    else if (act === 'go') { go({t:'route',from:state.from,to:state.to,opt:state.opt||0,chosen:true}); }
-    else if (act === 'change-route') { go({t:'route',from:state.from,to:state.to,opt:state.opt||0},{replace:true}); }
+    else if (act === 'opt') { var i = +b.getAttribute('data-i'), option=curRoute.opts[i]; state.opt = i;state.rid=option&&option.routeId||''; history.replaceState(state, '', urlFor(state)); var o = curRoute.opts[i]; sheet.pane.querySelectorAll('.ro').forEach(function (n, j) { n.classList.toggle('on', j === i); n.setAttribute('aria-pressed', j === i); }); drawRoute(o); reframe(sheet.visible); }
+    else if (act === 'go') { go({t:'route',from:state.from,to:state.to,opt:state.opt||0,rid:state.rid,chosen:true}); }
+    else if (act === 'change-route') { go({t:'route',from:state.from,to:state.to,opt:state.opt||0,rid:state.rid},{replace:true}); }
   });
 
   sheet.pane.addEventListener('input', function (e) { if (e.target.id === 'rpq') {state.query=e.target.value;fillPickList(e.target.value);} });
+  sheet.pane.addEventListener('keydown',function(e){
+    if(e.target.id!=='rpq'||e.key!=='Enter'||e.isComposing)return;
+    e.preventDefault();
+    var key=searchKey(e.target.value),other=state.field==='from'?state.to:state.from;
+    var matches=G.stations.filter(function(st){return st.id!==other&&searchKey(st.name).indexOf(key)>-1;});
+    var exact=matches.find(function(st){return searchKey(st.name)===key;});
+    if(exact||matches.length===1)pickStation((exact||matches[0]).name);
+  });
 
   /* entry points on the existing page chrome */
   var stack = $('#stack'), rbtn = $('#route');
   stack.href='index.html#all-lines';
   rbtn.addEventListener('click', function (e) {
-    e.preventDefault();var a=state.t==='station'?state.id:(draft&&draft.from),b=state.t==='station'?null:(draft&&draft.to),recording=window.DemoMode&&DemoMode.active&&!a;
-    go({t:'pick',from:a||null,to:b||null,field:a?'to':'from',focus:a||null,search:recording});
-    if(recording)focusSearchInput();
+    e.preventDefault();var a=state.t==='station'?state.id:(draft&&draft.from),b=state.t==='station'?null:(draft&&draft.to);
+    go({t:'pick',from:a||null,to:b||null,field:a?'to':'from',focus:a||null,search:false});
   });
   var bk = $('[data-back]'); if (bk) bk.addEventListener('click', function (e) { if (state.t) { e.stopImmediatePropagation(); back(); } }, true);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && state.t && !/INPUT/.test(e.target.tagName)) { back(); } });
@@ -508,6 +541,10 @@
     visualViewport.addEventListener('resize',holdSearch);
     visualViewport.addEventListener('scroll',holdSearch);
   }
+  window.addEventListener('tubecaststate',function(){
+    Object.keys(RC).forEach(function(key){var cached=RC[key];if(cached.rawOpts)cached.opts=rankOptions(cached.rawOpts);});
+    if(state.t==='route'&&RC[state.from+'>'+state.to])render('state');
+  });
   function setForecastMinute(minute){
     if(!consoleMode)return;
     minute=Math.max(0,Math.min(30,+minute||0));
@@ -522,7 +559,7 @@
   (function () {
     var p = new URLSearchParams(location.search), s = null;
     if (p.get('station') && G.byId[p.get('station')]) s = { t: 'station', id: p.get('station'),stationLine:p.get('stationLine') };
-    else if (p.get('route')) { var r = p.get('route').split(','); if (G.byId[r[0]] && G.byId[r[1]]) s = { t: 'route', from: r[0], to: r[1], opt: Math.max(0,parseInt(p.get('opt'),10)||0), chosen:p.get('chosen')==='1' }; }
+    else if (p.get('route')) { var r = p.get('route').split(','); if (G.byId[r[0]] && G.byId[r[1]]) s = { t: 'route', from: r[0], to: r[1], opt: Math.max(0,parseInt(p.get('opt'),10)||0), rid:p.get('rid')||'', chosen:p.get('chosen')==='1' }; }
     else if (p.get('dis') && FD.byId(p.get('dis'))) s = { t: 'dis', id: p.get('dis') };
     else if (p.get('pick')) s = { t: 'pick', from: G.byId[p.get('from')] ? p.get('from') : null, to: G.byId[p.get('to')] ? p.get('to') : null, field:/^(from|to)$/.test(p.get('field')||'')?p.get('field'):(p.get('from') ? 'to' : 'from'), focus: p.get('from') || p.get('to') || null, search:p.get('search')==='1' };
     else if (p.get('list')) { location.replace('index.html#all-lines'); return; }

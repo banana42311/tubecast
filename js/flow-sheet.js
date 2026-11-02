@@ -95,7 +95,19 @@
       }
     });
     root.style.touchAction='auto'; // only the handle/header captures vertical drag; content scrolls natively
-    window.addEventListener('shellfit', function () { if (!root.hidden && snap) { var P = pts(); paint(P[snap]); cb.onChange && cb.onChange(P[snap], true); } });
+    var fitFrame = 0;
+    window.addEventListener('shellfit', function () {
+      if (root.hidden || !snap) return;
+      cancelAnimationFrame(fitFrame);
+      /* shellfit fires while Safari is still committing visualViewport CSS.
+         Reflow on the next paint so the title and search field use the same
+         keyboard-height measurement as the phone shell. */
+      fitFrame = requestAnimationFrame(function () {
+        fitFrame = 0;
+        if (root.hidden || !snap) return;
+        api.reflow(snap);
+      });
+    });
     return api;
   }
   window.FlowSheet = { create: create };

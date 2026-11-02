@@ -24,7 +24,9 @@
       watch.classList.add('line-stack');
       watch.id='all-lines';
       watch.innerHTML='<div class="hd"><span>ALL LINES</span></div><div class="overview-search"><input type="search" placeholder="Search a station" aria-label="Search a station" autocomplete="off"><div class="sp" hidden></div></div><div class="directory-key"><div class="status-key"><span><i class="delay-dot now minor"></i>Now</span><span><i class="delay-dot next minor"></i>Next 30 min</span></div><div class="severity-key"><span>Minor</span><i aria-hidden="true"></i><span>Severe</span></div></div><div class="all-line-cards">'+['central','district','victoria','jubilee','bakerloo','hammersmith-city','piccadilly','metropolitan','waterloo-city','northern','circle','elizabeth'].map(LineCards.render).join('')+'</div>';
-      TCSearch.attach({input:watch.querySelector('input'),panel:watch.querySelector('.sp'),onPick:function(name){location.href='map.html?station='+TCSearch.kebab(name);}});
+      var disposeSearch=TCSearch.attach({input:watch.querySelector('input'),panel:watch.querySelector('.sp'),onPick:function(name,line){
+        var href=TCSearch.url(name,line);if(window.DemoMode&&DemoMode.active)href=DemoMode.url(href);location.href=href;
+      }});
       watch.addEventListener('click',function(e){
         var link=e.target.closest('a[href^="line.html?line="]');if(!link)return;
         e.preventDefault();o.onPick(new URL(link.href).searchParams.get('line'));
@@ -35,7 +37,7 @@
       var wrap = host.querySelector('#ringwrap'), P = { scroll: host.firstChild, active: false };
       var observer=null;
       if('IntersectionObserver' in window){observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){entry.target.classList.toggle('offscreen',!entry.isIntersecting);});},{root:P.scroll,rootMargin:'100px'});watch.querySelectorAll('.card').forEach(function(row){observer.observe(row);});}
-      P.destroy=function(){if(observer)observer.disconnect();};
+      P.destroy=function(){if(observer)observer.disconnect();if(disposeSearch)disposeSearch();};
       function wedge(e) {
         var r = wrap.getBoundingClientRect(), s = r.width / wrap.offsetWidth;
         var x = (e.clientX - r.left) / s - 183, y = (e.clientY - r.top) / s - 157;

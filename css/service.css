@@ -325,6 +325,29 @@ html.keyboard-open .pick-mode.pick-search .fs-t h2 { font-size:18px;line-height:
 html.keyboard-open .pick-mode.pick-search .fs-t p { font-size:11px;line-height:15px; }
 html.keyboard-open .pick-mode.pick-search .fs-back,html.keyboard-open .pick-mode.pick-search .fs-x { width:36px;height:36px; }
 html.keyboard-open .pick-mode.pick-search .rp-search input { height:46px;border:1px solid #ffffff18;background:#151c24; }
+
+/* The visual viewport is the usable screen while iPhone Safari's keyboard is
+   open. Keep global station search and its results inside that viewport. */
+html.mode-phone.keyboard-open.station-search-open .overview-search.on {
+  position:sticky;top:calc(8px + env(safe-area-inset-top,0px)/var(--s,1));z-index:70;
+}
+html.mode-phone.keyboard-open.station-search-open .overview-search.on .sp {
+  max-height:calc(var(--H,844px) - 68px - env(safe-area-inset-top,0px)/var(--s,1));
+  overscroll-behavior:contain;
+}
+html.mode-phone.keyboard-open.station-search-open .pg .bottomctl {
+  opacity:0;pointer-events:none;
+}
+html.mode-phone.keyboard-open.station-search-open .map-phone #sp {
+  max-height:calc(var(--H,844px) - var(--map-top,58px) - 56px);
+  overscroll-behavior:contain;
+}
+html.mode-phone.keyboard-open.station-search-open .map-phone .map-key,
+html.mode-phone.keyboard-open.station-search-open .map-phone .routebtn,
+html.mode-phone.keyboard-open.station-search-open .map-phone .stackbtn,
+html.mode-phone.keyboard-open.station-search-open .map-phone .zoomctl {
+  opacity:0;pointer-events:none;
+}
 .route-loading{font-size:0;display:grid;gap:10px;padding:10px 0}
 .route-loading:before,.route-loading:after{content:'';display:block;height:112px;border:1px solid #3b4755;border-radius:16px;background:linear-gradient(100deg,#2a3440 20%,#36424f 38%,#2a3440 56%);background-size:240% 100%;animation:routeSkeleton 1.05s linear infinite}
 .route-loading:after{height:92px;opacity:.7}

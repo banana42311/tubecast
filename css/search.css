@@ -11,8 +11,9 @@
 .sp-h{padding:8px 16px 4px;font-size:12px;font-weight:600;line-height:14px;letter-spacing:.2px;color:var(--sec);text-transform:uppercase}
 .sp-none{padding:14px 16px;font-size:15px;color:var(--sec)}
 .sp-r{display:flex;align-items:center;gap:10px;height:44px;padding:0 16px;color:#fff;text-decoration:none;font-size:17px;letter-spacing:-.374px}
-.sp-r i{width:4px;height:16px;border-radius:2px;flex:none}
-.sp-r span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-lines{display:flex;align-items:center;gap:2px;flex:none;min-width:4px}
+.sp-lines i{width:3px;height:16px;border-radius:2px;flex:none}
+.sp-r .sp-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-r b{font-weight:400;color:var(--sec);font-size:20px}
 .sp-r:hover,.sp-r:active{background:rgba(255,255,255,.08)}
 .sbox input::-webkit-search-cancel-button,.sbox input::-webkit-search-decoration{-webkit-appearance:none;display:none}

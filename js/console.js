@@ -49,18 +49,27 @@
     routeView.hidden=false;forecast.hidden=true;
   }
   function showForecast(){routeView.hidden=true;forecast.hidden=false;}
+  function routeError(message,field){
+    var error=document.getElementById('route-error');error.textContent=message||'';
+    ['route-from','route-to'].forEach(function(id){document.getElementById(id).parentElement.classList.toggle('invalid',field===id);});
+  }
   function checkRoute(){
     var api=mapAPI();if(!api)return;
-    var from=slugFor(document.getElementById('route-from').value),to=slugFor(document.getElementById('route-to').value);
-    if(!from||!to||from===to)return;
+    var fromField=document.getElementById('route-from'),toField=document.getElementById('route-to'),from=slugFor(fromField.value),to=slugFor(toField.value);
+    if(!from){routeError('Choose a station from the From list.','route-from');fromField.focus();return;}
+    if(!to){routeError('Choose a station from the To list.','route-to');toField.focus();return;}
+    if(from===to){routeError('Choose two different stations.','route-to');toField.focus();return;}
+    routeError('');
     api.go({t:'route',from:from,to:to,opt:0});syncRoute();
   }
   document.getElementById('route-form').addEventListener('submit',function(e){e.preventDefault();checkRoute();});
+  document.getElementById('route-form').addEventListener('input',function(){routeError('');});
   routePane.addEventListener('click',function(e){
     var a=e.target.closest('a[href]');if(a)return;
     var control=e.target.closest('[data-act]');if(!control)return;
-    var act=control.dataset.act;if(act==='back'||act==='close'||act==='edit-route'){showForecast();return;}
-    var api=mapAPI(),selector='[data-act="'+act+'"]'+(control.dataset.i!=null?'[data-i="'+control.dataset.i+'"]':''),original=api&&api.sheet&&api.sheet.pane.querySelector(selector);
+    var act=control.dataset.act,api=mapAPI(),selector='[data-act="'+act+'"]'+(control.dataset.i!=null?'[data-i="'+control.dataset.i+'"]':''),original=api&&api.sheet&&api.sheet.pane.querySelector(selector);
+    if(act==='edit-route'){showForecast();if(original)original.click();return;}
+    if(act==='back'||act==='close'){showForecast();return;}
     if(original){original.click();setTimeout(syncRoute,40);}
   });
 
@@ -71,7 +80,7 @@
 
   iframe.addEventListener('load',function(){
     var w=app();if(!w)return;
-    function ready(){if(!mapAPI())return setTimeout(ready,30);w.addEventListener('flowcontentchange',function(){if(!routeView.hidden)requestAnimationFrame(syncRoute);});if(new URLSearchParams(location.search).get('route')==='1')checkRoute();}
+    function ready(){if(!mapAPI())return setTimeout(ready,30);w.addEventListener('flowcontentchange',function(){if(!routeView.hidden)requestAnimationFrame(function(){if(!routeView.hidden)syncRoute();});});}
     ready();
   });
 })();

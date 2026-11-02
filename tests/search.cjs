@@ -1,0 +1,14 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const lines={central:{name:'Central',color:'#e1251b'},elizabeth:{name:'Elizabeth line',color:'#8c6cd1'},northern:{name:'Northern',color:'#fff'}};
+const context={window:{LINE_BY_SLUG:lines,StationCatalog:{Bank:{lines:['central','northern']}},TFL_NETWORK:{stations:[{name:'Abbey Wood',lines:['elizabeth']},{name:'Bank',lines:['central','northern']}]}}};
+context.window.window=context.window;
+vm.runInNewContext(fs.readFileSync('js/search.js','utf8'),context);
+const search=context.window.TCSearch;
+assert.equal(search.normalize("St. Paul's"),search.normalize('st pauls'));
+assert.equal(search.normalize('Elephant & Castle'),search.normalize('elephant and castle'));
+assert.deepEqual(Array.from(search.linesFor('Bank')),['central','northern']);
+assert.equal(search.primaryLine('Bank','northern'),'northern');
+assert.equal(search.primaryLine('Abbey Wood','central'),'elizabeth');
+assert.equal(search.url('Abbey Wood','elizabeth'),'map.html?station=abbey-wood&line=elizabeth');
+assert.equal(search.url('Abbey Wood','not-a-line'),'map.html?station=abbey-wood');
+console.log('PASS station normalization, memberships and valid search destinations');

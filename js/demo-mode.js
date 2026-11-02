@@ -1,5 +1,5 @@
-/* Deterministic, offline recording mode. It is active only for ?demo=commute
-   while apiBase is empty and always opens the complete recording snapshot. */
+/* Deterministic, offline commute demo. It is active only for ?demo=commute
+   while apiBase is empty and always opens the final scenario snapshot. */
 (function () {
   var C = window.TUBECAST_CONFIG || {}, p = new URLSearchParams(location.search);
   var active = !String(C.apiBase || '').trim() && p.get('demo') === 'commute';
@@ -9,7 +9,6 @@
     var bits = String(value).split('#'), u = new URL(bits[0], location.href);
     if (u.origin !== location.origin) return value;
     u.searchParams.set('demo', 'commute');
-    if (p.get('record') === '1') u.searchParams.set('record', '1');
     return u.pathname.replace(/^.*\//, '') + u.search + (bits[1] ? '#' + bits[1] : '');
   }
   function mount() {
