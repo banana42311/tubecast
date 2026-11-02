@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tubecast · Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){var p=new URLSearchParams(location.search);if(p.get('demo')!=='commute'){p.set('demo','commute');location.replace(location.pathname+'?'+p.toString());}})();</script>
+<link rel="stylesheet" href="css/console.css?v=20261102-c1">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+</head>
+<body>
+<div class="cx" id="cx">
+  <header class="cx-top">
+    <div class="brand"><b>TUBECAST</b><span>Delay forecasts for London’s lines</span></div>
+    <form class="routebar" id="routebar">
+      <label><i class="o"></i><span>From</span><b id="from">Stratford</b></label>
+      <em>→</em>
+      <label><i class="d"></i><span>To</span><b id="to">White City</b></label>
+      <button type="submit" id="check">Check route</button>
+    </form>
+    <div class="clock"><i></i><b id="clock">08:43</b><span id="upd">· updated just now</span><a href="about.html">How it works →</a></div>
+  </header>
+
+  <aside class="panel left" id="left"></aside>
+
+  <main class="mapwrap" id="mapwrap">
+    <svg id="map" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="legend">
+      <span><i class="k now"></i>Delayed now</span>
+      <span><i class="k sev"></i>Severe</span>
+      <span><i class="k ring"></i>May be delayed</span>
+      <span class="note">Filled = now · Ring = forecast, by station and direction</span>
+    </div>
+    <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button></div>
+    <div class="timebar">
+      <div class="tb-head"><b>TIME</b><span id="tbtext">Now shows reported delays. Slide ahead to see where it may get worse.</span></div>
+      <div class="tb-track" id="track">
+        <div class="tb-line"></div><div class="tb-fill" id="tbfill"></div>
+        <button data-h="0" class="on">Now <small id="tnow">08:43</small></button>
+        <button data-h="10">+10</button><button data-h="20">+20</button><button data-h="30">+30 min</button>
+      </div>
+    </div>
+  </main>
+
+  <aside class="panel right" id="right"></aside>
+  <div class="demo-chip">Example scenario</div>
+</div>
+
+<script src="config.js?v=20261102-state1"></script>
+<script src="assets/linemeta.js"></script>
+<script src="assets/network.js"></script>
+<script src="js/station-catalog.js"></script>
+<script src="assets/tfl-network.js"></script>
+<script src="assets/schematic-extension.js"></script>
+<script src="js/schematic-map.js"></script>
+<script src="js/tfl-map-network.js"></script>
+<script src="js/demo-mode-core.js"></script>
+<script src="data/demo/commute.js"></script>
+<script src="data/demo/journey_stratford_whitecity.js"></script>
+<script src="js/demo-mode.js"></script>
+<script src="js/state-model.js"></script>
+<script src="js/live-data.js"></script>
+<script src="js/journey-api.js"></script>
+<script src="js/route-risk.js"></script>
+<script src="js/console.js?v=20261102-c1"></script>
+</body>
+</html>
