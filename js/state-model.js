@@ -42,7 +42,8 @@
     });
     return function (row) {
       var id = String((row && row.naptan) || '').toUpperCase();
-      return (id && naptans[id]) || names[norm(row && row.station)] || null;
+      var alias = typeof window !== 'undefined' && window.TUBECAST_NAPTAN_NAMES && window.TUBECAST_NAPTAN_NAMES[id];
+      return (id && naptans[id]) || names[norm(row && row.station)] || (alias && names[norm(alias)]) || null;
     };
   }
 
