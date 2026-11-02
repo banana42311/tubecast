@@ -67,8 +67,9 @@ html.mode-phone .map-phone .stackbtn,html.mode-phone .map-phone .routebtn { bott
 #world svg.route .base { filter:none;opacity:.12; }
 #world svg.route .hl { opacity:0; }
 #world.route-focus .station-marker { opacity:.13;pointer-events:none; }
-.map-label-layer.route-focus .lbl { opacity:.12;pointer-events:none; }
-.map-label-layer.route-focus .lbl.route-label { opacity:1;color:#fff; }
+.map-label-layer.route-focus .lbl { opacity:0;visibility:hidden!important;pointer-events:none; }
+.map-label-layer.route-focus .lbl.route-label { opacity:1;visibility:visible!important;color:#fff; }
+.map-label-layer.route-focus .lbl.endpoint-label{opacity:0;visibility:hidden!important}
 .map-label-layer .lbl { font-family:var(--sf);font-size:11px;font-weight:600;text-shadow:0 0 3px #1a2029,0 0 6px #1a2029,0 1px 1px #1a2029; }
 .map-label-layer.zoom-wide .lbl { visibility:hidden; }
 .map-label-layer.zoom-wide .lbl.route-label { visibility:visible; }

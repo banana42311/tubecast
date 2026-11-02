@@ -133,7 +133,11 @@
       renderedK=k;
     }
     if(!reflow)return;
-    var occupied=[],vr=view.getBoundingClientRect(),scale=vr.width/VW;
+    var occupied=[],vr=view.getBoundingClientRect(),scale=vr.width/VW,routePoints=[];
+    if(svg.classList.contains('has-route'))svg.querySelectorAll('.rt-line').forEach(function(path){
+      var len=path.getTotalLength(),step=Math.max(4,10/k);for(var at=0;at<=len;at+=step){var p=path.getPointAtLength(at);routePoints.push([panX+p.x*k,panY+p.y*k]);}
+    });
+    function hitsRoute(x,y,w,h){return routePoints.some(function(p){return p[0]>x-4&&p[0]<x+w+4&&p[1]>y-4&&p[1]<y+h+4;});}
     /* Endpoint pills are in the map world. Clamp them only after camera motion
        settles; reading their rectangles on every pointer event forced layout. */
     world.querySelectorAll('.fend b,.fsel b').forEach(function(n){
@@ -145,6 +149,11 @@
     labels.slice().sort(function(a,b){return priority(b)-priority(a);}).forEach(function(l){
       var node=l.el,station=StationCatalog[l.n],w=l.width||(l.width=node.offsetWidth||l.w),x=panX+l.sx,y=panY+l.sy;
       var selected=node.classList.contains('route-label');
+      if(selected&&!node.classList.contains('endpoint-label')){
+        var ax=snap(station.x*S*k),ay=snap(station.y*S*k),choices=[[ax+10,ay-27],[ax+10,ay+11],[ax-w-10,ay-27],[ax-w-10,ay+11]],chosen=choices[0];
+        for(var ci=0;ci<choices.length;ci++){var c=choices[ci],cx=panX+c[0],cy=panY+c[1];if(!hitsRoute(cx,cy,w,15)&&!occupied.some(function(b){return cx<b.x+b.w+6&&cx+w+6>b.x&&cy<b.y+(b.h||18)&&cy+18>b.y;})){chosen=c;break;}}
+        l.sx=chosen[0];l.sy=chosen[1];node.style.transform='translate3d('+l.sx+'px,'+l.sy+'px,0)';x=panX+l.sx;y=panY+l.sy;
+      }
       var show=x>8&&x+w<VW-8&&y>125&&y<VH-24&&(selected||k>.38||station.terminal||station.lines.length>2);
       show=show&&!node.classList.contains('endpoint-label')&&!node.classList.contains('selected-label')&&!occupied.some(function(b){return x<b.x+b.w+6&&x+w+6>b.x&&y<b.y+(b.h||18)&&y+18>b.y;});
       node.style.visibility=show?'visible':'hidden';if(show)occupied.push({x:x,y:y,w:w});

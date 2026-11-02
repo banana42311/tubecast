@@ -109,3 +109,11 @@ python3 -m http.server 8765 --bind 127.0.0.1
 - Liverpool Street’s station sheet opens this fixed comparison through **See a way around**. Search mode uses the visual viewport, opens the sheet fully and focuses without scrolling the page.
 - Route loading has a skeleton; selection fits and draws the route, runs a single journey dot and pulses Bond Street. Direction-specific delay markers sit on the corresponding side of the line and forecast rings fade in in order.
 - `tests/demo.cjs` verifies all three stage counts, the walk-free line sequence, the recommendation order and the expected 8–15 minute Central impact.
+
+## Route map motion and label stability
+
+- **Cause:** route mode kept every intermediate station label and left the background labels faintly visible, so names competed with the highlighted route. It now hides background names and retains only the endpoint pills, the interchange and a matching affected station when one lies on the chosen leg.
+- **Cause:** retained route labels all used one fixed upper-right offset, which could put text directly on a diagonal line. The label pass now samples the drawn route and tries four pixel-aligned positions outside both route and occupied-label bounds.
+- **Cause:** forecast severity was derived from the probability tier even when it was the same minor incident moving along one direction, so propagated rings could turn red. Propagated stations now retain the current incident severity while the ring still communicates that they are forecast.
+- Labels remain in a screen-space HTML layer while the vector network zooms underneath. The world and label canvas commit in the same animation frame, camera translations snap to device pixels and route mode avoids per-pointer layout reads.
+- 390×844 route screenshots at 1×, 2× and 4× are stored in `exports/`. Browser checks report native-size label text at zoom 1/3/6, stable visibility during camera movement and complete access to all 299 stations and the outer map boundary.

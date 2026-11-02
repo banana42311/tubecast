@@ -95,7 +95,7 @@
         var all = g.now.concat(next), sev = g.severity || g.predictedSeverity || 'minor';
         disruptions.push({
           id: slug + '-' + norm(dir).replace(/ /g, '-'), line: slug, sev: sev,
-          nextSev: g.predictedSeverity || sev, from: all[0], to: all[all.length - 1], direction: dir,
+          nextSev: g.severity || g.predictedSeverity || sev, from: all[0], to: all[all.length - 1], direction: dir,
           cause: tfl.reason || tfl.cause || 'Longer gaps between trains',
           detail: g.reasons.length ? 'Prediction signal: ' + g.reasons.join(', ') : (next.length ? 'Delay risk is moving through the stations ahead.' : 'No additional stations predicted.'),
           gap: g.gap ? Math.round(g.gap) + ' min gap' : '', prob: percent(info.p30),

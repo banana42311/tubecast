@@ -163,7 +163,10 @@
     } else if (state.t === 'route') {
       var o = curRoute && curRoute.opts[state.opt || 0]; if (!o) { cam.fit(bboxOf([[G.byId[state.from].x, G.byId[state.from].y], [G.byId[state.to].x, G.byId[state.to].y]], 20), { t: 165, b: vis + 65, l: 90, r: 100 }, 2.6); return; }
       var pts = []; o.r.legs.forEach(function (l) { l.pts.forEach(function (p) { pts.push(p); }); });
-      if(!pts.length)pts=[[G.byId[state.from].x,G.byId[state.from].y],[G.byId[state.to].x,G.byId[state.to].y]];cam.fit(bboxOf(pts, 6), { t: 165, b: vis + 65, l: 90, r: 100 }, 2.6);
+      if(!pts.length)pts=[[G.byId[state.from].x,G.byId[state.from].y],[G.byId[state.to].x,G.byId[state.to].y]];
+      var requested=window.DemoMode&&DemoMode.active?parseFloat(new URLSearchParams(location.search).get('demoZoom')):0;
+      if(requested===1||requested===2||requested===4){var rb=bboxOf(pts,6);cam.flyTo((rb.x0+rb.x1)/2,(rb.y0+rb.y1)/2,requested,c.VW/2,Math.max(190,(c.VH-vis)/2));}
+      else cam.fit(bboxOf(pts, 6), { t: 165, b: vis + 65, l: 90, r: 100 }, 2.6);
     } else if (state.t === 'dis') {
       var z = dzById(state.id); if (!z) return;
       cam.fit(bboxOf(z.seg.pts, 10), { t: 120, b: vis + 28, l: 50, r: 50 }, 2.2);
@@ -300,7 +303,11 @@
     var A = o.r.from, B = o.r.to;
     routeMk.push(wdiv('fend a', A.x, A.y, '<i></i><b>' + esc(A.name) + '</b>'), wdiv('fend b', B.x, B.y, '<i></i><b>' + esc(B.name) + '</b>'));
     for (var i = 1; i < legs.length; i++) { var p0 = legs[i].pts[0]; if(!p0)continue;routeMk.push(wdiv('fxfer', p0[0], p0[1])); }
-    var names=new Set([A.name,B.name]); legs.forEach(function(l){l.stops.forEach(function(st){names.add(st.name);});});
+    var names=new Set([A.name,B.name]);
+    legs.forEach(function(l,i){
+      if(i<legs.length-1&&l.stops.length)names.add(l.stops[l.stops.length-1].name);
+      l.stops.forEach(function(st){if(FD.atStation(st.name).some(function(item){return item.d.line===l.line;}))names.add(st.name);});
+    });
     labelNodes('.lbl').forEach(function(n){n.classList.toggle('route-label',names.has(n.dataset.st));n.classList.toggle('endpoint-label',n.dataset.st===A.name || n.dataset.st===B.name);});
     C.refreshLabels && C.refreshLabels();
     focusLines(o.r.legs.map(function (l) { return l.line; }), 'route');
