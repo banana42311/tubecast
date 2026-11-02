@@ -10,9 +10,9 @@
     root.innerHTML = '<div class="fs-grab" aria-hidden="true"><i></i></div><div class="fs-scroll"><div class="fs-pane"></div></div>';
     phone.appendChild(root);
     var scroller = root.querySelector('.fs-scroll'), pane = root.querySelector('.fs-pane');
-    var VH = 844, vis = 0, snap = null, sp = null, dismissible = true, busy = null;
+    var VH = 844, vis = 0, snap = null, sp = null, dismissible = true, peekHeight = null, busy = null;
 
-    function pts() { VH = phone.clientHeight || 844; return { compact: Math.min(330,VH*.48), peek: dismissible ? Math.min(168,VH*.24) : Math.min(330,VH*.48), mid: Math.round(VH * (VH < 700 ? .62 : .5)), full: Math.max(160, VH - 76) }; }
+    function pts() { VH = phone.clientHeight || 844; return { compact: Math.min(330,VH*.48), peek: peekHeight || (dismissible ? Math.min(168,VH*.24) : Math.min(330,VH*.48)), mid: Math.round(VH * (VH < 700 ? .62 : .5)), full: Math.max(160, VH - 76) }; }
     function paint(v) { vis = v; root.style.transform = 'translate3d(0,' + (VH - v) + 'px,0)'; cb.onChange && cb.onChange(v, false); }
     function animate(to, vel, done) {
       if (sp) sp.stop();
@@ -29,11 +29,11 @@
       get isOpen() { return !root.hidden; },
       points: pts,
       snapTo: function (name, vel) {
-        var P = pts(); snap = name; setScroll(); root.classList.toggle('full', name === 'full');
+        var P = pts(); snap = name; setScroll(); root.classList.toggle('full', name === 'full');root.classList.toggle('peek',name === 'peek');
         cb.onTarget && cb.onTarget(P[name]); animate(P[name], vel);
       },
       open: function (html, name, opts) {
-        opts = opts || {}; dismissible = opts.dismissible !== false;
+        opts = opts || {}; dismissible = opts.dismissible !== false;peekHeight=opts.peekHeight||null;
         var was = !root.hidden; root.hidden = false; pts();
         if (!was) { vis = 0; root.style.transform = 'translate3d(0,' + VH + 'px,0)'; }
         if (html != null) this.setContent(html, was && !opts.instant);

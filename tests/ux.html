@@ -8,6 +8,10 @@ try{
 let w=await load('../map.html?station=holborn');await pause();let d=w.document,F=w.FlowMap;
 assert(!!F,'map initializes');assert(!d.querySelector('.fit-network'),'Fit control removed');assert(d.querySelector('.service-nav a').getAttribute('href')==='index.html#overview','Overview link skips splash');assert(w.TFL_NETWORK.stations.length===299,'complete Tube and Elizabeth station catalogue');assert(!w.TFLMap&&w.SCHEMATIC_MAP,'schematic layout instead of geographic projection');assert(Object.keys(w.StationCatalog).length===299,'complete schematic catalogue');assert(w.StationCatalog.Holborn.lines.length===2,'official interchange membership');
 assert(!d.querySelector('#world svg .base image'),'zoomable map stays inline vector');
+assert(d.querySelectorAll('.direction-light animate').length===0,'direction flow has no dotted tail');assert(d.querySelectorAll('animateMotion').length>0,'soft light follows continuous line geometry');
+const anchor=w.StationCatalog['Southwark'],cam=w.MapCtx.cam;
+for(const zoom of [1,3,6]){cam.flyTo(anchor.x*w.MapCtx.S,anchor.y*w.MapCtx.S,zoom,150,280,.1);await pause();const label=d.querySelector('.lbl[data-st="Southwark"]');assert(Math.abs((parseFloat(label.style.top)-anchor.y*w.MapCtx.S)*zoom+24)<1,'label offset stays anchored at zoom '+zoom);}
+
 assert(getComputedStyle(d.querySelector('#chip')).display==='none','line summary removed from map');
 d.querySelector('[data-act="station-line"][data-line="piccadilly"]').click();
 assert(F.state().stationLine==='piccadilly','interchange line choice stays within station');
@@ -22,7 +26,10 @@ d.querySelector('[data-act="search-pick"]').click();let q=d.querySelector('#rpq'
 assert(F.state().t==='pick'&&F.state().from==='holborn'&&F.state().to==='bank','destination waits for explicit route request');
 w.JourneyAPI.plan=async(A,B)=>[{r:{from:A,to:B,transfers:1,legs:[{line:'central',pts:[[A.x,A.y],[B.x,B.y]],stops:[{name:A.name},{name:'Chancery Lane'},{name:B.name}],duration:5,instruction:'Central line',departure:'2026-11-02T10:00:00',disruptions:[]},{line:'circle',pts:[[B.x,B.y]],stops:[{name:B.name}],duration:1,instruction:'Circle line',disruptions:[]}]},min:6,extra:0,stops:3,tag:'TfL recommended',departure:'2026-11-02T10:00:00',arrival:'2026-11-02T10:06:00'}];
 d.querySelector('[data-act="find-route"]').click();await pause();assert(F.state().t==='route','explicit Find routes loads provider journeys');
-d.querySelector('[data-act="go"]').click();assert(d.querySelector('.leg-stops').textContent.includes('Chancery Lane'),'selected route includes intermediate stations');
+const grab=F.sheet.el.querySelector('.fs-grab'),gr=grab.getBoundingClientRect();
+for(const [type,y] of [['pointerdown',gr.top+5],['pointermove',gr.top+60],['pointermove',gr.top+430],['pointerup',gr.top+430]])grab.dispatchEvent(new w.PointerEvent(type,{pointerId:41,clientX:190,clientY:y,bubbles:true,button:0}));
+await pause();assert(F.state().t==='route'&&d.querySelectorAll('.rt-line').length>0,'route preview survives collapsed sheet');assert(d.querySelector('.route-expand').offsetHeight>0,'collapsed route has a visible reopen button');d.querySelector('[data-act="expand-route"]').click();await pause();
+d.querySelector('[data-act="go"]').click();F.sheet.snapTo('peek');await pause();assert(F.state().chosen&&d.querySelectorAll('.rt-line').length>0,'chosen route survives collapsed sheet');d.querySelector('[data-act="expand-route"]').click();await pause();assert(d.querySelector('.leg-stops').textContent.includes('Chancery Lane'),'selected route includes intermediate stations');
 F.go({t:'route',from:'bow-road',to:'ladbroke-grove',opt:0,chosen:true});await pause();
 assert(d.querySelector('.journey-steps').textContent.includes('Change at'),'selected multi-line route names interchange');
 w.JourneyAPI.plan=async()=>{throw Error('TfL is busy. Please try again shortly.');};

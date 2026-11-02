@@ -116,3 +116,10 @@ Overview의 링 아래에 전체 노선 목록을 통합했습니다. 기존 `li
 - Search advances from origin to destination, with a dedicated back-to-map action. Both endpoints remain visible before Find routes. Equal endpoints do not erase the other field. Closing and reopening the planner retains a draft within the current map page.
 - Route results can return to endpoint editing, including after an API failure. Selected journeys prioritize transfer summaries and offer expandable stop lists. Times explicitly identify London time and exclude waiting before departure.
 - Validated browser UX regression suite, mobile layout, real TfL Bank–Holborn response, release links and motion checks. Physical iPhone keyboard/gesture testing is still required.
+
+## 2026-11-02 — map anchors, flow and persistent route sheet
+- Map labels now use canonical station coordinates with fixed screen-space offsets at every zoom. Route labels participate in collision checks and avoid endpoint badges.
+- Two-line stations use perpendicular rounded connectors; other station/status symbols retain their visual language. Removed the legacy nearest-segment adjustment on the complete schematic so labels and markers share an anchor.
+- Replaced the segmented dot trail with a soft masked light moving continuously along the branch, tinted with its line colour. The mask bounds are local to each branch.
+- Preview and selected route sheets collapse to a 148px summary instead of dismissing the route. Show journey details reopens the sheet; explicit Close still exits the journey.
+- Browser regressions cover 1x/3x/6x label offsets, downward sheet drag, preview/selected route preservation, and reopening.

@@ -218,7 +218,7 @@
     if(warmedMap||document.hidden)return;
     var connection=navigator.connection;if(connection&&(connection.saveData||/2g/.test(connection.effectiveType)))return;
     warmedMap=true;
-    var urls=[$('btnmap').getAttribute('data-href'),'css/search.css?v=20261102-journey11','css/map.css?v=20261102-journey11','css/flow.css?v=20261102-journey11','js/search.js?v=20261102-journey11','js/map-page.js?v=20261102-journey11','assets/schematic-samples.js?v=20261102-journey11','js/flow-geo.js?v=20261102-journey11','js/flow-sheet.js?v=20261102-journey11','js/flow-map.js?v=20261102-journey11'];
+    var urls=[$('btnmap').getAttribute('data-href'),'css/search.css?v=20261102-map12','css/map.css?v=20261102-map12','css/flow.css?v=20261102-map12','js/search.js?v=20261102-map12','js/map-page.js?v=20261102-map12','assets/schematic-samples.js?v=20261102-map12','js/flow-geo.js?v=20261102-map12','js/flow-sheet.js?v=20261102-map12','js/flow-map.js?v=20261102-map12'];
     urls.forEach(function(url){fetch(url,{cache:'force-cache',credentials:'same-origin',priority:'low'}).catch(function(){});});
   }
   $('btnmap').addEventListener('pointerenter',warmMap,{once:true});

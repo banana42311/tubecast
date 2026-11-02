@@ -13,7 +13,7 @@
   function el(t, a, p) { return C.el(t, a, p); }
   function lineName(sl) { if(sl==='walking')return 'Walk';return (LBS[sl] && LBS[sl].name || sl).replace(/ line$/, ''); }
   function lineCol(sl) { return (LBS[sl] && LBS[sl].color) || '#7c8794'; }
-  if(!window.TFLMap)G.stations.forEach(function(st){
+  if(!window.TFLMap && !window.SCHEMATIC_MAP)G.stations.forEach(function(st){
     var cat=StationCatalog[st.name];if(!cat||!st.lines.length)return;
     var x=cat.x*S,y=cat.y*S,best=null,dist=Infinity;
     st.lines.forEach(function(line){var id=st.nodes[line],n=G.nodes[id];[-1,1].forEach(function(step){var b=G.nodes[id+step];if(!b||b.l!==line||Math.hypot(n.x-b.x,n.y-b.y)>14)return;var dx=b.x-n.x,dy=b.y-n.y,t=Math.max(0,Math.min(1,((x-n.x)*dx+(y-n.y)*dy)/(dx*dx+dy*dy||1)));var q={x:n.x+t*dx,y:n.y+t*dy},d=Math.hypot(q.x-x,q.y-y);if(d<dist){best=q;dist=d;}});});
@@ -35,7 +35,13 @@
   var DZ = [];
   G.stations.forEach(function(st){
     var items=FD.atStation(st.name),current=items.filter(function(i){return i.k==='now';}),future=items.filter(function(i){return i.k==='next';});
-    wdiv('station-base',st.x,st.y,'<i></i>');
+    var base=wdiv('station-base'+(st.lines.length===2?' interchange':''),st.x,st.y,'<i></i>');
+    if(st.lines.length===2){
+      var angle=0,votes=[0,0,0,0],cat=StationCatalog[st.name];
+      ((window.SCHEMATIC_EXTENSION||{paths:{}}).paths[st.lines[0]]||[]).forEach(function(edge){edge.points.slice(1).forEach(function(b,i){var a=edge.points[i],dx=b[0]-a[0],dy=b[1]-a[1],len=dx*dx+dy*dy;if(!len)return;var t=Math.max(0,Math.min(1,((cat.x-a[0])*dx+(cat.y-a[1])*dy)/len)),dist=Math.hypot(cat.x-a[0]-t*dx,cat.y-a[1]-t*dy);if(dist<8){var bucket=((Math.round(Math.atan2(dy,dx)*4/Math.PI)%4)+4)%4;votes[bucket]+=Math.sqrt(len)/(dist+2);}});});
+      angle=votes.indexOf(Math.max.apply(null,votes))*45;base.style.setProperty('--station-angle',angle+'deg');
+    }
+
     ['now','next'].forEach(function(kind){var items=kind==='now'?current:future;if(!items.length)return;
       var sev=items.some(function(i){return (kind==='now'?i.d.sev:i.d.nextSev)==='severe';})?'severe':'minor';
       var html=kind==='now'?'<span class="nowglow '+sev+'"></span><span class="nowdot '+sev+'"></span>':'<span class="pred '+sev+'" style="--s:.85"><i class="g"></i><i class="p"></i><i class="c"></i></span>';
@@ -54,11 +60,15 @@
     d.branches.forEach(function(branch){
       var path=G.stretch(d.line,kebab(branch.from),kebab(branch.to));if(!path)return;
       el('path',{d:dOf(path.pts),'class':'dz-glow',stroke:lineCol(d.line)},group);
-      var beam=el('g',{'class':'direction-light','data-kind':'next'},group),duration=Math.max(2.4,Math.min(4,path.pts.length*.045));
-      for(var tail=0;tail<9;tail++){
-        var part=el('path',{d:dOf(path.pts),pathLength:100,fill:'none',stroke:SEVCOL[d.nextSev],'stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round','stroke-dasharray':'2 98','stroke-dashoffset':tail*1.7,opacity:(9-tail)/11},beam);
-        el('animate',{attributeName:'stroke-dashoffset',from:tail*1.7,to:tail*1.7-100,dur:duration+'s',repeatCount:'indefinite'},part);
-      }
+      var beam=el('g',{'class':'direction-light','data-kind':'next'},group),duration=Math.max(2.8,Math.min(4.5,path.pts.length*.05));
+      var mid='flow-mask-'+d.id+'-'+d.branches.indexOf(branch),grad=mid+'-soft';
+      var rg=el('radialGradient',{id:grad},C.defs);
+      [[0,1],[.35,.7],[1,0]].forEach(function(v){el('stop',{offset:v[0],'stop-color':'white','stop-opacity':v[1]},rg);});
+      var mb=bboxOf(path.pts,40);var mask=el('mask',{id:mid,maskUnits:'userSpaceOnUse',x:mb.x0,y:mb.y0,width:mb.x1-mb.x0,height:mb.y1-mb.y0},C.defs);
+      var light=el('circle',{r:32,fill:'url(#'+grad+')'},mask);
+      el('animateMotion',{path:dOf(path.pts),dur:duration+'s',repeatCount:'indefinite',calcMode:'paced'},light);
+      el('path',{d:dOf(path.pts),stroke:lineCol(d.line),'stroke-width':8,opacity:.4,mask:'url(#'+mid+')'},beam);
+      el('path',{d:dOf(path.pts),stroke:'#fff7e9','stroke-width':2.4,opacity:.85,mask:'url(#'+mid+')'},beam);
       path.ids.forEach(function(i){set[i]=1;});
     });
     DZ.push({d:d,seg:seg || {pts:[],ids:[]},set:set});
@@ -126,9 +136,9 @@
       if (snapFull) return;
       cam.flyTo(st.x, st.y, M_clamp(Math.max(c.k, 1.5), 1.5, 2.6), c.VW / 2, Math.max(230, 206 + (c.VH - vis - 206) * .5));
     } else if (state.t === 'route') {
-      var o = curRoute && curRoute.opts[state.opt || 0]; if (!o) { cam.fit(bboxOf([[G.byId[state.from].x, G.byId[state.from].y], [G.byId[state.to].x, G.byId[state.to].y]], 20), { t: 126, b: vis + 30, l: 70, r: 70 }, 2.6); return; }
+      var o = curRoute && curRoute.opts[state.opt || 0]; if (!o) { cam.fit(bboxOf([[G.byId[state.from].x, G.byId[state.from].y], [G.byId[state.to].x, G.byId[state.to].y]], 20), { t: 165, b: vis + 65, l: 90, r: 100 }, 2.6); return; }
       var pts = []; o.r.legs.forEach(function (l) { l.pts.forEach(function (p) { pts.push(p); }); });
-      if(!pts.length)pts=[[G.byId[state.from].x,G.byId[state.from].y],[G.byId[state.to].x,G.byId[state.to].y]];cam.fit(bboxOf(pts, 6), { t: 126, b: vis + 30, l: 70, r: 70 }, 2.6);
+      if(!pts.length)pts=[[G.byId[state.from].x,G.byId[state.from].y],[G.byId[state.to].x,G.byId[state.to].y]];cam.fit(bboxOf(pts, 6), { t: 165, b: vis + 65, l: 90, r: 100 }, 2.6);
     } else if (state.t === 'dis') {
       var z = dzById(state.id); if (!z) return;
       cam.fit(bboxOf(z.seg.pts, 10), { t: 120, b: vis + 28, l: 50, r: 50 }, 2.2);
@@ -308,12 +318,12 @@
       var key=state.from+'>'+state.to;
       if(!RC[key]||(!state.chosen&&prev!=='loaded'&&prev!=='route'&&Date.now()-RC[key].fetchedAt>60000)){
         hideSel();clearRouteDraw();clearFocus();curRoute=null;
-        sheet.open(head('Finding routes','Checking current TfL journey options',true)+'<div class="route-loading" role="status">Connecting to TfL…</div>','mid');loadJourney(key);return;
+        sheet.open(head('Finding routes','Checking current TfL journey options',true)+'<div class="route-loading" role="status">Connecting to TfL…</div>','mid',{dismissible:false,peekHeight:148});loadJourney(key);return;
       }
       curRoute = RC[key]; hideSel();
       if (!curRoute.opts[state.opt||0]) state.opt=0;
       var o = curRoute.opts[state.opt || 0]; if (o) drawRoute(o); else clearRouteDraw();
-      sheet.open(routeHTML(curRoute), 'mid');
+      sheet.open(routeHTML(curRoute)+'<button class="route-expand" data-act="expand-route">Show journey details</button>', 'mid', {dismissible:false,peekHeight:148});
     } else if (state.t === 'dis') {
       var dd = FD.byId(state.id); if (!dd) return; clearRouteDraw(); hideSel(); focusLines([dd.line]);
       sheet.open(disHTML(dd), 'mid');
@@ -373,6 +383,7 @@
     if (act === 'close') { state.t === 'list' ? history.back() : dismissAll(false); }
     else if(act==='station-line'){state.stationLine=b.dataset.line;history.replaceState(state,'',urlFor(state));sheet.setContent(stationHTML(G.byId[state.id]));focusLines([state.stationLine]);}
     else if(act==='search-pick'){state.search=!state.search;state.query='';history.replaceState(state,'',urlFor(state));render('pick');if(state.search)$('#rpq',sheet.pane).focus();}
+    else if(act==='expand-route')sheet.snapTo('mid');
     else if (act === 'back') back();
     else if (act === 'dis') go({ t: 'dis', id: b.getAttribute('data-id') });
     else if (act === 'route-to') go({t:'pick',to:state.id,field:'from',focus:state.id});

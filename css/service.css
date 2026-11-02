@@ -315,3 +315,23 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .arrival-later b{font-size:14px;font-weight:550;color:#dbe3eb}.arrival-later i{font-style:normal;color:#788795}
 #world .fend,#world .fsel{z-index:9}
 #world .fend b{top:-36px}
+
+/* Anchored interchange connector, perpendicular to the shared corridor. */
+.station-base.interchange{transform:rotate(var(--station-angle,0deg))}
+.station-base.interchange>i{width:calc(10px * var(--ms));height:calc(6px + 12px * var(--ms));left:calc(-5px * var(--ms));top:calc(-3px - 6px * var(--ms));border-radius:999px;background:#eaf0f5;border:calc(2px * var(--ms)) solid #151c24}
+.route-expand{display:none}
+.route-mode.peek .fs-pane>*{display:none}
+.route-mode.peek .fs-pane>.fs-head,.route-mode.peek .fs-pane>.route-expand{display:flex;flex:none}
+.route-mode.peek .fs-head{margin-bottom:6px}
+.route-mode.peek .fs-head h2{font-size:17px;line-height:21px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.route-mode.peek .fs-head p{font-size:11px;line-height:15px}
+.route-expand{align-items:center;justify-content:center;min-height:40px;width:100%;border:1px solid #ffffff20;border-radius:12px;color:#a3e2db;background:#293c44;font:600 13px system-ui}
+#world .fend b,#world .fsel b{top:0;transform:translate(-50%,calc(-100% - 18px)) scale(var(--ms));transform-origin:50% 100%}
+
+#world .fend,#world .fsel{transform:scale(var(--ms));transform-origin:0 0}
+#world .fend b,#world .fsel b{top:-18px;transform:translate(-50%,-100%);transform-origin:50% 100%}
+#world .fend i{transform:none}
+#world .fsel i{animation:anchorPulse 1.8s ease-out infinite}
+#world .fsel i+i{animation-delay:.9s}
+@keyframes anchorPulse{from{opacity:.8;transform:scale(.65)}to{opacity:0;transform:scale(1.4)}}
+@media(prefers-reduced-motion:reduce){#world .fsel i{animation:none;transform:none}}
