@@ -13,7 +13,9 @@
     var end=clean(l.arrivalPoint.commonName);if(stops[stops.length-1].name!==end)stops.push({name:end,id:l.arrivalPoint.naptanId});
     var pts=[];if(window.SchematicJourney){pts=SchematicJourney.points(line,stops);}else try{pts=JSON.parse((l.path||{}).lineString||'[]').map(function(p){return TFLMap.project(p[0],p[1]);});}catch(e){}
     if(!pts.length&&!window.SchematicJourney){var a=point(l.departurePoint),b=point(l.arrivalPoint);if(a)pts.push(a);if(b)pts.push(b);}
-    return {line:line,pts:pts,ids:[],stops:stops,walking:line==='walking',duration:l.duration,departure:l.departureTime,arrival:l.arrivalTime,instruction:(l.instruction||{}).summary||'',detail:(l.instruction||{}).detailed||'',disruptions:(l.disruptions||[]).map(function(d){return d.description||d.summary||'';}).filter(Boolean)};
+    var directionText=((l.routeOptions||[]).map(function(r){return (r.directions||[]).join(' ');}).join(' ')+' '+((l.instruction||{}).summary||'')+' '+((l.instruction||{}).detailed||''));
+    var direction=(directionText.match(/\b(Northbound|Southbound|Eastbound|Westbound)\b/i)||[])[1]||'';if(direction)direction=direction.charAt(0).toUpperCase()+direction.slice(1).toLowerCase();
+    return {line:line,direction:direction,pts:pts,ids:[],stops:stops,walking:line==='walking',duration:l.duration,departure:l.departureTime,arrival:l.arrivalTime,instruction:(l.instruction||{}).summary||'',detail:(l.instruction||{}).detailed||'',disruptions:(l.disruptions||[]).map(function(d){return d.description||d.summary||'';}).filter(Boolean)};
    });
    var transit=legs.filter(function(l){return !l.walking;});
    return {r:{from:A,to:B,legs:legs,transfers:Math.max(0,transit.length-1)},tag:index===0?'TfL recommended':'Alternative',min:j.duration,extra:0,cr:[],departure:j.startDateTime,arrival:j.arrivalDateTime,stops:transit.reduce(function(n,l){return n+Math.max(0,l.stops.length-1);},0),source:'TfL'};

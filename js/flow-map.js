@@ -181,13 +181,14 @@
     return Math.abs(b.x - a.x) >= Math.abs(b.y - a.y) ? ['Westbound', 'Eastbound'] : ['Southbound', 'Northbound'];
   }
   function statusRow(st) {
-    var items=FD.atStation(st.name).filter(function(i){return i.d.line===state.stationLine;}),now=items.filter(function(i){return i.k==='now';}),next=items.filter(function(i){return i.k==='next';});
-    function row(title,items,kind){
-      if(!items.length)return '<div class="station-status-row"><span class="delay-dot '+kind+' good"></span><div><small>'+title+'</small><b>'+(kind==='now'?'No reported station delay':'No additional delay predicted')+'</b></div></div>';
-      return items.map(function(i){var sev=kind==='now'?i.d.sev:i.d.nextSev;return '<button class="station-status-row" data-act="dis" data-id="'+i.d.id+'"><span class="delay-dot '+kind+' '+sev+'"></span><div><small>'+title+' · '+esc(lineName(i.d.line))+'</small><b>'+FD.SEV[sev]+(kind==='next'?' · '+i.d.prob:'')+'</b><small>'+esc(i.d.direction)+'</small></div><span>›</span></button>';}).join('');
-    }
+    var station=(window.LiveState&&LiveState.stationState&&LiveState.stationState[st.name])||{},byDir=station[state.stationLine]||{},records=Object.keys(byDir).map(function(k){return byDir[k];});
+    function reason(r){return r==='upstream'?'delay observed at stations ahead':(r||'network conditions');}
+    function currentRows(){var rows=records.filter(function(r){return r.now;});if(!rows.length)return '<div class="station-status-row"><span class="delay-dot now good"></span><div><small>Current delay</small><b>No reported station delay</b></div></div>';
+      return rows.map(function(r){return '<div class="station-status-row"><span class="delay-dot now '+r.now.level+'"></span><div><small>Current delay · '+esc(r.dir)+'</small><b>'+(r.now.usualMin!=null&&r.now.gapMin!=null?'Usual '+Math.round(r.now.usualMin)+' min → now '+Math.round(r.now.gapMin)+' min':(r.now.level==='severe'?'Severe delay':'Minor delay'))+'</b></div></div>';}).join('');}
+    function predictedRows(){var rows=records.filter(function(r){return r.predicted;});if(!rows.length)return '<div class="station-status-row"><span class="delay-dot next good"></span><div><small>Predicted delay</small><b>No additional delay predicted</b></div></div>';
+      return rows.map(function(r){var p=r.predicted,label=p.risk==='high'?'High chance within 30 min':'Caution within 30 min';return '<div class="station-status-row"><span class="delay-dot next '+(p.risk==='high'?'severe':'minor')+'"></span><div><small>Predicted delay · '+esc(r.dir)+'</small><b>'+label+' ('+Math.round(p.probability*100)+'%)</b><small>Signal: '+esc(reason(p.reason))+'</small></div></div>';}).join('');}
     var lineAlerts=[];[state.stationLine].forEach(function(l){FD.forLine(l).forEach(function(d){lineAlerts.push(d);});});
-    return '<div class="station-status">'+row(lineName(state.stationLine)+' · at this station now',now,'now')+row('Next 30 minutes',next,'next')+'</div>'+
+    return '<div class="station-status">'+currentRows()+predictedRows()+'</div>'+
       (lineAlerts.length?'<div class="line-alerts"><small>LINE-WIDE STATUS</small>'+lineAlerts.map(function(d){var sum=FD.summary(d.line);return '<button data-act="dis" data-id="'+d.id+'"><i style="background:'+lineCol(d.line)+'"></i>'+esc(lineName(d.line))+'<span>'+sum.now+' now · '+sum.total+' in 30 min ›</span></button>';}).join('')+'</div>':((LBS[state.stationLine]||{}).status==='closed'?'<div class="line-alerts"><small>LINE-WIDE STATUS</small><a href="line.html?line='+state.stationLine+'">'+esc(lineName(state.stationLine))+' · '+(state.stationLine==='waterloo-city'?'Not running':'Part closure')+' · View details ›</a></div>':''));
   }
   function stationHTML(st) {
@@ -197,11 +198,11 @@
       dirs += '<section class="arrival-card" aria-label="'+esc(n)+' example arrivals"><h3>'+esc(n)+'</h3><div class="arrival-next"><b>'+(t[0]===0?'Due':t[0])+'</b>'+(t[0]===0?'':'<span>min</span>')+'<small>Next train</small></div><div class="arrival-later"><span>Then</span><b>'+t[1]+'</b><i>·</i><b>'+t3+'</b><span>min</span></div></section>';
     });
     var primary = st.lines[0] || 'central';
-    return head(esc(st.name), (window.LiveState && LiveState.mode !== 'example' ? 'Live · ' : 'Demo data · ') + (st.lines.length || 1) + ' line' + (st.lines.length === 1 ? '' : 's')) +
+    return head(esc(st.name), (st.lines.length || 1) + ' line' + (st.lines.length === 1 ? '' : 's') + ' · current and predicted delays') +
       '<div class="station-body"><div class="fs-chips">' + st.lines.map(function (l) { return '<button class="lpa" data-act="station-line" data-line="'+l+'" aria-pressed="'+(state.stationLine===l)+'">'+pill(l)+'</button>'; }).join('') + '</div>' +
       statusRow(st) +
       '<div class="fs-sec">Example arrivals</div><div class="fs-dirs">' + dirs + '</div>' +
-      '</div><div class="fs-actions"><button class="btn-p" data-act="route-from"' + (st.vn < 0 && !window.TFLMap ? ' disabled' : '') + '><svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M7 26V18a6 6 0 0 1 6-6h12M19 5l7 7-7 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Route from here</button>' +
+      '</div><div class="fs-actions"><button class="btn-p" data-act="route-from"' + (st.vn < 0 && !window.TFLMap ? ' disabled' : '') + '><svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M7 26V18a6 6 0 0 1 6-6h12M19 5l7 7-7 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Find an alternative</button>' +
       '<button class="btn-s" data-act="route-to">To here</button></div>';
   }
 
@@ -237,7 +238,7 @@
     var a=state.from,b=state.to,controller=routeRequest;
     var timeout=setTimeout(function(){controller.abort();},15000);
     JourneyAPI.plan(G.byId[a],G.byId[b],controller.signal).then(function(opts){
-      RC[key]={from:a,to:b,opts:opts,fetchedAt:Date.now()};
+      RC[key]={from:a,to:b,opts:window.RouteRisk?RouteRisk.rank(opts,window.LiveState||{}):opts,fetchedAt:Date.now()};
     }).catch(function(error){if(controller!==routeRequest)return;RC[key]={from:a,to:b,opts:[],error:error.name==='AbortError'?'The request timed out. Please try again.':error.message,fetchedAt:Date.now()};
     }).finally(function(){clearTimeout(timeout);if(controller!==routeRequest)return;requestKey=null;routeRequest=null;if(state.t==='route'&&state.from===a&&state.to===b)render('loaded');});
   }
@@ -249,17 +250,19 @@
       var legs = o.r.legs.map(function (l, j) { return (j ? '<em>›</em>' : '') + pill(l.line); }).join('');
       var notices=[];o.r.legs.forEach(function(l){(l.disruptions||[]).forEach(function(n){if(notices.indexOf(n)<0)notices.push(n);});});
       var dl=notices.map(function(n){return '<p class="provider-notice">'+esc(n)+'</p>';}).join('');
+      var risk=o.risk||{current:0,predicted:0,extra:0,hits:[]};
+      var riskText=risk.hits&&risk.hits.length?'<div class="ro-risk '+(risk.worst||'')+'"><b>Estimated +'+risk.extra+' min</b><span>'+risk.current+' current · '+risk.predicted+' predicted high-risk station'+(risk.predicted===1?'':'s')+'</span><small>'+esc(o.explanation||'')+'</small></div>':'<div class="ro-risk clear"><b>No current or predicted delays on this route</b></div>';
       h += '<button class="ro' + (i === (state.opt || 0) ? ' on' : '') + '" data-act="opt" data-i="' + i + '" aria-pressed="' + (i === (state.opt || 0)) + '">' +
         '<div class="ro-top"><b>' + (o.min + o.extra) + '<small> min</small></b><span class="tag">' + o.tag + '</span></div>' +
         '<div class="ro-legs">' + legs + '</div>' +
-        '<div class="ro-meta">' + (o.r.legs.every(function(l){return l.walking;})?'Walking route':o.stops+' stops') + ' · ' + (o.r.transfers ? o.r.transfers + ' change' + (o.r.transfers > 1 ? 's' : '') : 'No changes') + (o.extra ? ' · usually ' + o.min + ' min' : '') + '</div><div class="ro-times">'+JourneyAPI.clock(o.departure)+' → '+JourneyAPI.clock(o.arrival)+' · London time · Excludes waiting before departure</div>' + dl + '</button>';
+        '<div class="ro-meta">' + (o.r.legs.every(function(l){return l.walking;})?'Walking route':o.stops+' stops') + ' · ' + (o.r.transfers ? o.r.transfers + ' change' + (o.r.transfers > 1 ? 's' : '') : 'No changes') + (o.extra ? ' · usual journey ' + o.min + ' min' : '') + '</div><div class="ro-times">'+JourneyAPI.clock(o.departure)+' → '+JourneyAPI.clock(o.arrival)+' · London time</div>' + riskText + dl + '</button>';
     });
     if (!opts.length) h = '<div class="rp-none">'+esc(rs.error||'TfL returned no journeys for these stations at this time.')+'</div><button class="btn-s" data-act="retry-route">Try again</button>';
     var sub = opts.length + ' route' + (opts.length === 1 ? '' : 's') + ' · TfL Journey Planner';
     if (state.chosen && opts.length) {
       var selected=selectedOption;
       return head('Route selected',esc(A.name)+' → '+esc(B.name),false)+
-        '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · '+JourneyAPI.clock(selected.departure)+' → '+JourneyAPI.clock(selected.arrival)+'</b><small>TfL · '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+' · London time</small></div></div>'+
+        '<div class="journey-confirm" role="status"><span>✓</span><div><b>'+ (selected.min+selected.extra)+' min · '+JourneyAPI.clock(selected.departure)+' → '+JourneyAPI.clock(selected.arrival)+'</b><small>TfL journey '+(selected.extra?'· estimated +'+selected.extra+' min from Tubecast delays ':'')+'· '+selected.r.transfers+' change'+(selected.r.transfers===1?'':'s')+'</small></div></div>'+
         '<ol class="journey-steps">'+selected.r.legs.map(function(l,i){var first=l.stops[0],last=l.stops[l.stops.length-1];return '<li style="--line-color:'+lineCol(l.line)+'"><small>'+(l.walking?'Walk':(i?'Change at '+esc(first?first.name:'interchange'):'Board at '+esc(first?first.name:A.name)))+'</small><b>'+esc(lineName(l.line))+'</b><small>'+esc(l.instruction)+' · '+l.duration+' min · '+JourneyAPI.clock(l.departure)+'</small><span>'+esc(first?first.name:A.name)+' → '+esc(last?last.name:B.name)+' · '+Math.max(0,l.stops.length-1)+' stops</span><details><summary>Stations on this leg</summary><div class="leg-stops">'+l.stops.map(function(st,j){return '<span><i></i>'+esc(st.name)+(j===l.stops.length-1?(i===selected.r.legs.length-1?' · Arrive':' · Change here'):'')+'</span>';}).join('')+'</div></details></li>';}).join('')+'</ol><small class="journey-note">Powered by the Transport for London Journey Planner API</small>'+
         googleLink+'<div class="fs-actions"><button class="btn-p" data-act="change-route">Change route</button><button class="btn-s" data-act="edit-route">Edit journey</button></div>';
     }
@@ -270,7 +273,7 @@
   /* disruption */
   function disHTML(d) {
     function names(a) { return a.length ? a.map(function (n) { return '<button class="sn" data-act="stn" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') : '<span class="none">None expected</span>'; }
-    return head('<span class="sevchip ' + d.sev + '"><b>!</b>' + (d.sev === 'severe' ? 'Severe' : 'Minor') + '</span> ' + esc(lineName(d.line)) + ' line', 'Demo disruption · '+d.direction, true) +
+    return head('<span class="sevchip ' + d.sev + '"><b>!</b>' + (d.sev === 'severe' ? 'Severe' : 'Minor') + '</span> ' + esc(lineName(d.line)) + ' line', d.direction+' · current and predicted delays', true) +
       '<p class="dz-direction">'+esc(d.direction)+' · forecast direction</p><p class="dz-cause">' + esc(d.cause) + '</p><p class="dz-detail">' + esc(d.detail) + '</p>' +
       '<div class="dz-cols"><div class="dz-col now ' + d.sev + '"><h4><i></i>Now</h4><div class="sns">' + names(d.now) + '</div></div>' +
       '<div class="dz-col next ' + d.sev + '"><h4><i></i>Next 30 min <small>' + (d.next.length ? d.prob : '') + '</small></h4><div class="sns">' + names(d.next) + '</div></div></div>' +
@@ -413,7 +416,7 @@
     else if (act === 'dis') go({ t: 'dis', id: b.getAttribute('data-id') });
     else if (act === 'route-to') go({t:'pick',to:state.id,field:'from',focus:state.id});
     else if (act === 'route-from') go({ t: 'pick', from: state.id, field: 'to', focus: state.id });
-    else if (act === 'route-around') { var z = dzById(state.id), st0 = z && G.byName[z.d.now[0]]; go({ t: 'pick', from: null, to: null, field: 'from', focus: null }); }
+    else if (act === 'route-around') { var z = dzById(state.id), st0 = z && G.byName[z.d.now[0] || z.d.next[0]]; go({ t: 'pick', from: st0 ? st0.id : null, to: null, field: st0 ? 'to' : 'from', focus: st0 ? st0.id : null }); }
     else if (act === 'stn') openStation(b.getAttribute('data-n'));
     else if (act === 'edit-route') go({t:'pick',from:state.from,to:state.to,field:'to',focus:state.from});
     else if (act === 'field') { var s = { t: 'pick', from: state.from, to: state.to, field: b.getAttribute('data-f'), focus: state.focus,search:true }; go(s, { replace: true });var input=$('#rpq',sheet.pane);if(input)input.focus(); }

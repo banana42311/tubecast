@@ -142,6 +142,12 @@ button.fs-stat { cursor: pointer; transition: transform .3s var(--ease), backgro
 .ro-top { display: flex; align-items: baseline; justify-content: space-between; } .ro-top b { font: 700 28px/32px var(--sf, system-ui); color: #fff; font-variant-numeric: tabular-nums; } .ro-top b small { font: 500 14px/18px var(--sf, system-ui); color: var(--sec); }
 .ro .tag { font: 590 12px/14px var(--sf, system-ui); color: var(--good); } .ro-legs { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 8px 0 6px; } .ro-legs em { color: var(--sec); font-style: normal; }
 .ro-meta { font: 400 13px/17px var(--sf, system-ui); color: var(--sec); }
+.ro-times { margin-top: 3px; font: 400 12px/16px var(--sf, system-ui); color: rgba(235, 235, 245, .46); }
+.ro-risk { display: grid; gap: 2px; margin-top: 10px; padding: 9px 11px; border-radius: 11px; text-align: left; background: rgba(255, 161, 43, .1); }
+.ro-risk.severe, .ro-risk.not-running { background: rgba(220, 36, 31, .12); }
+.ro-risk.clear { background: rgba(31, 166, 166, .1); }
+.ro-risk b { font: 600 13px/16px var(--sf, system-ui); color: #fff; }
+.ro-risk span, .ro-risk small { font: 400 11px/15px var(--sf, system-ui); color: var(--sec); }
 .ro-dl { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; margin-right: 6px; height: 26px; padding: 0 10px 0 4px; border-radius: 999px; font: 590 12px/1 var(--sf, system-ui); color: #fff; }
 .ro-dl b { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; background: rgba(0, 0, 0, .28); }
 .ro-dl.minor { background: rgba(255, 161, 43, .28); } .ro-dl.severe { background: rgba(220, 36, 31, .32); }
