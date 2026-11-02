@@ -234,7 +234,10 @@
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-href]');
     if (t) {
-      var h = t.getAttribute('data-href');if(h==='index.html#all-lines'){showDirectory();return;}var m = /^line\.html\?line=([a-z-]+)$/.exec(h);
+      var h = t.getAttribute('data-href');
+      if(window.DemoMode&&DemoMode.active)h=DemoMode.url(h);
+      if(h==='index.html#all-lines'||/^index\.html\?(?:[^#]*&)?demo=commute(?:&[^#]*)?#all-lines$/.test(h)){showDirectory();return;}
+      var m = /^line\.html\?line=([a-z-]+)(?:&.*)?$/.exec(h);
       if (m && ALL.indexOf(m[1]) > 0) { jump(ALL.indexOf(m[1])); return; }   /* stay in the pager: animated, no page load */
       location.href = h; return;
     }

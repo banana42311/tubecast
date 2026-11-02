@@ -21,4 +21,6 @@ assert.deepEqual(ranked[0].r.legs.map(item=>item.line),['elizabeth','central']);
 assert.equal(ranked[0].tag,'Recommended now');assert.equal(ranked[0].risk.hits.length,0);
 assert.equal(ranked[1].tag,'Usual route');assert(ranked[1].extra>=8&&ranked[1].extra<=15);
 assert(!ranked.some(route=>route.r.legs.some(item=>item.walking)));
+const linePage=fs.readFileSync('js/line-page.js','utf8');
+assert(linePage.includes("if(window.DemoMode&&DemoMode.active)h=DemoMode.url(h);"),'pager chrome must preserve demo recording parameters at click time');
 console.log('PASS dense phone snapshot and delay-aware, walk-free recommended route');
