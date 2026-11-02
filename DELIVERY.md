@@ -96,3 +96,16 @@ Overview의 링 아래에 전체 노선 목록을 통합했습니다. 기존 `li
 ## 2026-11-02 스와이프 보완
 
 안쪽 세로 스크롤 영역에도 `touch-action: pan-y`를 적용했습니다. 페이지 스와이프는 4px부터 추적하고 최초 이동량을 버리지 않으며, 약간의 대각선 동작도 허용합니다. 약 28px 밀기 또는 10px 이상 이동한 빠른 flick(220px/s 이상)으로 한 페이지만 전환합니다. 작은 느린 움직임/세로 스크롤/취소는 전환하지 않는 회귀 검사를 추가했습니다. 실제 iPhone의 제스처 체감 검증은 별도입니다.
+
+
+## 2026-11-02 도식형 외곽 확장 (현재 배포)
+
+앞선 도심 106개 역 제한을 해소했습니다. 현재 지도는 기존 도심 도식을 바탕으로 외곽 분기를 수동 배치한 299개 역 / 420개 노선별 연결을 포함합니다. 실제 지리 좌표를 그대로 투영하는 방식은 사용하지 않습니다. 도심 원래 좌표는 유지하되 Hanwell·West Ealing은 서쪽 역 순서에 맞춰 배치하고, Nine Elms와 겹치던 Battersea Power Station을 분리했습니다. Covent Garden·Monument·Knightsbridge·Warwick Avenue 등 빠진 도심 역도 추가했습니다.
+
+대상은 Tube 11개 노선과 Elizabeth입니다. TfL 허브로 묶인 Paddington/Hammersmith 등의 여러 플랫폼은 한 역 레코드로 표시합니다. DLR·Overground·기타 National Rail 전역이 포함된 것은 아닙니다.
+
+- 도식 생성: `node scripts/build-schematic-extension.cjs` (기준 토폴로지: `scripts/data/tfl-topology.json`, TfL Route Sequence 스냅샷)
+- 지도 전용 좌표 캐시: `node scripts/build-network-samples.cjs --extended`
+- 연결 검사: `node tests/schematic.cjs` — 전 역/노선 앵커, 원래 도심 위치, 420개 연결, 주요 외곽 분기 확인
+- 브라우저 검사: `tests/map-coverage.html` — 누락 역 검색, 외곽역 중앙 이동, 기존 경계 밖 수동 드래그, 외곽 출발/도착 선택
+- 선 두께/역 이름은 축소에서도 읽을 수 있도록 보정하고, 겹치는 역 이름은 줌에 따라 표시합니다. 역은 검색으로 모두 선택할 수 있습니다.

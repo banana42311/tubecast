@@ -297,3 +297,8 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .direction-light { filter:none; }
 .service-nav .demo-tag { font-size:8px;letter-spacing:0; }
 @media(prefers-reduced-motion:reduce){.direction-light{display:none}}
+
+/* Extended schematic labels keep a readable size; collision selection is camera-driven. */
+.map-phone #world .lbl { font-size:11px;transform-origin:0 0; }
+
+#world.zoom-wide .network-lines path { stroke-width:calc(.6px * var(--ms)); }

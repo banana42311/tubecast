@@ -6,7 +6,7 @@ const load=url=>new Promise(resolve=>{frame.onload=()=>resolve(frame.contentWind
 const pause=()=>new Promise(r=>setTimeout(r,700));
 try{
 let w=await load('../map.html?station=holborn');await pause();let d=w.document,F=w.FlowMap;
-assert(!!F,'map initializes');assert(w.TFL_NETWORK.stations.length===299,'complete Tube and Elizabeth station catalogue');assert(!w.TFLMap&&w.NET.central.off[0]!==undefined,'original schematic retained');assert(Object.keys(w.StationCatalog).length===106,'schematic catalogue preserved');assert(w.StationCatalog.Holborn.lines.length===2,'official interchange membership');
+assert(!!F,'map initializes');assert(w.TFL_NETWORK.stations.length===299,'complete Tube and Elizabeth station catalogue');assert(!w.TFLMap&&w.SCHEMATIC_MAP,'schematic layout instead of geographic projection');assert(Object.keys(w.StationCatalog).length===299,'complete schematic catalogue');assert(w.StationCatalog.Holborn.lines.length===2,'official interchange membership');
 assert(!d.querySelector('#world svg .base image'),'zoomable map stays inline vector');
 assert(getComputedStyle(d.querySelector('#chip')).display==='none','line summary removed from map');
 d.querySelector('[data-act="station-line"][data-line="piccadilly"]').click();

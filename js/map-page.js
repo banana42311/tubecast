@@ -4,7 +4,7 @@
   var slug = new URLSearchParams(location.search).get('line');
   var L = window.LINE_BY_SLUG[slug] || window.LINE_BY_SLUG.central; slug = L.slug;
   var col = N.colors[slug];
-  var DEF = window.TFLMap ? [-TFLMap.project(51.515,-.12)[0]+195,-TFLMap.project(51.515,-.12)[1]+390] : [-975, 30.8], M = window.Motion;                       /* Figma pan for Central */
+  var DEF = [-975, 30.8], M = window.Motion;                       /* Figma pan for Central */
 
   function el(t, a, p) { var n = document.createElementNS(NS, t); for (var k in a) n.setAttribute(k, a[k]); if (p) p.appendChild(n); return n; }
   function sc(p, off, a) { a = a || {}; a.transform = 'scale(' + S + ') translate(' + off[0] + ' ' + off[1] + ')'; return el('g', a, p); }
@@ -52,9 +52,9 @@
     svg.insertBefore(gw,hl);glow[sl]=gw;
   }
   /* every line, same weight, full opacity */
-  var ol = sc(svg, N.lines.off, { 'stroke-width': 2.05, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  var ol = sc(svg, N.lines.off, { 'class':'network-lines','stroke-width': 2.05, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   N.lines.p.forEach(function (p) { el('path', { d: p[1], stroke: N.colors[p[0]] }, ol); });
-  var oc = sc(svg, N.central.off, { 'stroke-width': 2.05, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  var oc = sc(svg, N.central.off, { 'class':'network-lines','stroke-width': 2.05, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   N.central.p.forEach(function (d) { el('path', { d: d, stroke: N.colors.central }, oc); });
   /* flow layers: base (everything drawn so far, dimmable) · hl (bright selected lines) · ov (delay + route overlays) */
   var base = el('g', { 'class': 'base' });
@@ -106,7 +106,7 @@
 
   /* ---------- camera: pan + pinch zoom (Pointer Events), momentum, rubber-band, springs ---------- */
   var points=Object.values(StationCatalog),minX=Math.min.apply(null,points.map(function(p){return p.x*S;}))-80,maxX=Math.max.apply(null,points.map(function(p){return p.x*S;}))+80,minY=Math.min.apply(null,points.map(function(p){return p.y*S;}))-80,maxY=Math.max.apply(null,points.map(function(p){return p.y*S;}))+80;
-  var WW=maxX-minX,WH=maxY-minY,KMIN=.055,KMAX=6;
+  var WW=maxX-minX,WH=maxY-minY,KMIN=.035,KMAX=6;
   var tx = 0, ty = 0, k = 1, VW = 390, VH = 844;
   var zbtn = { in: document.getElementById('zin'), out: document.getElementById('zout') };
   function measure() { VW = view.offsetWidth || 390; VH = view.offsetHeight || 844; }
@@ -118,7 +118,7 @@
   var lastK = null;
   function apply() {
     world.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')';
-    if(window.TFLMap)scheduleLabels();
+    if(window.SCHEMATIC_MAP)scheduleLabels();
     if (lastK !== k) {
     world.style.setProperty('--ms',(1/k).toFixed(3));
     world.style.setProperty('--ls', (1 / Math.sqrt(k)).toFixed(3));           /* labels grow slower than the map */
@@ -129,7 +129,7 @@
     world.classList.toggle('zoom-wide', k < .7); lastK = k; }
   }
   var labelFrame=0;
-  function scheduleLabels(){if(labelFrame)return;labelFrame=requestAnimationFrame(function(){labelFrame=0;var occupied=[];labels.slice().sort(function(a,b){return StationCatalog[b.n].lines.length-StationCatalog[a.n].lines.length;}).forEach(function(l){var node=l.el;if(!node)return;var x=tx+l.x*k,y=ty+l.y*k,w=l.n.length*6.2,selected=node.classList.contains('route-label');var box={x:x,y:y,w:w,h:14};var show=selected||x>-w&&x<VW&&y>155&&y<VH-30&&(k>.38||StationCatalog[l.n].lines.length>2)&&!occupied.some(function(b){return x<b.x+b.w+5&&x+w+5>b.x&&y<b.y+b.h+3&&y+17>b.y;});show=show&&!node.classList.contains('endpoint-label')&&!node.classList.contains('selected-label');node.style.visibility=show?'visible':'hidden';node.style.transform='scale('+(1/k)+')';if(show)occupied.push(box);});});}
+  function scheduleLabels(){if(labelFrame)return;labelFrame=requestAnimationFrame(function(){labelFrame=0;var occupied=[];labels.slice().sort(function(a,b){return (StationCatalog[b.n].lines.length+(StationCatalog[b.n].terminal?8:0))-(StationCatalog[a.n].lines.length+(StationCatalog[a.n].terminal?8:0));}).forEach(function(l){var node=l.el;if(!node)return;var x=tx+l.x*k,y=ty+l.y*k,w=l.n.length*6.2,selected=node.classList.contains('route-label');var shift=x+w>VW-12?-w-18:0;node.style.left=(l.x+shift/k)+'px';x+=shift;var box={x:x,y:y,w:w,h:14};var show=selected||x>-w&&x<VW&&y>155&&y<VH-30&&(k>.38||StationCatalog[l.n].terminal||StationCatalog[l.n].lines.length>2)&&!occupied.some(function(b){return x<b.x+b.w+5&&x+w+5>b.x&&y<b.y+b.h+3&&y+17>b.y;});show=show&&!node.classList.contains('endpoint-label')&&!node.classList.contains('selected-label');node.style.visibility=show?'visible':'hidden';node.style.transform='scale('+(1/k)+')';if(show)occupied.push(box);});});}
   function rect() { return view.getBoundingClientRect(); }
   function local(e) { var r = rect(), f = r.width / (view.offsetWidth || 390); return { x: (e.clientX - r.left) / f, y: (e.clientY - r.top) / f }; }
   function setZoomAt(kk, cx, cy, elastic) {          /* keep the world point under (cx,cy) fixed */
