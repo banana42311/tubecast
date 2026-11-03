@@ -225,7 +225,8 @@ html.mode-phone .pg .bottomctl { top:auto;bottom:calc(6px + max(0px,env(safe-are
 .pg .pagepos { touch-action:none;user-select:none;overscroll-behavior-x:contain; }
 .pg .pagepos.scrubbing { background:#37414d;box-shadow:0 0 0 1px #ffffff40; }
 /* One station centre at every interchange; status overlays share that centre. */
-.station-base { position:absolute;width:0;height:0;pointer-events:none;z-index:3;transform:scale(var(--ls)); }
+.station-base { position:absolute;width:0;height:0;pointer-events:none;z-index:3;transform:scale(var(--ds,var(--ls))); }
+#world.zoom-far .station-base { display:none; }
 .station-base>i { position:absolute;width:12px;height:12px;left:-6px;top:-6px;background:#f1f4f7;border:2px solid #151c24;border-radius:50%;box-sizing:border-box; }
 #world.route-focus .station-base { opacity:.15; }
 .map-label-layer .lbl { z-index:6; }
@@ -368,7 +369,8 @@ html.mode-phone.keyboard-open.station-search-open .map-phone .zoomctl {
 /* Extended schematic labels keep a readable size; collision selection is camera-driven. */
 .map-phone .map-label-layer .lbl { font-size:11px; }
 
-#world.zoom-wide .network-lines path { stroke-width:calc(.6px * var(--ms)); }
+/* Line width on screen = max(4.5px*k, 1.3px); station dots follow it (see --ds in map-page.js). */
+#world .network-lines path { stroke-width:max(2.05px, calc(.6px * var(--ms))); }
 
 /* Clear arrival hierarchy: direction, next train, then following services. */
 .fs-dirs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -384,8 +386,8 @@ html.mode-phone.keyboard-open.station-search-open .map-phone .zoomctl {
 #world .fend b{top:-36px}
 
 /* Anchored interchange connector, perpendicular to the shared corridor. */
-.station-base.interchange{transform:rotate(var(--station-angle,0deg))}
-.station-base.interchange>i{width:calc(10px * var(--ms));height:calc(6px + 12px * var(--ms));left:calc(-5px * var(--ms));top:calc(-3px - 6px * var(--ms));border-radius:999px;background:#eaf0f5;border:calc(2px * var(--ms)) solid #151c24}
+.station-base.interchange{transform:rotate(var(--station-angle,0deg)) scale(var(--ds,1))}
+.station-base.interchange>i{width:10px;height:18px;left:-5px;top:-9px;border-radius:999px;background:#eaf0f5;border:2px solid #151c24}
 .route-expand{display:none}
 .route-mode.peek .fs-pane>*{display:none}
 .route-mode.peek .fs-pane>.fs-head,.route-mode.peek .fs-pane>.route-expand{display:flex;flex:none}
@@ -415,3 +417,7 @@ html.mode-phone.keyboard-open.station-search-open .map-phone .zoomctl {
 .google-leg{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;min-height:42px;padding:6px 8px;border-top:1px solid #ffffff12;color:#fff;text-decoration:none}.google-leg>i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#ffffff12;color:#dce7ef;font:700 10px/1 var(--sf,system-ui);font-style:normal}.google-leg>span{display:flex;min-width:0;flex-direction:column}.google-leg b{font-size:11px;line-height:15px}.google-leg small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;line-height:12px;color:#aebcc9}.google-leg strong{font-size:10px;color:#70ddd4}.google-leg:active{background:#ffffff0a}
 .route-mode.peek .google-legs{display:none}
 @media(prefers-reduced-motion:reduce){.rt-draw{animation:none;stroke-dashoffset:0}.rt-traveler,.fxfer:after,.route-loading:before,.route-loading:after{animation:none}}
+
+/* Labels fade in/out as the camera moves instead of popping. */
+.map-label-layer .lbl{transition:opacity .18s ease}
+.map-label-layer .lbl.lbl-off{opacity:0;pointer-events:none}

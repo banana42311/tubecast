@@ -108,7 +108,7 @@
   var WW=maxX-minX,WH=maxY-minY,KMIN=.035,KMAX=6;
   var tx = 0, ty = 0, k = 1, VW = 390, VH = 844;
   var zbtn = { in: document.getElementById('zin'), out: document.getElementById('zout') };
-  function measure() { VW = view.offsetWidth || 390; VH = view.offsetHeight || 844; }
+  function measure() { VW = view.offsetWidth || 390; VH = view.offsetHeight || 844; KMIN = Math.max(.035, Math.min(.5, .9 * Math.min(VW / WW, (VH - 220) / WH))); }
   function bx(kk){return [VW/2-maxX*kk,VW/2-minX*kk];}
   function by(kk){return [VH/2-maxY*kk,VH/2-minY*kk];}
   function hard(v, b) { return M.clamp(v, b[0], b[1]); }
@@ -118,8 +118,9 @@
   var dpr = Math.max(1, window.devicePixelRatio || 1);
   function snap(v){return Math.round(v*dpr)/dpr;}
   function requestLabelLayout(delay){
+    if(layoutTimer&&delay==null)return;   /* throttle: labels refresh while panning, not only after */
     clearTimeout(layoutTimer);
-    layoutTimer=setTimeout(function(){layoutTimer=0;layoutDirty=true;requestRender();},delay==null?84:delay);
+    layoutTimer=setTimeout(function(){layoutTimer=0;layoutDirty=true;requestRender();},delay==null?110:delay);
   }
   function placeLabels(reflow){
     var zoomChanged=renderedK===null||Math.abs(renderedK-k)>.00001;
@@ -156,7 +157,7 @@
       }
       var show=x>8&&x+w<VW-8&&y>125&&y<VH-24&&(selected||k>.38||station.terminal||station.lines.length>2);
       show=show&&!node.classList.contains('endpoint-label')&&!node.classList.contains('selected-label')&&!occupied.some(function(b){return x<b.x+b.w+6&&x+w+6>b.x&&y<b.y+(b.h||18)&&y+18>b.y;});
-      node.style.visibility=show?'visible':'hidden';if(show)occupied.push({x:x,y:y,w:w});
+      node.style.visibility='visible';node.classList.toggle('lbl-off',!show);if(show)occupied.push({x:x,y:y,w:w});
     });
     layoutDirty=false;
   }
@@ -169,6 +170,9 @@
     if(lastK===null||Math.abs(lastK-k)>.00001){
       world.style.setProperty('--ms',(1/k).toFixed(6));world.style.setProperty('--map-k',k);
       world.style.setProperty('--ls',(1/Math.sqrt(k)).toFixed(3));
+      /* dot diameter on screen: 12*sqrt(k) when zoomed in, 2.6 x line width when zoomed out */
+      var dot=k>=1?12*Math.sqrt(k):Math.max(3.2,2.6*Math.max(4.5*k,1.3));world.style.setProperty('--ds',(dot/(12*k)).toFixed(4));
+      world.classList.toggle('zoom-far',k<.09);
       world.style.setProperty('--hs',Math.max(1,44/(32*k)).toFixed(3));
       window.MapCtx&&window.MapCtx.onCam&&window.MapCtx.onCam(k);
       zbtn.in&&zbtn.in.setAttribute('aria-disabled',k>=KMAX-.01);

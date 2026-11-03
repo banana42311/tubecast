@@ -58,6 +58,8 @@
         reason: tfl.reason || '',
         cause: tfl.cause || '',
         closed: present(tfl.planned_closure) || /closure|suspend|not running|no service/i.test(tfl.status || ''),
+        // false when the API cannot say how many stations are delayed (null, not 0)
+        nowKnown: !!(line.now && Number.isFinite(line.now.units_delayed)),
         p30: Number.isFinite(forecast.p_base_30) ? forecast.p_base_30 : null,
         alert: forecast.alert || null,
         cols: (line.cols || []).map(function (c) { return { h: +c.h, n: c.n, mark: c.mark || '' }; })

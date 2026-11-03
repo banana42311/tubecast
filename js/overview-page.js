@@ -22,7 +22,7 @@
         var hv = host.querySelector('.hero .value'); if (hv) hv.textContent = tt.now; var cb = host.querySelectorAll('.hero .chip b'); if (cb[0]) cb[0].textContent = Math.max(0, tt.now - sv); if (cb[1]) cb[1].textContent = sv;
         var fu = host.querySelector('.footer .u'); if (fu) fu.textContent = LiveLabel();
       }
-      if(window.FlowData){var total=FlowData.totals().now;host.querySelector('.hero .value').textContent=total;var severe=new Set();FlowData.disruptions.forEach(function(d){d.now.forEach(function(n){if(((d.levels||{})[n]||d.sev)==='severe')severe.add(n);});});var chips=host.querySelectorAll('.hero .chip b');chips[0].textContent=Math.max(0,total-severe.size);chips[1].textContent=severe.size;}
+      if(window.FlowData){var total=FlowData.totals().now,L=window.LiveState&&LiveState.hasData&&LiveState.lines,unknown=!!L&&!total&&Object.keys(L).length&&Object.keys(L).some(function(k){return L[k].nowKnown===false&&/delay|suspend|closure/i.test(String(L[k].status||''));});host.querySelector('.hero .value').textContent=unknown?'—':total;if(unknown){var hs=host.querySelector('.hero .sub');if(hs)hs.textContent='No reported station delay';}var severe=new Set();FlowData.disruptions.forEach(function(d){d.now.forEach(function(n){if(((d.levels||{})[n]||d.sev)==='severe')severe.add(n);});});var chips=host.querySelectorAll('.hero .chip b');chips[0].textContent=unknown?'—':Math.max(0,total-severe.size);chips[1].textContent=unknown?'—':severe.size;}
       var watch=host.querySelector('.watch');watch.style.top=(host.querySelector('.ringcard').offsetTop+host.querySelector('.ringcard').offsetHeight+16)+'px';
       watch.classList.add('line-stack');
       watch.id='all-lines';
