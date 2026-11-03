@@ -25,6 +25,8 @@
   // Replace v1's truncated station rows with v2's confirmed-delay rows; keep TfL status etc. from v1.
   function mergeV2(v1, v2) {
     if (!v1 || !v1.lines || !v2 || !v2.lines) return v1;
+    // A v2 snapshot that classified no station at all (e.g. every unit 'poll_break') says nothing; keep v1.
+    if (!v2.lines.some(function (l) { return l.classified_units > 0; })) return v1;
     var d = JSON.parse(JSON.stringify(v1)), byId = {}, hl = v2.highlighted_rows || {};
     v2.lines.forEach(function (l) { byId[l.id] = l; });
     d.lines.forEach(function (L) {
