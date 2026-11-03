@@ -22,6 +22,20 @@
       delayed: !!meta.delayed, hasData: true, fetchedAt: meta.fetchedAt || Date.now(), source: meta.source || ''
     });
   }
+  // Replace v1's truncated station rows with v2's confirmed-delay rows; keep TfL status etc. from v1.
+  function mergeV2(v1, v2) {
+    if (!v1 || !v1.lines || !v2 || !v2.lines) return v1;
+    var d = JSON.parse(JSON.stringify(v1)), byId = {}, hl = v2.highlighted_rows || {};
+    v2.lines.forEach(function (l) { byId[l.id] = l; });
+    d.lines.forEach(function (L) {
+      var x = byId[L.id]; if (!x) return;
+      L.rows = (hl[L.id] || []).map(function (r) { return { station: null, naptan: r.naptan, dir: r.dir, now: { level: r.level, gap_min: r.gap_min, usual_min: r.usual_min } }; });
+      L.rows_truncated = false;
+      L.now = { units_delayed: x.total_delayed_units, stations_delayed: x.total_delayed_stations, confirmed_units: x.confirmed_delayed_units, unknown_units: x.unknown_units, observable_units: x.observable_units };
+    });
+    d.observed_v2 = { as_of: v2.as_of, snapshot_id: v2.snapshot_id, reason_counts: v2.reason_counts, coverage: v2.reference_coverage };
+    return d;
+  }
   function empty() { return { mode: 'example', delayed: false, hasData: false, disruptions: [], onset: {}, lines: {}, rows: [], stationState: {} }; }
 
   var cached = read(), initial = null;
@@ -84,8 +98,12 @@
     var source = base ? 'api' : 'fixture', url = base ? base + '/api/state' : fixture;
     var controller = 'AbortController' in window ? new AbortController() : null;
     var timer = setTimeout(function () { if (controller) controller.abort(); }, 8000);
-    fetch(url, { cache: 'no-store', signal: controller ? controller.signal : undefined, headers: { Accept: 'application/json' } })
-      .then(function (response) { if (!response.ok) throw Error(String(response.status)); return response.json(); })
+    var opts = { cache: 'no-store', signal: controller ? controller.signal : undefined, headers: { Accept: 'application/json' } };
+    // v2 (/api/v2/state) carries every confirmed station delay in one snapshot; v1 still carries TfL line status.
+    // v2 is optional: if it fails, v1 alone is used as before.
+    var v2 = base ? fetch(base + '/api/v2/state', opts).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }) : Promise.resolve(null);
+    Promise.all([fetch(url, opts).then(function (response) { if (!response.ok) throw Error(String(response.status)); return response.json(); }), v2])
+      .then(function (both) { return mergeV2(both[0], both[1]); })
       .then(function (data) {
         clearTimeout(timer);
         var wasEmpty = !window.LiveState.hasData;
