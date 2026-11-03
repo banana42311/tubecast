@@ -20,11 +20,15 @@ window.ForecastModel = (function () {
     return String(n).replace(/\b([a-z])/g, function (m) { return m.toUpperCase(); }).replace(/\bAnd\b/g, '&').replace(/\bSt\b/g, 'St');
   }
   function sig(z) { return 1 / (1 + Math.exp(-z)); }
-  function score(u, delayed, clock) {
-    var info = M.units[u], c = M.coef, b = info.b[clock.band], up = [0, 0, 0], near = null;
+  // 1103e has one model per horizon (heads '10','20','30'); older models have a single 30-min head.
+  var H = M && M.heads ? ['10', '20', '30'] : ['30'];
+  function head(h) { return M.heads ? M.heads[h] : M; }
+  function rates(u, h) { var b = M.units[u].b; return Array.isArray(b) ? b : b[h]; }
+  function score(u, delayed, clock, h) {
+    var info = M.units[u], hd = head(h), c = hd.coef, b = rates(u, h)[clock.band], up = [0, 0, 0], near = null;
     var nearUnit = null;
     info.up.forEach(function (x) { var v = M.unit_list[x[0]]; if (!delayed[v]) return; up[Math.min(2, Math.floor(x[1] / 10))]++; if (near == null || x[1] < near) { near = x[1]; nearUnit = v; } });
-    var p = sig(M.intercept + c[0] * Math.log(b / (1 - b)) + c[1] * up[0] + c[2] * up[1] + c[3] * up[2] + c[4] * clock.peak);
+    var p = sig(hd.intercept + c[0] * Math.log(b / (1 - b)) + c[1] * up[0] + c[2] * up[1] + c[3] * up[2] + c[4] * clock.peak);
     return { p: p, up: up[0] + up[1] + up[2], near: near, nearUnit: nearUnit, base: b };
   }
   function augment(api) {
@@ -37,16 +41,28 @@ window.ForecastModel = (function () {
     M.unit_list.forEach(function (u) {
       if (delayed[u]) return;
       var parts = u.split('|'), L = byLine[parts[0]]; if (!L) return;
-      var s = score(u, delayed, clock), lift = s.p / s.base, hourly = M.units[u].b.slice(1).sort(function (a, b) { return a - b; }), usualAllDay = hourly[Math.floor(hourly.length / 2)];
-      // with a delay up the line: a clear rise above this unit's own usual rate
+      // Each horizon's own model decides; the earliest horizon that fires gives onset_min.
+      // with a delay up the line: a clear rise above this unit's own usual rate for that horizon
       // without one: only a time-specific pattern (this hour well above the unit's all-day usual), not timetable irregularity
-      var risk = s.up ? (lift >= 1.2 ? (s.p >= M.cut_top5 ? 'high' : 'elevated') : null)
-                      : (s.p >= M.cut_top5 && s.base >= 1.5 * usualAllDay ? 'elevated' : null);
+      var risk = null, at = null, s = null, pmax = 0, ph = {};
+      H.forEach(function (h) {
+        var x = score(u, delayed, clock, h), hd = head(h), lift = x.p / x.base;
+        var hourly = rates(u, h).slice(1).sort(function (a, b) { return a - b; }), usualAllDay = hourly[Math.floor(hourly.length / 2)];
+        pmax = Math.max(pmax, x.p); ph[h] = Math.round(pmax * 1000) / 1000;   // "within h" can only grow with h
+        var r = M.heads
+          // 1103e: shown only when at least twice the network-average chance for that horizon ('high' = top 5%)
+          ? (x.up ? (x.p >= 2 * hd.mean_rate && lift >= 1.2 ? (x.p >= hd.cut_top5 ? 'high' : 'elevated') : null)
+                  : (x.p >= hd.cut_top5 && x.base >= 1.5 * usualAllDay ? 'elevated' : null))
+          : (x.up ? (lift >= 1.2 ? (x.p >= hd.cut_top5 ? 'high' : 'elevated') : null)
+                  : (x.p >= hd.cut_top5 && x.base >= 1.5 * usualAllDay ? 'elevated' : null));
+        if (r && at == null) { risk = r; at = +h; s = x; }
+        if (h === '30') s = s || x;
+      });
       if (!risk) return;
       var row = (L.rows || []).find(function (r) { return String(r.naptan || '').toUpperCase() === parts[1] && dirKey(r.dir) === parts[2]; });
-      if (!row) { row = { station: null, naptan: parts[1], dir: M.dir_label[parts[2]] || parts[2], now: null }; (L.rows = L.rows || []).push(row); }
-      row.onset_p30 = Math.round(s.p * 1000) / 1000; row.risk = risk;
-      row.onset_min = s.near == null ? 30 : s.near <= 10 ? 10 : s.near <= 20 ? 20 : 30;
+      if (!row) { row = { station: null, naptan: parts[1], dir: M.dir_label[parts[2]] || ({ inbound: 'Inbound', outbound: 'Outbound' })[parts[2]] || '', now: null }; (L.rows = L.rows || []).push(row); }
+      row.onset_p30 = ph['30']; row.p_by_h = ph; row.risk = risk;
+      row.onset_min = M.heads ? at : (s.near == null ? 30 : s.near <= 10 ? 10 : s.near <= 20 ? 20 : 30);
       row.top_reason = s.up ? 'delays_up_line' : 'network_pattern'; row.model = M.model_id;
       row.reason_text = s.up ? 'Delays up the line' + (s.nearUnit ? ' at ' + title(s.nearUnit.split('|')[1]) : '') + ' · about ' + Math.max(1, Math.round(s.near)) + ' min away' : 'Often delayed at this hour';
     });
