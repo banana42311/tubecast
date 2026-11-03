@@ -108,23 +108,18 @@
           if (predicted.reason && g.reasons.indexOf(predicted.reason) < 0) g.reasons.push(predicted.reason);
         }
       });
-      // Stations TfL itself lists as affected by a delay on this line. Observed station rows take priority.
+      // TfL's list of stops in the affected section. It describes a section of the line, not measured
+      // station delays, so it is kept apart and never counted as 'delayed now'.
       var tflLevel = info.closed ? null : /severe|suspend/i.test(tfl.status || '') ? 'severe' : /delay/i.test(tfl.status || '') ? 'minor' : null;
       var tflStops = tfl.affected_stops || (tfl.not_running && tfl.not_running.affected_stops) || [];
       if (tflLevel && Array.isArray(tflStops) && tflStops.length) {
-        var only = /\b(east|west|north|south)bound only\b/i.exec(tfl.reason || ''), tdir = only ? DIR[only[1].toLowerCase()] : 'Both directions';
+        var only = /\b(east|west|north|south)bound only\b/i.exec(tfl.reason || '');
+        info.tflAffected = [];
         tflStops.forEach(function (raw) {
           var nm = match({ station: String(raw).replace(/ (underground|rail|dlr)? ?station$/i, '').replace(/^london /i, '') });
-          if (!nm) return;
-          var st = stationState[nm] = stationState[nm] || {}, sl = st[slug] = st[slug] || {};
-          if (Object.keys(sl).some(function (k) { return sl[k].now; })) return;
-          var now = { level: tflLevel, gapMin: null, usualMin: null, source: 'tfl' };
-          if (sl[tdir]) sl[tdir].now = now; else { sl[tdir] = { line: slug, station: nm, naptan: '', dir: tdir, now: now, predicted: null }; activeRows.push(sl[tdir]); }
-          var g = groups[tdir] || (groups[tdir] = { now: [], next: [], levels: {}, severity: null, predictedSeverity: null, gap: 0, reasons: [] });
-          if (g.now.indexOf(nm) < 0) g.now.push(nm);
-          g.levels[nm] = worst(g.levels[nm], tflLevel); g.severity = worst(g.severity, tflLevel);
+          if (nm && info.tflAffected.indexOf(nm) < 0) info.tflAffected.push(nm);
         });
-        info.tflStops = true;
+        info.tflDir = only ? DIR[only[1].toLowerCase()] : '';
       }
       Object.keys(groups).forEach(function (dir) {
         var g = groups[dir];
