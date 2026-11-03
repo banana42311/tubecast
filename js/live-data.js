@@ -33,7 +33,7 @@
       var x = byId[L.id]; if (!x) return;
       L.rows = (hl[L.id] || []).map(function (r) { return { station: null, naptan: r.naptan, dir: r.dir, now: { level: r.level, gap_min: r.gap_min, usual_min: r.usual_min } }; });
       L.rows_truncated = false;
-      L.now = { units_delayed: x.total_delayed_units, stations_delayed: x.total_delayed_stations, confirmed_units: x.confirmed_delayed_units, unknown_units: x.unknown_units, observable_units: x.observable_units };
+      L.now = { units_delayed: x.confirmed_delayed_units, stations_delayed: x.confirmed_delayed_stations, confirmed_units: x.confirmed_delayed_units, unknown_units: x.unknown_units, observable_units: x.observable_units };
     });
     d.observed_v2 = { as_of: v2.as_of, snapshot_id: v2.snapshot_id, reason_counts: v2.reason_counts, coverage: v2.reference_coverage };
     return d;
