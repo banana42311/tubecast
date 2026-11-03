@@ -21,7 +21,8 @@
     }
     if (b.t === 'now') {
       var g = b.end === 'red' ? 'linear-gradient(90deg,' + AM + ',' + RD + ' 50%,'+tail('rgba(219,36,31,.25)',0)+')' : 'linear-gradient(90deg,' + AM + ',' + AM + ' 50%,'+tail('rgba(255,161,43,.25)',0)+')';
-      return '<div class="tbar"><i class="trk" style="width:170px"></i><i class="grad" style="left:1px;width:170px;background:' + g + '"></i><i class="dot"></i></div>';
+      if (b.end === 'red') g = 'linear-gradient(90deg,' + RD + ',' + RD + ' 50%,' + tail('rgba(219,36,31,.25)', 0) + ')';
+      return '<div class="tbar"><i class="trk" style="width:170px"></i><i class="grad" style="left:1px;width:170px;background:' + g + '"></i><i class="dot"' + (b.end === 'red' ? ' style="background:' + RD + '"' : '') + '></i></div>';
     }
     if (b.t === 'on') {
       var g2 = b.sev === 'red' ? 'linear-gradient(90deg,' + AM + ',' + RD + ' 40%,'+tail('rgba(219,36,31,.25)',b.at)+')' : 'linear-gradient(90deg,' + AM + ',' + AM + ' 25%,'+tail('rgba(255,161,43,.25)',b.at)+')';
