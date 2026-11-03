@@ -69,7 +69,7 @@ html.mode-phone .map-phone .stackbtn,html.mode-phone .map-phone .routebtn { bott
 .map-label-layer.zoom-wide .lbl { visibility:hidden; }
 .map-label-layer.zoom-wide .lbl.route-label { visibility:visible; }
 .map-label-layer.zoom-wide .lbl.route-label:not(.endpoint-label) { visibility:hidden; }
-.station-marker { position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;display:flex;align-items:center;justify-content:center;background:none;border:0;cursor:pointer;transform:scale(var(--ls));z-index:4; }
+.station-marker { position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;display:flex;align-items:center;justify-content:center;background:none;border:0;cursor:pointer;transform:scale(var(--mk,var(--ls)));z-index:4; }
 .station-marker .delay-dot { width:18px;height:18px;flex-basis:18px;pointer-events:none; }
 #world[data-filter=now] [data-kind=next],#world[data-filter=next] [data-kind=now] { display:none; }
 #world[data-filter=now] .dz-forecast { display:none; }

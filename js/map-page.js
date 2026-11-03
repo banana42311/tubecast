@@ -173,6 +173,8 @@
       /* dot diameter on screen: 12*sqrt(k) when zoomed in, 2.6 x line width when zoomed out */
       var dot=k>=1?12*Math.sqrt(k):Math.max(3.2,2.6*Math.max(4.5*k,1.3));world.style.setProperty('--ds',(dot/(12*k)).toFixed(4));
       world.classList.toggle('zoom-far',k<.09);
+      /* delay markers shrink more slowly than the lines when zooming out: 44*k^0.3 px (44*sqrt(k) when zoomed in) */
+      world.style.setProperty('--mk',(k>=1?1/Math.sqrt(k):Math.pow(k,.3)/k).toFixed(4));
       world.style.setProperty('--hs',Math.max(1,44/(32*k)).toFixed(3));
       window.MapCtx&&window.MapCtx.onCam&&window.MapCtx.onCam(k);
       zbtn.in&&zbtn.in.setAttribute('aria-disabled',k>=KMAX-.01);

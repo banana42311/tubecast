@@ -120,6 +120,18 @@
           if (nm && info.tflAffected.indexOf(nm) < 0) info.tflAffected.push(nm);
         });
         info.tflDir = only ? DIR[only[1].toLowerCase()] : '';
+        // TfL's announcement is a report of delays happening now, so these stations count as delayed now
+        // (source 'tfl'). A station already measured by v2 keeps its measured level.
+        var tdir = info.tflDir || 'Both directions';
+        info.tflAffected.forEach(function (nm) {
+          var st = stationState[nm] = stationState[nm] || {}, sl = st[slug] = st[slug] || {};
+          if (Object.keys(sl).some(function (k) { return sl[k].now; })) return;
+          var now = { level: tflLevel, gapMin: null, usualMin: null, source: 'tfl' };
+          if (sl[tdir]) sl[tdir].now = now; else { sl[tdir] = { line: slug, station: nm, naptan: '', dir: tdir, now: now, predicted: null }; activeRows.push(sl[tdir]); }
+          var g = groups[tdir] || (groups[tdir] = { now: [], next: [], levels: {}, severity: null, predictedSeverity: null, gap: 0, reasons: [] });
+          if (g.now.indexOf(nm) < 0) g.now.push(nm);
+          g.levels[nm] = worst(g.levels[nm], tflLevel); g.severity = worst(g.severity, tflLevel);
+        });
       }
       Object.keys(groups).forEach(function (dir) {
         var g = groups[dir];
