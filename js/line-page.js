@@ -53,14 +53,14 @@
       return '<div class="card fc enter" style="top:' + top + 'px;--i:1"><div class="t">' + esc(D.fc.title) + '</div><div class="s">' + esc(D.fc.sub) + '</div><div class="hr"></div><div class="cols">' +
         D.fc.cols.map(function (c, i) { return '<div class="col' + (i === 0 ? ' now' : '') + (c[3] ? ' dim' : '') + '"><span class="l">' + c[0] + '</span><span class="mkr">' + mkr(c[2], slug) + '</span><span class="n"><b>' + c[1] + '</b>stns</span></div>'; }).join('') + '</div></div>';
     }
-    function closureH() { return D.fc.lines.length > 1 ? 157 : 110; }
+    function closureH() { return (D.fc.lines || []).length > 1 ? 157 : 110; }
     function closureCard(top) {
       return '<div class="card fc cl enter" style="top:' + top + 'px;height:' + closureH() + 'px;--i:1"><div class="t">' + esc(D.fc.title) + '</div><div class="hr"></div>' +
-        D.fc.lines.map(function (l, i) { return '<div class="ln" style="top:' + (i ? 105 : 58) + 'px"><i class="' + (l.run ? 'r' : 'x') + '"></i><span class="k">' + esc(l.k) + '</span><span class="v">' + esc(l.v) + '</span></div>'; }).join('') + '</div>';
+        (D.fc.lines || []).map(function (l, i) { return '<div class="ln" style="top:' + (i ? 105 : 58) + 'px"><i class="' + (l.run ? 'r' : 'x') + '"></i><span class="k">' + esc(l.k) + '</span><span class="v">' + esc(l.v) + '</span></div>'; }).join('') + '</div>';
     }
     function stations(top) {
       var h, body;
-      if (D.kind === 'none') { h = 82.5; body = '<div class="allok"><i></i><span>' + (D.count === 2 ? 'Both' : 'All') + ' ' + D.count + ' stations running normally</span></div>'; }
+      if (D.kind === 'none') { h = 82.5; body = '<div class="allok"><i></i><span>' + (D.count ? (D.count === 2 ? 'Both' : 'All') + ' ' + D.count + ' stations' : 'All stations') + ' running normally</span></div>'; }
       else {
         h = 35 + D.rows.length * 58.5 + 5;
         body = D.rows.map(function (r) {
@@ -133,7 +133,7 @@
       underlay();
       var nm = /line$/i.test(meta.name) ? meta.name : meta.name + ' line';
       if (state === 'loading') P.hdr.set(nm, null, 'Checking current trains…', meta.color);
-      else P.hdr.set(nm, D.kind === 'closure' ? null : plain(D.hero.value), D.kind === 'closure' ? (D.fc.lines.length>1?'Part closure':'Not running') : plain(D.hero.sub), meta.color);
+      else P.hdr.set(nm, D.kind === 'closure' ? null : plain(D.hero.value), D.kind === 'closure' ? (D.closureLabel || ((D.fc.lines || []).length>1?'Part closure':'Not running')) : plain(D.hero.sub), meta.color);
     }
     P.refresh = function () {
       state = null;

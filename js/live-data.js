@@ -40,6 +40,8 @@
       var has = live.disruptions.some(function (d) { return d.line === line.slug; });
       var notice = /delay|suspend|closure|not running/i.test(info.status || '');
       line.status = info.closed ? 'closed' : (has || notice ? 'delayed' : 'normal');
+      line.statusText = info.status || '';
+      line.notice = notice;
     });
   }
   applyLineMetadata();

@@ -45,11 +45,13 @@ window.FlowData = (function () {
     var on=(LIVE.onset||{})[l.slug]||{},s=summary(l.slug),cnt=function(h){var n=new Set();ds.forEach(function(d){d.now.forEach(function(x){n.add(x);});d.next.forEach(function(x){if((on[x]||99)<=h)n.add(x);});});return n.size;};
     var sev=ds.some(function(d){return d.nextSev==='severe';})?'ps':'pm';
     var provided=info.cols||[];
+    if(info.closed){var cl=String(info.status||'');page.closureLabel=cl?cl.charAt(0).toUpperCase()+cl.slice(1).toLowerCase():'Part closure';page.fc=page.fc||{};page.fc.lines=[{run:false,k:page.closureLabel,v:String(info.reason||'').replace(/^[^:]*:\s*/,'').slice(0,70)}];}
     page.kind=info.closed?'closure':(/delay/i.test(info.status||'')||s.total?'delayed':'none');
     page.hero={value:String(s.now),sub:(s.now===1?'station':'stations')+' delayed now'};
-    page.fc={title:s.now+' '+(s.now===1?'station':'stations')+' delayed now',sub:s.next?s.total+' affected in 30 min · '+s.next+' more':'No additional stations predicted',cols:page.fc&&page.fc.cols||[]};
+    page.fc={title:s.now+' '+(s.now===1?'station':'stations')+' delayed now',sub:s.next?s.total+' affected in 30 min · '+s.next+' more':'No additional stations predicted',cols:page.fc&&page.fc.cols||[],lines:page.fc&&page.fc.lines};
     page.rows=[];ds.forEach(function(d){d.now.forEach(function(n){page.rows.push({n:n,d:d.direction,b:{t:'now',end:d.sev==='severe'?'red':'amber'}});});d.next.forEach(function(n,i){page.rows.push({n:n,d:d.direction,b:{t:'on',at:28.33*(i+1),sev:d.nextSev==='severe'?'red':'amber'}});});});
-    page.fc.cols=provided.length?provided.map(function(c){return [c.h===0?'Now':c.h+' min',c.n==null?'—':c.n,c.mark||(c.h===0?(s.severity==='severe'?'ns':'nm'):sev),c.n==null?1:0];}):[['Now',s.now,s.severity==='severe'?'ns':'nm'],['10 min',cnt(10),sev],['20 min',cnt(20),sev],['30 min',cnt(30),sev],['60 min','—','pg',1]];
+    var nowMark=(provided.find(function(c){return c.h===0;})||{}).mark;
+    page.fc.cols=['Now',s.now,nowMark||(s.severity==='severe'?'ns':'nm')],['10 min',cnt(10),sev],['20 min',cnt(20),sev],['30 min',cnt(30),sev],['60 min','—','pg',1]];
     page.rows.forEach(function(r){if(r.b.t==='on'&&on[r.n]!=null)r.b.at=Math.min(170,28.33*on[r.n]/10);});
   });
   return {disruptions:D,SEV:SEV,atStation:atStation,worst:worst,hash:hash,forLine:forLine,summary:summary,totals:totals,

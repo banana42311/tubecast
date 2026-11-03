@@ -19,7 +19,7 @@
   chip.querySelector('span').textContent = '· ' + (L.status === 'delayed' ? L.now + ' delayed now' : L.status === 'closed' ? 'Not running' : 'Good service');
   document.getElementById('stack').href = 'index.html#all-lines';
   document.getElementById('route').href = 'map.html?pick=1';
-  document.title = 'Tubecast · Map · ' + L.name;
+  document.title = /[?&]route=/.test(location.search) ? 'Tubecast · Route' : 'Tubecast · Map · ' + L.name;
   TCSearch.attach({ input: document.getElementById('q'), panel: document.getElementById('sp'), line: function () { return slug; } });
 
   /* ---------- svg: ALL lines drawn crisp at full strength — nothing is dimmed ---------- */

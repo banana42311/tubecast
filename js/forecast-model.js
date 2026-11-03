@@ -55,6 +55,7 @@ window.ForecastModel = (function () {
       L.cols = [0, 10, 20, 30, 60].map(function (h) {
         var n = now + (h ? rows.filter(function (r) { return !(r.now && r.now.level) && r.risk && r.onset_min <= Math.min(h, 30); }).length : 0);
         var old = (L.cols || []).find(function (c) { return c.h === h; });
+        if (h > 30) return { h: h, n: null, mark: 'pg', kind: 'model' };
         return { h: h, n: n, mark: h === 0 && old && old.mark ? old.mark : (pb != null && pb >= .1833 ? 'ps' : n ? 'pm' : 'pg'), kind: h ? 'model' : 'observed' };
       });
     });

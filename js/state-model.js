@@ -5,7 +5,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.StateModel = api;
 })(typeof window !== 'undefined' ? window : null, function () {
-  var DIR = { east: 'Eastbound', west: 'Westbound', north: 'Northbound', south: 'Southbound' };
+  var DIR = { east: 'Eastbound', west: 'Westbound', north: 'Northbound', south: 'Southbound', in: 'Inbound', out: 'Outbound' };
 
   // The API sends empty containers ([] or {affected_stops: []}) when nothing is closed.
   function present(v) {
@@ -57,7 +57,7 @@
         status: tfl.status || '',
         reason: tfl.reason || '',
         cause: tfl.cause || '',
-        closed: present(tfl.planned_closure) || present(tfl.not_running),
+        closed: present(tfl.planned_closure) || /closure|suspend|not running|no service/i.test(tfl.status || ''),
         p30: Number.isFinite(forecast.p_base_30) ? forecast.p_base_30 : null,
         alert: forecast.alert || null,
         cols: (line.cols || []).map(function (c) { return { h: +c.h, n: c.n, mark: c.mark || '' }; })

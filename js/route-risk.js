@@ -51,7 +51,7 @@
     return (departure - reference) / 60000 + duration * fraction;
   }
   function score(option, state) {
-    var seen = {}, groups = {}, current = 0, predicted = 0, extra = 0, level = null, hits = [];
+    var seen = {}, status = [], groups = {}, current = 0, predicted = 0, extra = 0, level = null, hits = [];
     function group(line, dir) { var key=line+'|'+(dir||'any');return groups[key]||(groups[key]={current:0,predicted:0,closed:0}); }
     (option.r.legs || []).forEach(function (leg) {
       if (leg.walking) return;
@@ -59,6 +59,9 @@
       if (info && info.closed && !seen['closed:' + leg.line]) {
         seen['closed:' + leg.line] = true; group(leg.line,leg.direction).closed = 40; level = worst(level, 'not-running');
         hits.push({ station: leg.stops[0] && leg.stops[0].name, line: leg.line, kind: 'current', level: 'not-running', minutes: 40 });
+      }
+      if (info && !info.closed && /delay/i.test(info.status || '') && !seen['status:' + leg.line]) {
+        seen['status:' + leg.line] = true; status.push(info.status);
       }
       (leg.stops || []).forEach(function (stop, stopIndex, stops) {
         rowsFor(state, stop, leg.line, leg.direction).forEach(function (row) {
@@ -84,7 +87,7 @@
     });
     Object.keys(groups).forEach(function(key){var g=groups[key];extra+=g.closed||g.current+(g.current?g.predicted*.35:g.predicted);});
     extra = Math.round(extra);
-    return { current: current, predicted: predicted, worst: level, extra: extra, hits: hits };
+    return { current: current, predicted: predicted, worst: level, extra: extra, hits: hits, status: status };
   }
   function explain(risk) {
     if (!risk.hits.length) return 'No current or predicted delays on this route';
