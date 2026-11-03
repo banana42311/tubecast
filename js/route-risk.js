@@ -66,7 +66,7 @@
       (leg.stops || []).forEach(function (stop, stopIndex, stops) {
         rowsFor(state, stop, leg.line, leg.direction).forEach(function (row) {
           var key = leg.line + '|' + String(stop.id || stationKey(stop.name)) + '|' + row.dir;
-          if (row.now && !seen['now:' + key]) {
+          if (row.now && row.now.source !== 'tfl' && !seen['now:' + key]) {   // TfL-listed delays are already in TfL's journey time
             seen['now:' + key] = true;
             var observed = row.now.gapMin != null && row.now.usualMin != null ? Math.max(0,row.now.gapMin-row.now.usualMin) : 0;
             var nowMin = observed || BASE[row.now.level] || 0; current++; group(leg.line,row.dir).current=Math.max(group(leg.line,row.dir).current,nowMin); level = worst(level, row.now.level);

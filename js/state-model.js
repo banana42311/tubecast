@@ -28,6 +28,15 @@
     var raw = String(d || ''), k = raw.toLowerCase().replace(/bound$/, '');
     return DIR[k] || raw || 'Both directions';
   }
+  // TfL arrivals label some platforms only 'inbound' (towards central London) / 'outbound'.
+  // Show them as East/Westbound from the station's side of Bank, like the rest of the line.
+  function directionAt(raw, name, slug, cat) {
+    var k = String(raw || '').toLowerCase();
+    if ((k === 'inbound' || k === 'outbound') && slug !== 'circle' && cat && cat[name] && cat.Bank) {
+      return ((cat[name].x < cat.Bank.x) === (k === 'outbound')) ? 'Westbound' : 'Eastbound';
+    }
+    return direction(raw);
+  }
   function percent(p) { return Number.isFinite(p) ? Math.round(p * 100) + '%' : ''; }
   function severityRank(s) { return s === 'severe' ? 2 : s === 'minor' ? 1 : 0; }
   function worst(a, b) { return severityRank(a) >= severityRank(b) ? a : b; }
@@ -81,7 +90,7 @@
           model: row.model || api.serving_model_id || ''
         } : null;
         if (!now && !predicted) return;
-        var dir = direction(row.dir), record = { line: slug, station: name, naptan: row.naptan || '', dir: dir, now: now, predicted: predicted };
+        var dir = directionAt(row.dir, name, slug, stationCatalog), record = { line: slug, station: name, naptan: row.naptan || '', dir: dir, now: now, predicted: predicted };
         activeRows.push(record);
         stationState[name] = stationState[name] || {};
         stationState[name][slug] = stationState[name][slug] || {};
@@ -99,6 +108,24 @@
           if (predicted.reason && g.reasons.indexOf(predicted.reason) < 0) g.reasons.push(predicted.reason);
         }
       });
+      // Stations TfL itself lists as affected by a delay on this line. Observed station rows take priority.
+      var tflLevel = info.closed ? null : /severe|suspend/i.test(tfl.status || '') ? 'severe' : /delay/i.test(tfl.status || '') ? 'minor' : null;
+      var tflStops = tfl.affected_stops || (tfl.not_running && tfl.not_running.affected_stops) || [];
+      if (tflLevel && Array.isArray(tflStops) && tflStops.length) {
+        var only = /\b(east|west|north|south)bound only\b/i.exec(tfl.reason || ''), tdir = only ? DIR[only[1].toLowerCase()] : 'Both directions';
+        tflStops.forEach(function (raw) {
+          var nm = match({ station: String(raw).replace(/ (underground|rail|dlr)? ?station$/i, '').replace(/^london /i, '') });
+          if (!nm) return;
+          var st = stationState[nm] = stationState[nm] || {}, sl = st[slug] = st[slug] || {};
+          if (Object.keys(sl).some(function (k) { return sl[k].now; })) return;
+          var now = { level: tflLevel, gapMin: null, usualMin: null, source: 'tfl' };
+          if (sl[tdir]) sl[tdir].now = now; else { sl[tdir] = { line: slug, station: nm, naptan: '', dir: tdir, now: now, predicted: null }; activeRows.push(sl[tdir]); }
+          var g = groups[tdir] || (groups[tdir] = { now: [], next: [], levels: {}, severity: null, predictedSeverity: null, gap: 0, reasons: [] });
+          if (g.now.indexOf(nm) < 0) g.now.push(nm);
+          g.levels[nm] = worst(g.levels[nm], tflLevel); g.severity = worst(g.severity, tflLevel);
+        });
+        info.tflStops = true;
+      }
       Object.keys(groups).forEach(function (dir) {
         var g = groups[dir];
         g.next.sort(function (a, b) { return a.onset - b.onset; });
