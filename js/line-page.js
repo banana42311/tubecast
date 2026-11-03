@@ -27,7 +27,7 @@
       var g2 = b.sev === 'red' ? 'linear-gradient(90deg,' + AM + ',' + RD + ' 40%,'+tail('rgba(219,36,31,.25)',b.at)+')' : 'linear-gradient(90deg,' + AM + ',' + AM + ' 25%,'+tail('rgba(255,161,43,.25)',b.at)+')';
       return '<div class="tbar"><i class="trk" style="width:170px"></i><i class="ons" style="left:' + b.at + 'px"></i><i class="grad" style="left:' + b.at + 'px;width:' + (170 - b.at) + 'px;background:' + g2 + '"></i></div>';
     }
-    if (b.t === 'tfl') return '<div class="tbar lowb"><i class="trk" style="width:133px;background:rgba(255,255,255,.22)"></i><span class="lbl">TfL · ' + esc(b.sev || '') + '</span></div>';
+    if (b.t === 'tfl') return '<div class="tbar"><span class="tflpill">TfL · ' + esc(b.sev || '') + '</span></div>';
     if (b.t === 'low') return '<div class="tbar lowb"><i class="trk" style="width:133px;background:rgba(255,255,255,.22)"></i><span class="lbl">Low</span></div>';
     return '<div class="tbar"><i class="nrl" style="width:84px"></i><span class="lbl">Not running</span></div>';
   }

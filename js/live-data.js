@@ -2,7 +2,7 @@
    synchronous LiveState snapshot before FlowData is built. */
 (function () {
   var C = window.TUBECAST_CONFIG || {}, Model = window.StateModel, Demo = window.DemoMode;
-  var KEY = 'tubecast-state-v2', base = String(C.apiBase || '').replace(/\/$/, '');
+  var KEY = 'tubecast-state-v3', base = String(C.apiBase || '').replace(/\/$/, '');
   var fixture = C.stateFixture || 'data/state.sample.json', maxAge = C.maxAgeSec || 180;
   function read() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
   function write(data, source) { try { localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), source: source, data: data })); } catch (e) {} }
@@ -41,7 +41,8 @@
   function empty() { return { mode: 'example', delayed: false, hasData: false, disruptions: [], onset: {}, lines: {}, rows: [], stationState: {} }; }
 
   var cached = read(), initial = null;
-  if (cached && cached.data && ((base && cached.source === 'api') || (!base && cached.source === 'fixture'))) {
+  // Render from the shared cache only when it is recent, so every page opens on the same snapshot.
+  if (cached && cached.data && (!base || Date.now() - (cached.at || 0) <= 150000) && ((base && cached.source === 'api') || (!base && cached.source === 'fixture'))) {
     var choice = base ? Model.chooseSnapshot(null, cached, { now: Date.now(), maxAgeSec: maxAge }) : { data: cached.data, delayed: false, source: 'fixture' };
     if (choice) initial = build(choice.data, { example: !base, delayed: choice.delayed, fetchedAt: cached.at, source: cached.source });
   }
@@ -82,19 +83,33 @@
     }
     if (!choice) return false;
     var next = build(choice.data, { example: source === 'fixture', delayed: choice.delayed || failed, fetchedAt: Date.now(), source: choice.source });
+    var hadData = !!window.LiveState.hasData;
     var changed = !window.LiveState.hasData || window.LiveState.asOf !== next.asOf || window.LiveState.delayed !== next.delayed;
     window.LiveState = next; applyLineMetadata(); updateBadge();
     document.documentElement.classList.toggle('live-error', !!next.delayed);
     if (changed) window.dispatchEvent(new CustomEvent('tubecaststate', { detail: next }));
+    if (changed && hadData) softReload();
     return changed;
   }
+  // Pages are drawn once from LiveState. When they opened without data, redraw as soon as a
+  // fresh snapshot is cached (only then, so this cannot loop).
   function firstBootReload(source) {
     if (!window.LiveState.hasData) return false;
-    try {
-      var k = 'tc-state-boot-v2-' + source;
-      if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); location.reload(); return true; }
-    } catch (e) {}
+    var last = read();
+    if (last && last.source === source && Date.now() - (last.at || 0) < 10000) { location.reload(); return true; }
     return false;
+  }
+  // A newer snapshot arrived after the page was drawn: redraw when the user has been idle for 15 s.
+  // The map listens for updates itself.
+  var lastInput = Date.now(), pendingReload = false;
+  if (window.addEventListener) ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'].forEach(function (e) { window.addEventListener(e, function () { lastInput = Date.now(); }, { passive: true, capture: true }); });
+  function softReload() {
+    if (/map\.html$/.test(location.pathname) || (Demo && Demo.active)) return;
+    if (pendingReload) return; pendingReload = true;
+    (function tryReload() {
+      if (document.visibilityState === 'visible' && Date.now() - lastInput > 15000) location.reload();
+      else setTimeout(tryReload, 5000);
+    })();
   }
   function pull() {
     var source = base ? 'api' : 'fixture', url = base ? base + '/api/state' : fixture;

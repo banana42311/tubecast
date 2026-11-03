@@ -131,3 +131,6 @@ html.mode-phone .pg .hero{margin-top:-20px}
 .pager-page .view.swap-in{animation:none}
 .phone.spin .banner svg{animation:spin .8s linear infinite}
 @media (prefers-reduced-motion:reduce){.pg .pagepos .pd i{transition:none}}
+
+/* Station listed by TfL in an affected section (not a measured delay) */
+.tbar .tflpill{position:absolute;right:0;top:-3px;font-size:12px;line-height:18px;color:#c4cdd7;border:1px solid #ffffff33;border-radius:999px;padding:0 8px;white-space:nowrap}

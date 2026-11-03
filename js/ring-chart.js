@@ -49,7 +49,7 @@
     var live = !!(state && state.hasData), info = live ? ((state.lines || {})[slug] || null) : null;
     var page = env.lineData && env.lineData[slug], summary = env.flowData && env.flowData.summary ? env.flowData.summary(slug) : {now:0,total:0,severity:'minor'};
     var disruptions = env.flowData && env.flowData.forLine ? env.flowData.forLine(slug) : [];
-    var cols = normalizeColumns(live ? (info ? info.cols : []) : (page && page.fc && page.fc.cols));
+    var cols = normalizeColumns(live ? ((page && page.fc && page.fc.cols && page.fc.cols.length) ? page.fc.cols : (info ? info.cols : [])) : (page && page.fc && page.fc.cols));
     var goodService = !!(info && /^good service$/i.test(String(info.status || '').trim()));
     var nowCell = atMinute(cols, 0, live ? (goodService ? 0 : null) : summary.now), now = nowCell.n == null ? 0 : nowCell.n;
     var closed = live ? !!(info && info.closed) : !!(page && page.kind === 'closure' || meta.status === 'closed');
