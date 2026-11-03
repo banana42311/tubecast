@@ -30,10 +30,14 @@
   }
   // TfL arrivals label some platforms only 'inbound' (towards central London) / 'outbound'.
   // Show them as East/Westbound from the station's side of Bank, like the rest of the line.
-  function directionAt(raw, name, slug, cat) {
+  function directionAt(raw, name, slug, cat, lonOf) {
     var k = String(raw || '').toLowerCase();
-    if ((k === 'inbound' || k === 'outbound') && slug !== 'circle' && cat && cat[name] && cat.Bank) {
-      return ((cat[name].x < cat.Bank.x) === (k === 'outbound')) ? 'Westbound' : 'Eastbound';
+    if ((k === 'inbound' || k === 'outbound') && slug !== 'circle') {
+      // west of Bank: schematic x when the page has it, otherwise TfL longitude (pages differ in catalog)
+      var west = lonOf && lonOf[norm(name)] != null && lonOf.bank != null ? lonOf[norm(name)] < lonOf.bank
+               : (cat && cat[name] && cat.Bank ? cat[name].x < cat.Bank.x : null);
+      if (west != null) return (west === (k === 'outbound')) ? 'Westbound' : 'Eastbound';
+      return k === 'inbound' ? 'Inbound' : 'Outbound';
     }
     return direction(raw);
   }
@@ -58,6 +62,7 @@
 
   function transform(api, stationCatalog, network) {
     api = api || {};
+    var lonOf = {}; ((network && network.stations) || []).forEach(function (s) { if (Number.isFinite(s.lon)) lonOf[norm(s.name)] = s.lon; });
     var match = matcher(stationCatalog, network), unmatched = [], disruptions = [], onset = {}, lines = {}, stationState = {}, activeRows = [];
     (api.lines || []).forEach(function (line) {
       var slug = line.id, tfl = line.tfl || {}, forecast = line.line_forecast || {}, groups = {};
@@ -90,7 +95,7 @@
           model: row.model || api.serving_model_id || ''
         } : null;
         if (!now && !predicted) return;
-        var dir = directionAt(row.dir, name, slug, stationCatalog), record = { line: slug, station: name, naptan: row.naptan || '', dir: dir, now: now, predicted: predicted };
+        var dir = directionAt(row.dir, name, slug, stationCatalog, lonOf), record = { line: slug, station: name, naptan: row.naptan || '', dir: dir, now: now, predicted: predicted };
         activeRows.push(record);
         stationState[name] = stationState[name] || {};
         stationState[name][slug] = stationState[name][slug] || {};

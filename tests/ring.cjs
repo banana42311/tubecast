@@ -15,10 +15,10 @@ const sample=RingChart.model(state(sampleApi,'example'),env);
 assert.equal(sample.length,12);
 assert.equal(bySlug(sample,'central').now,2);
 assert.equal(bySlug(sample,'central').inner.fill,'#FFA12B');
-assert.equal(bySlug(sample,'central').rings[0].tone,'normal');
+assert.equal(bySlug(sample,'central').rings[0].tone,'minor');   // no forecast growth yet: the current delay carries on (same as the line page)
 assert.equal(bySlug(sample,'central').rings[1].count,3);
 assert.equal(bySlug(sample,'central').rings[1].tone,'severe');
-assert.equal(bySlug(sample,'victoria').rings.every(r=>r.tone==='normal'),true);
+assert.equal(bySlug(sample,'victoria').rings.every(r=>r.tone===bySlug(sample,'victoria').inner.tone),true);   // current delays carry on, nothing added
 assert.equal(bySlug(sample,'jubilee').inner.fill,'#DC241F');
 console.log('PASS sample fixture counts and severity drive the ring bands');
 
@@ -27,7 +27,7 @@ const demoApi=demoFile.stages[0].state;
 const demo=RingChart.model(state(demoApi,'scenario'),env);
 assert.equal(bySlug(demo,'central').rings[1].tone,'severe');
 assert.equal(bySlug(demo,'central').rings[1].opacity>.35,true);
-assert.equal(bySlug(demo,'district').rings[2].tone,'normal');
+assert.equal(bySlug(demo,'district').rings[2].tone,bySlug(demo,'district').inner.tone);   // before the forecast adds stations, current delays carry on
 assert.equal(bySlug(demo,'district').rings[3].tone,'minor');
 assert.equal(bySlug(demo,'victoria').rings[5].count,1);
 assert.equal(bySlug(demo,'victoria').rings[5].tone,'minor');

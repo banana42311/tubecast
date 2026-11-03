@@ -11,7 +11,8 @@
   }
   function sentence(t){t=String(t||'');return t?t.charAt(0).toUpperCase()+t.slice(1).toLowerCase():'';}
   // Live: TfL's own status text; forecast-only lines say 'Delay risk'. Demo keeps the old labels.
-  function lab(l){var t=l.statusText;if(l.status==='closed')return sentence(t)||(l.slug==='waterloo-city'?'Not running':'Part closure');if(l.status==='delayed')return t===undefined?'Minor delays':(l.notice?sentence(t):'Delay risk');return 'Good service';}
+  // TfL's wording when TfL reports a problem; otherwise our measured level, or 'Delay risk' for forecasts only.
+  function lab(l){var t=l.statusText,s=FlowData.summary(l.slug);if(l.status==='closed')return sentence(t)||(l.slug==='waterloo-city'?'Not running':'Part closure');if(l.status==='delayed')return t===undefined?'Minor delays':(l.notice?sentence(t):(s.now?(s.severity==='severe'?'Severe delays':'Minor delays'):'Delay risk'));return 'Good service';}
   function card(l){
     var sum=FlowData.summary(l.slug),ds=FlowData.forLine(l.slug),closed=l.status==='closed';
     if(!ds.length)return '<a class="card nrow" href="line.html?line='+l.slug+'"><span class="bar" style="background:'+l.color+'"></span><span class="nm">'+esc(l.name)+'</span><span class="sm">'+lab(l)+'</span>'+(closed?'<span class="off-mark">—</span>':(l.status==='delayed'?'<span class="notice-dot"></span>':'<span class="ok"><i></i></span>'))+'</a>';
