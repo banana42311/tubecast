@@ -134,3 +134,6 @@ html.mode-phone .pg .hero{margin-top:-20px}
 
 /* Station listed by TfL in an affected section (not a measured delay) */
 .tbar .tflpill{position:absolute;right:0;top:-3px;font-size:12px;line-height:18px;color:#c4cdd7;border:1px solid #ffffff33;border-radius:999px;padding:0 8px;white-space:nowrap}
+
+/* closure reason wraps instead of running off the card */
+.cl .ln .v{white-space:normal;width:290px}

@@ -64,7 +64,7 @@
       var cell = atMinute(cols, minute, now), grows = cell.n > now;
       if (closed) return { minute:minute, count:cell.n, tone:'planned', fill:COLOR.planned, opacity:.68 };
       // no stations added by a forecast: the current delays carry on (same as the line page's +h columns)
-      if (!grows) return now ? { minute:minute, count:cell.n, tone:nowTone, fill:COLOR[nowTone], opacity:.5 } : { minute:minute, count:cell.n, tone:'normal', fill:COLOR.normal, opacity:.25 };
+      if (!grows) return { minute:minute, count:cell.n, tone:'normal', fill:COLOR.normal, opacity:.25 };   // nothing added by a forecast
       var predicted = rows.filter(function (r) { return r.predicted && finite(r.predicted.onsetMin) <= minute; });
       var severe = predicted.some(function (r) { return r.predicted.risk === 'high' || r.predicted.level === 'severe'; });
       var tone = severe ? 'severe' : toneFromMark(cell.mark, disruptions.some(function (d) { return d.nextSev === 'severe'; }) ? 'severe' : 'minor');

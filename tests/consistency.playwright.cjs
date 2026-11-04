@@ -10,6 +10,7 @@ const tfl={
  elizabeth:{status:'Severe Delays',reason:'Severe delays between Paddington and Heathrow Terminal 4 / Reading while we fix a track fault.',not_running:{affected_stops:['Acton Main Line Rail Station','Ealing Broadway Rail Station','Hanwell Rail Station','Paddington','Southall Rail Station']}},
  district:{status:'Severe Delays',reason:'District Line: Severe delays between Upminster and Tower Hill westbound only, and MINOR DELAYS elsewhere.',not_running:{affected_stops:[st('Upminster'),st('Barking'),st('East Ham'),st('Tower Hill')]}},
  central:{status:'Minor Delays',reason:'Central Line: Minor delays due to an earlier faulty train.',not_running:{affected_stops:[]}},
+ victoria:{status:'Suspended',reason:'Victoria Line: No service while we fix a faulty train at Warren Street. Tickets are being accepted.',not_running:{affected_stops:[]}},
  circle:{status:'Minor Delays',reason:'Circle Line: Minor delays.',not_running:{affected_stops:[]}},
  'waterloo-city':{status:'Part Closure',reason:'No service between Waterloo and Bank.',not_running:{affected_stops:[]}},
 };
@@ -42,7 +43,7 @@ const v2={schema:'webdata_api_rows_v2_canary',as_of:now,lines:ALL.map(id=>({id,c
   return {out,bad,card,asOf:LiveState.asOf};
  });
  const pages={};
- for(const sl of ['elizabeth','district','central','jubilee','circle','waterloo-city']){
+ for(const sl of ['elizabeth','district','central','jubilee','circle','waterloo-city','victoria']){
   await p.goto(ROOT+'/line.html?line='+sl);await p.waitForTimeout(1500);
   pages[sl]=await p.evaluate(sl=>({hero:LINE_DATA[sl].hero&&LINE_DATA[sl].hero.value,cols:LINE_DATA[sl].fc.cols.map(x=>x[1]+':'+x[2]).join(' '),asOf:LiveState.asOf}),sl);
   await p.goto(ROOT+'/map.html?line='+sl);await p.waitForTimeout(1500);

@@ -53,9 +53,9 @@
 
     function forecast(top) {
       return '<div class="card fc enter" style="top:' + top + 'px;--i:1"><div class="t">' + esc(D.fc.title) + '</div><div class="s">' + esc(D.fc.sub) + '</div><div class="hr"></div><div class="cols">' +
-        D.fc.cols.map(function (c, i) { return '<div class="col' + (i === 0 ? ' now' : '') + (c[3] ? ' dim' : '') + '"><span class="l">' + c[0] + '</span><span class="mkr">' + mkr(c[2], slug) + '</span><span class="n"><b>' + c[1] + '</b>stns</span></div>'; }).join('') + '</div></div>';
+        D.fc.cols.map(function (c, i) { return '<div class="col' + (i === 0 ? ' now' : '') + (c[3] ? ' dim' : '') + '"><span class="l">' + c[0] + '</span><span class="mkr">' + mkr(c[2], slug) + '</span><span class="n"><b>' + (i && typeof c[1] === 'number' && typeof D.fc.cols[0][1] === 'number' ? (c[1] - D.fc.cols[0][1] > 0 ? '+' + (c[1] - D.fc.cols[0][1]) : '0') : c[1]) + '</b>stns</span></div>'; }).join('') + '</div></div>';
     }
-    function closureH() { return (D.fc.lines || []).length > 1 ? 157 : 110; }
+    function closureH() { var l = D.fc.lines || []; return l.length > 1 ? 157 : (l[0] && String(l[0].v || '').length > 34 ? 128 : 110); }
     function closureCard(top) {
       return '<div class="card fc cl enter" style="top:' + top + 'px;height:' + closureH() + 'px;--i:1"><div class="t">' + esc(D.fc.title) + '</div><div class="hr"></div>' +
         (D.fc.lines || []).map(function (l, i) { return '<div class="ln" style="top:' + (i ? 105 : 58) + 'px"><i class="' + (l.run ? 'r' : 'x') + '"></i><span class="k">' + esc(l.k) + '</span><span class="v">' + esc(l.v) + '</span></div>'; }).join('') + '</div>';

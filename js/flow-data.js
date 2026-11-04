@@ -45,7 +45,9 @@ window.FlowData = (function () {
     var on=(LIVE.onset||{})[l.slug]||{},s=summary(l.slug),cnt=function(h){var n=new Set();ds.forEach(function(d){d.now.forEach(function(x){n.add(x);});d.next.forEach(function(x){if((on[x]||99)<=h)n.add(x);});});return n.size;};
     var sev=ds.some(function(d){return d.nextSev==='severe';})?'ps':'pm';
     var provided=info.cols||[];
-    if(info.closed){var cl=String(info.status||'');page.closureLabel=cl?cl.charAt(0).toUpperCase()+cl.slice(1).toLowerCase():'Part closure';page.fc=page.fc||{};page.fc.lines=[{run:false,k:page.closureLabel,v:String(info.reason||'').replace(/^[^:]*:\s*/,'').slice(0,70)}];}
+    if(info.closed){var cl=String(info.status||''),why=String(info.reason||'').replace(/^[^:]*:\s*/,'').split(/\. /)[0].replace(/\.$/,'');
+      page.closureLabel=/^suspended$/i.test(cl)||/^no service/i.test(why)?'No service':(cl?cl.charAt(0).toUpperCase()+cl.slice(1).toLowerCase():'Part closure');
+      page.fc=page.fc||{};page.fc.lines=[{run:false,k:cl?cl.charAt(0).toUpperCase()+cl.slice(1).toLowerCase():'TfL',v:why}];}
     page.kind=info.closed?'closure':(/delay/i.test(info.status||'')||s.total?'delayed':'none');
     page.hero={value:String(s.now),sub:(s.now===1?'station':'stations')+' delayed now'};
     page.fc={title:s.now+' '+(s.now===1?'station':'stations')+' delayed now',sub:s.next?s.total+' affected in 30 min · '+s.next+' more':'No additional stations predicted',cols:page.fc&&page.fc.cols||[],lines:page.fc&&page.fc.lines};
@@ -57,10 +59,11 @@ window.FlowData = (function () {
     if(unknown){page.hero={value:'—',sub:tflText};page.fc.title='No measured station delay';}
     else if(tflDelay&&!s.now){page.hero.sub=tflText;page.fc.title='No reported station delay';}
     else if(tflDelay&&(info.tflAffected||[]).length){page.hero.sub=(s.now===1?'station':'stations')+' delayed now'+sect.replace(' · ',' · TfL ');}
-    page.emptyText='No measured station delays';
+    page.emptyText=info.closed?page.closureLabel:'No measured station delays';
+    if(info.closed){page.hero.sub=page.closureLabel;page.fc.title=page.closureLabel;}
     // 'Now' colour = measured station delays only (TfL line status is in the header text)
     // +h columns: forecast ring only when stations are added by a forecast; otherwise the current delays carry on
-    var nowSolid=s.severity==='severe'?'ns':'nm',mk=function(h){var c=cnt(h);return c>s.now?sev:(s.now?nowSolid:'pg');};
+    var mk=function(h){return cnt(h)>s.now?sev:'pg';};
     page.fc.cols=[['Now',unknown?'—':s.now,unknown?'pg':s.now?(s.severity==='severe'?'ns':'nm'):'ng',unknown?1:0],['10 min',cnt(10),mk(10)],['20 min',cnt(20),mk(20)],['30 min',cnt(30),mk(30)],['60 min','—','pg',1]];
     page.rows.forEach(function(r){if(r.b.t==='on'&&on[r.n]!=null)r.b.at=Math.min(170,28.33*on[r.n]/10);});
   });
