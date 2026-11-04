@@ -11,6 +11,7 @@ const tfl={
  district:{status:'Severe Delays',reason:'District Line: Severe delays between Upminster and Tower Hill westbound only, and MINOR DELAYS elsewhere.',not_running:{affected_stops:[st('Upminster'),st('Barking'),st('East Ham'),st('Tower Hill')]}},
  central:{status:'Minor Delays',reason:'Central Line: Minor delays due to an earlier faulty train.',not_running:{affected_stops:[]}},
  victoria:{status:'Suspended',reason:'Victoria Line: No service while we fix a faulty train at Warren Street. Tickets are being accepted.',not_running:{affected_stops:[]}},
+ metropolitan:{status:'Severe Delays',reason:'Metropolitan Line: Severe delays between Harrow-on-the-Hill and Uxbridge.',not_running:{affected_stops:[st('Harrow-on-the-Hill'),st('Eastcote'),st('Rayners Lane'),st('Ruislip'),st('Uxbridge')]}},
  circle:{status:'Minor Delays',reason:'Circle Line: Minor delays.',not_running:{affected_stops:[]}},
  'waterloo-city':{status:'Part Closure',reason:'No service between Waterloo and Bank.',not_running:{affected_stops:[]}},
 };
@@ -36,6 +37,7 @@ const v2={schema:'webdata_api_rows_v2_canary',as_of:now,lines:ALL.map(id=>({id,c
    if(s.now!==c[0][1]&&c[0][1]!=='—') bad.push(r.slug+': summary now '+s.now+' vs Now col '+c[0][1]);
    if(s.total!==c[3][1]) bad.push(r.slug+': summary total '+s.total+' vs 30 col '+c[3][1]);
    (pg.rows||[]).forEach(row=>{ if(row.b.t!=='now') return; const rec=LiveState.rows.find(x=>x.line===r.slug&&x.station===row.n&&x.now); if(rec&&((rec.now.level==='severe')!==(row.b.end==='red'))) bad.push(r.slug+': row '+row.n+' bar '+row.b.end+' vs level '+rec.now.level);});
+   const nowNames=new Set((pg.rows||[]).filter(x=>x.b.t==='now').map(x=>x.n)); (pg.rows||[]).filter(x=>x.b.t==='on').forEach(x=>{if(nowNames.has(x.n)) bad.push(r.slug+': '+x.n+' listed both as delayed now and predicted');});
    const nextRows=(pg.rows||[]).filter(x=>x.b.t==='on').length; if((c[3][1]>c[0][1])!==(nextRows>0)) bad.push(r.slug+': 30-min growth vs predicted rows mismatch');
   });
   const card=[...document.querySelectorAll('.all-line-cards .card')].map(x=>x.innerText.replace(/\s+/g,' ').slice(0,80));
@@ -43,7 +45,7 @@ const v2={schema:'webdata_api_rows_v2_canary',as_of:now,lines:ALL.map(id=>({id,c
   return {out,bad,card,asOf:LiveState.asOf};
  });
  const pages={};
- for(const sl of ['elizabeth','district','central','jubilee','circle','waterloo-city','victoria']){
+ for(const sl of ['elizabeth','district','central','jubilee','circle','waterloo-city','victoria','metropolitan']){
   await p.goto(ROOT+'/line.html?line='+sl);await p.waitForTimeout(1500);
   pages[sl]=await p.evaluate(sl=>({hero:LINE_DATA[sl].hero&&LINE_DATA[sl].hero.value,cols:LINE_DATA[sl].fc.cols.map(x=>x[1]+':'+x[2]).join(' '),asOf:LiveState.asOf}),sl);
   await p.goto(ROOT+'/map.html?line='+sl);await p.waitForTimeout(1500);

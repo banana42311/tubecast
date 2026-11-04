@@ -31,7 +31,7 @@ window.FlowData = (function () {
   function atStation(name){var out=[];D.forEach(function(d){if(d.now.indexOf(name)>-1)out.push({d:d,k:'now'});if(d.next.indexOf(name)>-1)out.push({d:d,k:'next'});});return out;}
   function worst(items){return items.slice().sort(function(a,b){return (b.k==='now')-(a.k==='now') || (b.d.sev==='severe')-(a.d.sev==='severe');})[0] || null;}
   function forLine(sl){return D.filter(function(d){return d.line===sl;});}
-  function summary(sl){var ds=forLine(sl),now=new Set(),next=new Set();ds.forEach(function(d){d.now.forEach(function(n){now.add(n);});d.next.forEach(function(n){next.add(n);});});return {now:now.size,next:next.size,total:new Set(Array.from(now).concat(Array.from(next))).size,direction:ds[0] ? ds[0].direction : '',severity:ds.some(function(d){return d.sev==='severe';})?'severe':'minor'};}
+  function summary(sl){var ds=forLine(sl),now=new Set(),next=new Set();ds.forEach(function(d){d.now.forEach(function(n){now.add(n);});d.next.forEach(function(n){next.add(n);});});var nowSet=now;next=new Set(Array.from(next).filter(function(n){return !nowSet.has(n);}));return {now:now.size,next:next.size,total:new Set(Array.from(now).concat(Array.from(next))).size,direction:ds[0] ? ds[0].direction : '',severity:ds.some(function(d){return d.sev==='severe';})?'severe':'minor'};}
   function totals(){var now=new Set(),next=new Set();D.forEach(function(d){d.now.forEach(function(n){now.add(n);});d.next.forEach(function(n){next.add(n);});});return {now:now.size,total:new Set(Array.from(now).concat(Array.from(next))).size};}
   // Align the existing line-detail templates and metadata with this same snapshot.
   (window.LINES || []).forEach(function(l){var s=summary(l.slug);l.now=s.now;l.soon=s.total;var page=window.LINE_DATA && window.LINE_DATA[l.slug];if(!page || !forLine(l.slug).length)return;
@@ -51,7 +51,7 @@ window.FlowData = (function () {
     page.kind=info.closed?'closure':(/delay/i.test(info.status||'')||s.total?'delayed':'none');
     page.hero={value:String(s.now),sub:(s.now===1?'station':'stations')+' delayed now'};
     page.fc={title:s.now+' '+(s.now===1?'station':'stations')+' delayed now',sub:s.next?s.total+' affected in 30 min · '+s.next+' more':'No additional stations predicted',cols:page.fc&&page.fc.cols||[],lines:page.fc&&page.fc.lines};
-    page.rows=[];ds.forEach(function(d){d.now.forEach(function(n){page.rows.push({n:n,d:d.direction,b:{t:'now',end:((d.levels||{})[n]||d.sev)==='severe'?'red':'amber'}});});d.next.forEach(function(n,i){page.rows.push({n:n,d:d.direction,b:{t:'on',at:28.33*(i+1),sev:d.nextSev==='severe'?'red':'amber'}});});});
+    page.rows=[];ds.forEach(function(d){d.now.forEach(function(n){page.rows.push({n:n,d:d.direction,b:{t:'now',end:((d.levels||{})[n]||d.sev)==='severe'?'red':'amber'}});});d.next.forEach(function(n,i){if(ds.some(function(x){return x.now.indexOf(n)>-1;}))return;page.rows.push({n:n,d:d.direction,b:{t:'on',at:28.33*(i+1),sev:d.nextSev==='severe'?'red':'amber'}});});});
     var unknown=info.nowKnown===false&&!s.now&&/delay|suspend|closure/i.test(String(info.status||'')),tfl=String(info.status||''),tflDelay=/delay/i.test(tfl);
     var bw=/between (.+?) and (.+?)(?= (?:east|west|north|south)bound| due | while |, |\. | \/ | and |\.?$)( (?:east|west|north|south)bound only)?/i.exec(String(info.reason||'')),
         sect=bw?' · '+bw[1]+'–'+bw[2]+(bw[3]?' '+bw[3].trim().replace(/ only$/,''):''):'';
