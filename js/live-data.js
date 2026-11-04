@@ -38,6 +38,7 @@
     d.observed_v2 = { as_of: v2.as_of, snapshot_id: v2.snapshot_id, reason_counts: v2.reason_counts, coverage: v2.reference_coverage };
     return d;
   }
+  var lastV2 = null;
   function empty() { return { mode: 'example', delayed: false, hasData: false, disruptions: [], onset: {}, lines: {}, rows: [], stationState: {} }; }
 
   var cached = read(), initial = null;
@@ -118,7 +119,13 @@
     var opts = { cache: 'no-store', signal: controller ? controller.signal : undefined, headers: { Accept: 'application/json' } };
     // v2 (/api/v2/state) carries every confirmed station delay in one snapshot; v1 still carries TfL line status.
     // v2 is optional: if it fails, v1 alone is used as before.
-    var v2 = base ? fetch(base + '/api/v2/state', opts).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }) : Promise.resolve(null);
+    // v2 may answer 503 at a 5-minute boundary (nothing confirmable yet). Then the last valid v2 snapshot is
+    // used for up to 8 minutes, under its own as_of, instead of dropping current station delays.
+    var v2 = base ? fetch(base + '/api/v2/state', opts).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+      .then(function (d) {
+        if (d && d.lines && d.lines.some(function (l) { return l.classified_units > 0; })) { lastV2 = d; return d; }
+        return lastV2 && Date.now() - Date.parse(lastV2.as_of) < 480000 ? lastV2 : null;
+      }) : Promise.resolve(null);
     Promise.all([fetch(url, opts).then(function (response) { if (!response.ok) throw Error(String(response.status)); return response.json(); }), v2])
       .then(function (both) { return mergeV2(both[0], both[1]); })
       .then(function (data) {
