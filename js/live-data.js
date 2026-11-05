@@ -132,7 +132,16 @@
         if (d && d.lines && d.lines.some(function (l) { return l.classified_units > 0; })) { lastV2 = d; return d; }
         return lastV2 && Date.now() - Date.parse(lastV2.as_of) < 480000 ? lastV2 : null;
       }) : Promise.resolve(null);
-    Promise.all([fetch(url, opts).then(function (response) { if (!response.ok) throw Error(String(response.status)); return response.json(); }), v2])
+    Promise.all([fetch(url, opts).then(function (response) {
+      if (response.ok) return response.json();
+      // The server answers 503 when it cannot confirm its sources (e.g. TfL status unchanged for a long quiet spell) but still sends its
+      // latest snapshot. Use it as a delayed snapshot under its own as_of when it is under 90 minutes old.
+      if (response.status === 503) return response.json().then(function (j) {
+        if (j && j.lines && j.as_of && Date.now() - Date.parse(j.as_of) < 5400000) { j.sources = j.sources || {}; j.sources.stale = true; return j; }
+        throw Error('503');
+      });
+      throw Error(String(response.status));
+    }), v2])
       .then(function (both) { return mergeV2(both[0], both[1]); })
       .then(function (data) {
         clearTimeout(timer);

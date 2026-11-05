@@ -182,6 +182,8 @@
     var now = options.now == null ? Date.now() : options.now, max = options.maxAgeSec == null ? 180 : options.maxAgeSec;
     var responseOld = response && (response.sources && response.sources.stale || isOld(response.as_of, now, max));
     if (response && !responseOld) return { data: response, delayed: false, source: 'response' };
+    // A stale response that is still newer than the cached snapshot is better than the older cache (shown as delayed, under its own as_of).
+    if (response && responseOld && cached && cached.data && Date.parse(response.as_of) > Date.parse(cached.data.as_of || '')) return { data: response, delayed: true, source: 'response' };
     if (cached && cached.data) return { data: cached.data, delayed: !!(options.failed || responseOld || isOld(cached.data.as_of, now, max)), source: 'cache' };
     if (response) return { data: response, delayed: true, source: 'response' };
     return null;
