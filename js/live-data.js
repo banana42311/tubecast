@@ -44,7 +44,7 @@
     d.observed_v2 = { as_of: v2.as_of, snapshot_id: v2.snapshot_id, reason_counts: v2.reason_counts, coverage: v2.reference_coverage };
     return d;
   }
-  var lastV2 = null;
+  var lastV2 = null, drawnAsOf = NaN;
   function empty() { return { mode: 'example', delayed: false, hasData: false, disruptions: [], onset: {}, lines: {}, rows: [], stationState: {} }; }
 
   var cached = read(), initial = null;
@@ -54,6 +54,7 @@
     if (choice) initial = build(choice.data, { example: !base, delayed: choice.delayed, fetchedAt: cached.at, source: cached.source });
   }
   window.LiveState = initial || empty();
+  if (initial) drawnAsOf = Date.parse(initial.asOf || '');
 
   function applyLineMetadata() {
     var live = window.LiveState;
@@ -90,12 +91,14 @@
     }
     if (!choice) return false;
     var next = build(choice.data, { example: source === 'fixture', delayed: choice.delayed || failed, fetchedAt: Date.now(), source: choice.source });
-    var hadData = !!window.LiveState.hasData;
+    var hadData = !!window.LiveState.hasData, prevDelayed = window.LiveState.delayed;
     var changed = !window.LiveState.hasData || window.LiveState.asOf !== next.asOf || window.LiveState.delayed !== next.delayed;
     window.LiveState = next; applyLineMetadata(); updateBadge();
     document.documentElement.classList.toggle('live-error', !!next.delayed);
     if (changed) window.dispatchEvent(new CustomEvent('tubecaststate', { detail: next }));
-    if (changed && hadData) softReload();
+    if (!hadData) drawnAsOf = Date.parse(next.asOf || '');
+    // Redraw only when the snapshot is >=4.5 min newer than the drawn page, or the delayed state flipped (a 1-min server cadence must not reload every minute).
+    if (changed && hadData && (prevDelayed !== next.delayed || (drawnAsOf > 0 && Date.parse(next.asOf || '') - drawnAsOf >= 270000))) softReload();
     return changed;
   }
   // Pages are drawn once from LiveState. When they opened without data, redraw as soon as a
