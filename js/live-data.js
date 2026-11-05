@@ -31,9 +31,15 @@
     v2.lines.forEach(function (l) { byId[l.id] = l; });
     d.lines.forEach(function (L) {
       var x = byId[L.id]; if (!x) return;
-      L.rows = (hl[L.id] || []).map(function (r) { return { station: null, naptan: r.naptan, dir: r.dir, now: { level: r.level, gap_min: r.gap_min, usual_min: r.usual_min } }; });
+      // Sanity guard (same rule as training): a usual gap under 1 min is not a reliable baseline, and a gap over 180 min is a stale
+      // platform clock rather than a delay. Such rows are dropped, and the counts follow so cards and lists stay consistent.
+      var all = hl[L.id] || [], keep = all.filter(function (r) { return !(r.usual_min != null && r.usual_min < 1) && !(r.gap_min != null && r.gap_min > 180); });
+      var dropU = all.length - keep.length, kn = {}, an = {}; keep.forEach(function (r) { kn[r.naptan] = 1; }); all.forEach(function (r) { an[r.naptan] = 1; });
+      var dropS = Object.keys(an).length - Object.keys(kn).length;
+      L.rows = keep.map(function (r) { return { station: null, naptan: r.naptan, dir: r.dir, now: { level: r.level, gap_min: r.gap_min, usual_min: r.usual_min } }; });
       L.rows_truncated = false;
-      L.now = { units_delayed: x.confirmed_delayed_units, stations_delayed: x.confirmed_delayed_stations, confirmed_units: x.confirmed_delayed_units, unknown_units: x.unknown_units, observable_units: x.observable_units };
+      var cu = Math.max(0, (x.confirmed_delayed_units || 0) - dropU), cs = Math.max(0, (x.confirmed_delayed_stations || 0) - dropS);
+      L.now = { units_delayed: cu, stations_delayed: cs, confirmed_units: cu, unknown_units: x.unknown_units, observable_units: x.observable_units };
     });
     d.observed_v2 = { as_of: v2.as_of, snapshot_id: v2.snapshot_id, reason_counts: v2.reason_counts, coverage: v2.reference_coverage };
     return d;
