@@ -62,8 +62,8 @@ window.FlowData = (function () {
     page.emptyText=info.closed?page.closureLabel:'No measured station delays';
     if(info.closed){page.hero.sub=page.closureLabel;page.fc.title=page.closureLabel;}
     // 'Now' colour = measured station delays only (TfL line status is in the header text)
-    // +h columns: forecast ring only when stations are added by a forecast; otherwise the current delays carry on
-    var mk=function(h){return cnt(h)>s.now?sev:'pg';};
+    // +h columns: stations added by a forecast take the forecast colour; delays already measured carry on in the colour of the current severity (never 'good' while the count is above 0)
+    var carry=s.severity==='severe'?'ps':'pm',mk=function(h){var c=cnt(h);return c>s.now?sev:(c>0?carry:'pg');};
     page.fc.cols=[['Now',unknown?'—':s.now,unknown?'pg':s.now?(s.severity==='severe'?'ns':'nm'):'ng',unknown?1:0],['10 min',cnt(10),mk(10)],['20 min',cnt(20),mk(20)],['30 min',cnt(30),mk(30)],['60 min','—','pg',1]];
     page.rows.forEach(function(r){if(r.b.t==='on'&&on[r.n]!=null)r.b.at=Math.min(170,28.33*on[r.n]/10);});
   });
